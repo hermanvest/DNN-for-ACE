@@ -1,1 +1,1 @@
-# DNN-for-ACE
+# Deep Equilibrium Nets for The Analytic Climate Economy
