@@ -17,6 +17,9 @@ class Config:
     STATE_SPACE = 10
     ACTION_SPACE = 10
 
+    # Network parameters
+    HIDDEN_NODES = 1024
+
     # Training parameters
     TOTAL_EPISODES = 1000
 

@@ -1,10 +1,14 @@
 # Imports
 from config import Config
+from networks.policy_network import Policy_Network
+from agents.deqn_agent import DEQN_agent
 
 
 def main():
     # Initialize Environment
     # Initialize Agent
+    policy_network = Policy_Network()
+    agent = DEQN_agent(policy_network)
     # Initialize (Replay)Buffer
 
     # Start the main training loop

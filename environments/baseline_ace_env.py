@@ -1,4 +1,4 @@
-class ace_env:
+class Baseline_ace_env:
     metadata = {"render_modes": ["none", "human"]}
 
     def __init__(self) -> None:
