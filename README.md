@@ -12,7 +12,7 @@ Briefly describe what the project is about and what it aims to achieve. Explain 
 
 ## Technologies
 
-List the technologies, languages, and frameworks used in your project. For example:
+List the technologies, languages, and frameworks used the project. For example:
 
 - Technology 1
 - Technology 2
@@ -33,7 +33,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Considering to add my email here
+Add email here
 
 ## Acknowledgements
 
