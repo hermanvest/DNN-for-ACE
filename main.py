@@ -1,4 +1,5 @@
 # Imports
+from environments.baseline_ace_env import Baseline_ace_env
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 
@@ -6,11 +7,17 @@ from utils.config_loader import load_config
 
 
 def main():
-    # Initialize Environment
-    # Initialize Agent
+    # Loading config files
+    env_config = load_config("./configs/env_configs/baseline_env_config1.yaml")
     network_config = load_config("./configs/network_configs/network_config1.yaml")
+
+    # Initialize Environment
+    env = Baseline_ace_env(env_config)
+
+    # Initialize Agent
     policy_network = Policy_Network(network_config)
     agent = DEQN_agent(policy_network)
+
     # Initialize (Replay)Buffer
 
     """
