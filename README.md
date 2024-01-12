@@ -14,14 +14,24 @@ Briefly describe what the project is about and what it aims to achieve. Explain 
 
 List the technologies, languages, and frameworks used the project. For example:
 
-- Technology 1
-- Technology 2
-- Framework 1
-- Etc.
+- Packages: pyyaml, Tensorflow
 
 ## Installation
 
 Step-by-step instructions on how to install the project. Include any prerequisites or dependencies.
+
+### (Step 0): Miniconda for Package Management
+
+1. **Why Miniconda?** I recommend using Miniconda for managing packages and environments.
+2. **What is Miniconda?** Miniconda is a minimal installer for Conda, an open-source package management system and environment manager.
+3. **Quick Installation Guide:**
+   - Download Miniconda from the [official site](https://docs.conda.io/projects/miniconda/en/latest/).
+   - Install by following the instructions for your OS.
+   - Create and activate a new Conda environment with `conda create --name myenv python=3.x` and `conda activate myenv`.
+
+### Step 1
+
+Install packages with pip.
 
 ## Usage
 
