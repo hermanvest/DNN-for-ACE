@@ -1,0 +1,22 @@
+# RANDOMLY CHOSEN PARAMETER VALUES FOR NOW
+
+####### --- ECONOMIC PARAMETERS/VALUES --- #######
+
+# PRODUCTION PARAMETERS
+
+
+####### --- CLIMATE PARAMETERS/VALUES --- #######
+
+# CARBON STOCKS
+M_pre: 596.4 # Pre-industrial atmospheric carbon concentration ACE
+# M_pre: 600 # Pre-industrial atmospheric carbon concentration DICE?
+
+M: # 2015 Carbon stocks (Not sure where these are from)
+  - 862.86 # Atmosphere
+  - 1541.11 # Upper ocean
+  - 10010.44 # Deep ocean
+
+
+# TRANSFORMED TEMPERATURES
+
+# CARBON DIFFUSION

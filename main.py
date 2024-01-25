@@ -1,5 +1,5 @@
 # Imports
-from environments.baseline_ace_env import Baseline_ace_env
+from environments.base_ace_with_dice_prod.base_ace_dice_prod import Base_ace_dice_prod
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 
@@ -12,7 +12,7 @@ def main():
     network_config = load_config("./configs/network_configs/network_config1.yaml")
 
     # Initialize Environment
-    env = Baseline_ace_env(env_config)
+    env = Base_ace_dice_prod(env_config)
 
     # Initialize Agent
     policy_network = Policy_Network(network_config)
