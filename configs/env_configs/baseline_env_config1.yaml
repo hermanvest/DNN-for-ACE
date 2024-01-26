@@ -1,22 +1,40 @@
-# RANDOMLY CHOSEN PARAMETER VALUES FOR NOW
+####### --- PARAMETERS FOR STATE UPDATES --- #######
+state_updates:
+  production_specific:
+    # ACE specific parameters
+    xi_0: 0.2219
+    xi_1: 0.25
+    kappa: 0.3
+    delta_k: 0.44
+    g_k: 0.29
+    sigma_forc: 0.5198
 
-####### --- ECONOMIC PARAMETERS/VALUES --- #######
+    # DICE Production specific parameters
+    ## For carbon intensity
+    g_0_sigma: -0.0152
+    delta_sigma: 0.001
+    sigma_0: 0.00009556
+    delta_t: 5
+    ## For abatement costs
+    p_0_back: 0.55
+    g_back: 0.005
+    theta_2: 2.6
+    c2co2: 3.666
 
-# PRODUCTION PARAMETERS
+  climate_specific:
+    M_pre: 596.4 # Pre-industrial atmospheric carbon concentration ACE
+    # M_pre: 600 # Pre-industrial atmospheric carbon concentration DICE?
 
+    M: # 2015 Carbon stocks (Not sure where these are from)
+      - 862.86 # Atmosphere M_1
+      - 1541.11 # Upper ocean M_2
+      - 10010.44 # Deep ocean M_3
+    
+    Phi:
+      - [0.8240, 0.0767, 0]
+      - [0.1760, 0.9183, 0.0007]
+      - [0, 0.0050, 0.9993]
 
-####### --- CLIMATE PARAMETERS/VALUES --- #######
-
-# CARBON STOCKS
-M_pre: 596.4 # Pre-industrial atmospheric carbon concentration ACE
-# M_pre: 600 # Pre-industrial atmospheric carbon concentration DICE?
-
-M: # 2015 Carbon stocks (Not sure where these are from)
-  - 862.86 # Atmosphere
-  - 1541.11 # Upper ocean
-  - 10010.44 # Deep ocean
-
-
-# TRANSFORMED TEMPERATURES
-
-# CARBON DIFFUSION
+    sigma:
+      - [0.166726698937639, 0.313477283382278]
+      - [0.0229478090365842, 0.977052190963416]

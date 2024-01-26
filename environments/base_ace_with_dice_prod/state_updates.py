@@ -1,4 +1,5 @@
 from typing import Any, Dict
+import numpy as np
 
 
 class DICE_Prod_Stateupdater:
@@ -15,22 +16,62 @@ class DICE_Prod_Stateupdater:
     """
 
     def __init__(self, constants: Dict[str, Any]) -> None:
+        # Initialization from config file.
+        for section_key, section_value in constants.items():
+            for key, value in section_value.items():
+                setattr(self, key, value)
+
+    # --- HELPER METHODS ---
+    def _theta_1_t(self) -> float:
+        """
+        Computes and returns the abatement costs.
+
+        Returns:
+            float: Abatement costs Theta_{1,t}
+        """
+
+    def _sigma_t(self, t: int) -> float:
+        """
+        Computes and returns the carbon intensity sigma_t
+
+        Args:
+            t (int): time
+
+        Returns:
+            float: carbon intensity sigma_t
+        """
         pass
 
-    def log_f_t(a_t: float, k_t: float, N_t: float, E_t: float) -> float:
+    # --- MAIN EQUATIONS ---
+
+    def log_f_t(
+        self,
+        a_t: float,
+        k_t: float,
+        N_t: float,
+        E_t: float,
+        E_t_BAU: float,
+        theta_1_t: float,
+    ) -> float:
         """
-        Needs the following in order to return next state:
-        - Technology a_t
-        - Current capital level k_t
-        - Population N_t
-        - Emissions E_t
+        Args:
+        - Technology: a_t
+        - Current capital level: k_t
+        - Population: N_t
+        - Emissions: E_t and E_t_BAU (Business As Usual
+        - Abatement cost reduction over time: Theta_{1,t}
 
         Returns: log F_t
         """
+        capital_contribution = self._kappa * k_t
+        labor_contribution = (1 - self._kappa) * np.log(N_t)
+        energy_sector = np.log(1 - theta_1_t * ((1 - E_t / E_t_BAU) ** self._theta2))
+
+        return a_t + capital_contribution + labor_contribution + energy_sector
 
     def k_tplus() -> float:
         """
-        Needs the following in order to return next state:
+        Args:
         - Y_t = F_t(A_t,N_t,K_t,E_t)
         - xi_0
         - tau_{1,t}
@@ -43,7 +84,7 @@ class DICE_Prod_Stateupdater:
 
     def m_1plus() -> float:
         """
-        Needs the following in order to return next state:
+        Args:
         - First row of Phi
         - The current vector of carbon stocks M_t
         - All emissions at current timestep, including exogenous emissions
@@ -53,7 +94,7 @@ class DICE_Prod_Stateupdater:
 
     def m_2plus() -> float:
         """
-        Needs the following in order to return next state:
+        Args:
         - Second row of Phi
         - The current vector of carbon stocks M_t
 
@@ -62,7 +103,7 @@ class DICE_Prod_Stateupdater:
 
     def m_3plus() -> float:
         """
-        Needs the following in order to return next state:
+        Args:
         - Third row of Phi
         - The current vector of carbon stocks M_t
 
@@ -71,7 +112,7 @@ class DICE_Prod_Stateupdater:
 
     def tau_1plus() -> float:
         """
-        Needs the following in order to return next state:
+        Args:
         - Transition matrix for temperatures
         - The current vector of transformed temperatures tau
         - Sigma^forc
@@ -84,7 +125,7 @@ class DICE_Prod_Stateupdater:
 
     def tau_2plus() -> float:
         """
-        Needs the following in order to return next state:
+        Args:
         - Transition matrix for temperatures
         - The current vector of transformed temperatures tau
         - Sigma^forc
