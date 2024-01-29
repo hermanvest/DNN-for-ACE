@@ -48,7 +48,7 @@ class DICE_Prod_Stateupdater:
         step_intensity = (self.delta_t * self.g_0_sigma) / (
             np.log(1 + self.delta_t * self.delta_sigma)
         )
-        decline = np.power(1 + self.delta_t * self.delta_suigma, t) - 1
+        decline = np.power(1 + self.delta_t * self.delta_sigma, t) - 1
 
         return self.sigma_0 * np.exp(step_intensity * decline)
 
@@ -70,10 +70,10 @@ class DICE_Prod_Stateupdater:
         capital_contrib = self.kappa * k_t
         labor_contrib = (1 - self.kappa) * np.log(N_t)
         energy_sector = np.log(
-            1 - self._theta_1_t(t) * np.power((1 - E_t / E_t_BAU), self._theta2)
+            1 - self._theta_1_t(t) * np.power((1 - E_t / E_t_BAU), self.theta_2)
         )
 
-        return a_t * capital_contrib * labor_contrib * energy_sector
+        return a_t + capital_contrib + labor_contrib + energy_sector
 
     def k_tplus(
         self,
@@ -94,12 +94,13 @@ class DICE_Prod_Stateupdater:
 
         Returns: k_{t+1}
         """
+
         log_f_t = self._log_f_t(a_t, k_t, N_t, E_t, E_t_BAU, t)
         damages = -self.xi_0 * tau_1_t + self.xi_0
-        consumption = np.log(1 - x_t)
+        log_one_x_t = np.log(1 - x_t)
         depreciation_factor = np.log(1 + self.g_k) - np.log(self.delta_k + self.g_k)
 
-        return log_f_t + damages + consumption + depreciation_factor
+        return log_f_t + damages + log_one_x_t + depreciation_factor
 
     def m_1plus(self, m_t: np.array, E_t: float) -> float:
         """
@@ -147,7 +148,8 @@ class DICE_Prod_Stateupdater:
         sigma_row_1 = np.array(self.sigma[0][:])
 
         temp_transitions = np.dot(sigma_row_1, tau_t)
-        forcing = self.sigma_forc((m_1_t + G_t) / self.M_pre)
+        forcing = self.sigma_forc * ((m_1_t + G_t) / self.M_pre)
+        return temp_transitions + forcing
 
     def tau_2plus(self, tau_t: np.array) -> float:
         """

@@ -14,7 +14,7 @@ Briefly describe what the project is about and what it aims to achieve. Explain 
 
 List the technologies, languages, and frameworks used the project. For example:
 
-- Packages: pyyaml, Tensorflow
+- Packages: pyyaml, Tensorflow, pytest
 
 ## Installation
 
