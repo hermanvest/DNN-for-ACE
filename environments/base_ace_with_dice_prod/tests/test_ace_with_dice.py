@@ -36,6 +36,9 @@ def setUp():
     return DICE_Prod_Stateupdater(config_dict)
 
 
+###################### Type tests ######################
+
+
 def test_k_t_plus_is_float(setUp):
     assert isinstance(setUp.k_tplus(1, 1, 1, 1, 1, 1, 1, 0.1), float)
 
@@ -65,7 +68,10 @@ def test_tau_2_plus_is_float(setUp):
     assert isinstance(setUp.tau_2plus(tau), float)
 
 
-def test_tau_1_plus_is_float(setUp):
+###################### Calculation tests ######################
+
+
+def test_tau_1_plus_calculations(setUp):
     tau = np.array([1.0, 1.0])
     assert np.isclose(setUp.tau_1plus(tau, 1.0), 2.01, rtol=1e-3)
 
