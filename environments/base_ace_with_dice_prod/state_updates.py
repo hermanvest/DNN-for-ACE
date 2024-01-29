@@ -149,6 +149,7 @@ class DICE_Prod_Stateupdater:
 
         temp_transitions = np.dot(sigma_row_1, tau_t)
         forcing = self.sigma_forc * ((m_1_t + G_t) / self.M_pre)
+
         return temp_transitions + forcing
 
     def tau_2plus(self, tau_t: np.array) -> float:
