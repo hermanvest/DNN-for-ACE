@@ -3,11 +3,10 @@ state_updates:
   production_specific:
     # ACE specific parameters
     xi_0: 0.2219
-    xi_1: 0.25
+    #xi_1: 0.25 # Baked int the tau. probably not needed.
     kappa: 0.3
     delta_k: 0.44
     g_k: 0.29
-    sigma_forc: 0.5198
 
     # DICE Production specific parameters
     ## For carbon intensity
@@ -22,6 +21,7 @@ state_updates:
     c2co2: 3.666
 
   climate_specific:
+    sigma_forc: 0.5198
     M_pre: 596.4 # Pre-industrial atmospheric carbon concentration ACE
     # M_pre: 600 # Pre-industrial atmospheric carbon concentration DICE?
 

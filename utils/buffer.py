@@ -1,2 +1,2 @@
 class Buffer:
-    pass
+    raise NotImplementedError
