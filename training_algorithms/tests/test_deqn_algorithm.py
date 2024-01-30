@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
 from agents.deqn_agent import DEQN_agent
@@ -43,3 +44,24 @@ def setUp():
     environment = Base_ace_dice_prod(env_config)
 
     return Algorithm_DEQN(agent=agent, env=environment)
+
+
+def test_that_episodes_are_generated(setUp):
+    num_trantitions_expected = 100
+    episode = setUp.generate_episode()
+    episode_legth = episode.shape[0]
+    assert episode == num_trantitions_expected
+
+
+def test_network_parameters_updates(setUp):
+    pre_training_weights = setUp.agent.policy_network.get_weights()
+    setUp.do_learning_pass()
+    post_training_weights = setUp.agent.policy_network.get_weights()
+
+    updated = False
+    for initial, updated in zip(pre_training_weights, post_training_weights):
+        if not np.array_equal(initial, updated):
+            updated = True
+            break
+
+    assert updated

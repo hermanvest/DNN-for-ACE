@@ -5,6 +5,7 @@ A class that can take an environment and an agent of some sort as input. Should 
     - Etc...
 - 
 """
+import numpy as np
 from agents.deqn_agent import DEQN_agent
 from environments.abstract_environment import Abstract_Environment
 
@@ -25,7 +26,15 @@ class Algorithm_DEQN:
         # raise ValueError(f"Incompatible parameters: {param1} and {param2}")
         raise NotImplementedError
 
-    def generate_episode(self) -> None:
+    def generate_episode(self) -> np.ndarray:
+        """
+        Generates an episode with the policy network and returns a numpy array with state transitions.
+        Args:
+            None
+
+        Returns:
+            np.ndarray: _description_
+        """
         raise NotImplementedError
         # episode buffer = []
         # state = initial state of env
