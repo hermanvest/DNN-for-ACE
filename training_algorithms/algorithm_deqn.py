@@ -5,8 +5,8 @@ A class that can take an environment and an agent of some sort as input. Should 
     - Etc...
 - 
 """
-from ..agents.deqn_agent import DEQN_agent
-from ..environments.abstract_environment import Abstract_Environment
+from agents.deqn_agent import DEQN_agent
+from environments.abstract_environment import Abstract_Environment
 
 
 class Algorithm_DEQN:

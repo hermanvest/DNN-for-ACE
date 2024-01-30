@@ -1,10 +1,9 @@
 import pytest
-from ..algorithm_deqn import Algorithm_DEQN
-from ...agents.deqn_agent import DEQN_agent
-from ...networks.policy_network import Policy_Network
-from ...environments.base_ace_with_dice_prod.base_ace_dice_prod import (
-    Base_ace_dice_prod,
-)
+
+from training_algorithms.algorithm_deqn import Algorithm_DEQN
+from agents.deqn_agent import DEQN_agent
+from networks.policy_network import Policy_Network
+from environments.base_ace_with_dice_prod.base_ace_dice_prod import Base_ace_dice_prod
 
 
 network_config = {"input_space": 10, "output_space": 10, "hidden_nodes": 1024}
