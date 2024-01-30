@@ -1,7 +1,6 @@
 # Deep learning related libraries
 import tensorflow as tf
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.models import Sequential
 
 # Type related libraries
 from typing import Any, Dict
