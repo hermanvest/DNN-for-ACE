@@ -54,7 +54,7 @@ class DICE_Prod_Stateupdater:
 
     # --- MAIN EQUATIONS ---
 
-    def _log_f_t(
+    def log_f_t(
         self, a_t: float, k_t: float, N_t: float, E_t: float, E_t_BAU: float, t: int
     ) -> float:
         """
@@ -77,30 +77,23 @@ class DICE_Prod_Stateupdater:
 
     def k_tplus(
         self,
-        a_t: float,
-        k_t: float,
-        N_t: float,
-        E_t: float,
-        E_t_BAU: float,
-        t: int,
+        Y_t: float,
         tau_1_t: float,
         x_t: float,
     ) -> float:
         """
         Args:
-        - Y_t = F_t(A_t,N_t,K_t,E_t) NOW COMPUTED HERE, BUT COULD JUST BE GIVEN?
+        - Y_t = F_t(A_t,N_t,K_t,E_t)
         - tau_{1,t}
         - x_t
 
         Returns: k_{t+1}
         """
-
-        log_f_t = self._log_f_t(a_t, k_t, N_t, E_t, E_t_BAU, t)
         damages = -self.xi_0 * tau_1_t + self.xi_0
         log_one_x_t = np.log(1 - x_t)
         depreciation_factor = np.log(1 + self.g_k) - np.log(self.delta_k + self.g_k)
 
-        return log_f_t + damages + log_one_x_t + depreciation_factor
+        return Y_t + damages + log_one_x_t + depreciation_factor
 
     def m_1plus(self, m_t: np.array, E_t: float) -> float:
         """
