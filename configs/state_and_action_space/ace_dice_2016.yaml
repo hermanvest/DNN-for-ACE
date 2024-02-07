@@ -9,7 +9,7 @@ state_variables:
   - name: t
 
 # ACTIONS VARIABLES AND ACTIVATION FUNCTIONS
-actions_variables:
+action_variables:
   # Controls
   - name: x_t
     activation: tf.keras.activations.linear

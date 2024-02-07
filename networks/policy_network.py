@@ -21,30 +21,24 @@ class Policy_Network(tf.keras.Model):
         input_space = len(config_env_specifics["state_variables"])
         output_space = len(config_env_specifics["action_variables"])
 
-        self._hidden1 = self._create_dense_layer(
+        self._hidden1 = Dense(
             hidden_nodes,
-            hidden_activation_function,
-            kernel_initializer_config,
-            (input_space,),
+            activation=hidden_activation_function,
+            input_shape=(input_space,),
+            kernel_initializer=tf.keras.initializers.VarianceScaling(
+                **kernel_initializer_config
+            ),
         )
-        self._hidden2 = self._create_dense_layer(
+        self._hidden2 = Dense(
             hidden_nodes,
-            hidden_activation_function,
-            kernel_initializer_config,
+            activation=hidden_activation_function,
+            kernel_initializer=tf.keras.initializers.VarianceScaling(
+                **kernel_initializer_config
+            ),
         )
-        self._output_layer = self._create_dense_layer(
+        self._output_layer = Dense(
             output_space,
-            output_activation_function,
-            kernel_initializer_config,
-        )
-
-    def _create_dense_layer(
-        nodes, activation, kernel_initializer_config, input_shape=None
-    ):
-        return Dense(
-            nodes,
-            activation=activation,
-            input_shape=input_shape,
+            activation=output_activation_function,
             kernel_initializer=tf.keras.initializers.VarianceScaling(
                 **kernel_initializer_config
             ),

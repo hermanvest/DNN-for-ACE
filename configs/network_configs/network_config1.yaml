@@ -3,7 +3,7 @@ hidden_activation_function: relu
 output_activation_function: linear
 
 # Variance scaling for initializing the neural network
-kernel:
+kernel_initializer_config:
   mode: fan_avg
   distribution: uniform
   scale: 1.0
