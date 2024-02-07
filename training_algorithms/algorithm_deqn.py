@@ -5,6 +5,7 @@ A class that can take an environment and an agent of some sort as input. Should 
     - Etc...
 - 
 """
+
 import numpy as np
 from agents.deqn_agent import DEQN_agent
 from environments.abstract_environment import Abstract_Environment
@@ -35,17 +36,22 @@ class Algorithm_DEQN:
         Returns:
             np.ndarray: Array with state transitions as elements [state_t, state_t_plus_1]
         """
-        # episode buffer = []
-        # state = initial state of env
-        # for i = 1,N do:
-        #   prediction = nn(state)
-        #   next_state = env.step(prediction)
-        #   episode buffer.add([state, next_state])
-        #   next_state = state
-        # return episode buffer
-
-    def do_learning_pass(self) -> None:
+        # Returns tensor with [timestep, simulation or batch, statevariables]
         raise NotImplementedError
+
+    def epoch(self):
+        raise NotImplementedError
+        # 1. divide into batches
+        # 2. for batch in batches, calculate errors, do gradient descent
+        # 3. return losses
+
+    def do_epochs(self) -> None:
+        raise NotImplementedError
+        # for epoch in epochs, do epochs thing, log losses
 
     def main_loop(self) -> None:
         raise NotImplementedError
+        # for episode in episodes,
+        #   generate episode
+        #   run do_epochs on episode
+        #   do checkpoint of model if it is performing better
