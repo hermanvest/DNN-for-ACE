@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 import tensorflow as tf
+import numpy as np
 
 
 class Abstract_Environment(ABC):
@@ -10,4 +11,8 @@ class Abstract_Environment(ABC):
 
     @abstractmethod
     def reset(self) -> None:
+        pass
+
+    @abstractmethod
+    def compute_loss(self, batch: np.ndarray) -> Any:
         pass

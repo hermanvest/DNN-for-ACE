@@ -33,9 +33,8 @@ class Algorithm_DEQN:
             None
 
         Returns:
-            np.ndarray: _description_
+            np.ndarray: Array with state transitions as elements [state_t, state_t_plus_1]
         """
-        raise NotImplementedError
         # episode buffer = []
         # state = initial state of env
         # for i = 1,N do:

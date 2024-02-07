@@ -1,0 +1,33 @@
+# STATE VARIABLES
+state_variables:
+  - name: k_t
+  - name: M_1_t
+  - name: M_2_t
+  - name: M_3_t
+  - name: tau_1_t
+  - name: tau_2_t
+  - name: t
+
+# ACTIONS VARIABLES AND ACTIVATION FUNCTIONS
+actions_variables:
+  # Controls
+  - name: x_t
+    activation: tf.keras.activations.linear
+  - name: E_t
+    activation: tf.keras.activations.linear
+  # Value function prediction
+  - name: V_t
+    activation: tf.keras.activations.linear
+  # Lagrange multipliers
+  - name: lambda_k_t
+    activation: tf.keras.activations.linear
+  - name: lambda_m_1
+    activation: tf.keras.activations.linear
+  - name: lambda_m_2
+    activation: tf.keras.activations.linear
+  - name: lambda_m_3
+    activation: tf.keras.activations.linear
+  - name: lambda_tau_1
+    activation: tf.keras.activations.linear
+  - name: lambda_tau_2
+    activation: tf.keras.activations.linear

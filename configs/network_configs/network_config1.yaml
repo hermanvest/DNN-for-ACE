@@ -1,3 +1,10 @@
-input_space: 10 # States
-output_space: 10 # Actions
 hidden_nodes: 1024
+hidden_activation_function: relu
+output_activation_function: linear
+
+# Variance scaling for initializing the neural network
+kernel:
+  mode: fan_avg
+  distribution: uniform
+  scale: 1.0
+  seed: 1

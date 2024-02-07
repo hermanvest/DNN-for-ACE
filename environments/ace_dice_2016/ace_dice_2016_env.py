@@ -1,9 +1,10 @@
 from typing import Any, Dict
-from ..abstract_environment import Abstract_Environment
+from environments.abstract_environment import Abstract_Environment
 import tensorflow as tf
+import numpy as np
 
 
-class Base_ace_dice_prod(Abstract_Environment):
+class Ace_dice_2016(Abstract_Environment):
     metadata = {"render_modes": ["none", "human"]}
 
     def __init__(self, config: Dict[str, Any]) -> None:
@@ -20,6 +21,9 @@ class Base_ace_dice_prod(Abstract_Environment):
         Takes as input, the action obtained from the policy.
         Returns the state we trantision to by taking the step in the environment.
         """
+        raise NotImplementedError
+
+    def compute_loss(self, batch: np.ndarray) -> Any:
         raise NotImplementedError
 
     def render(self) -> None:

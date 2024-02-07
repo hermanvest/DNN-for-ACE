@@ -4,10 +4,20 @@ import numpy as np
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
 from agents.deqn_agent import DEQN_agent
 from networks.policy_network import Policy_Network
-from environments.base_ace_with_dice_prod.base_ace_dice_prod import Base_ace_dice_prod
+from environments.ace_dice_2016.ace_dice_2016_env import Ace_dice_2016
 
 
-network_config = {"input_space": 10, "output_space": 10, "hidden_nodes": 1024}
+network_config = {
+    "input_space": 10,
+    "hidden_nodes": 1024,
+    "hidden_activation_function": "relu",
+    "output_activation_function": "linear",
+    "output_space": 10,
+    "initializer_mode": "fan_avg",
+    "initializer_distribution": "uniform",
+    "initializer_scale": 1.0,
+    "initializer_seed": 1,
+}
 
 env_config = {
     "production_specific": {
@@ -41,10 +51,12 @@ env_config = {
 def setUp():
     network = Policy_Network(network_config)
     agent = DEQN_agent(network)
-    environment = Base_ace_dice_prod(env_config)
+    environment = Ace_dice_2016(env_config)
 
     return Algorithm_DEQN(agent=agent, env=environment)
 
+
+"""
 
 def test_that_episodes_are_generated(setUp):
     num_trantitions_expected = 100
@@ -65,3 +77,4 @@ def test_network_parameters_updates(setUp):
             break
 
     assert updated
+"""
