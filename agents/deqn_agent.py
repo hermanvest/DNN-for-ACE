@@ -1,4 +1,5 @@
 import tensorflow as tf
+from typing import Any, Dict
 
 
 class DEQN_agent:
@@ -6,11 +7,11 @@ class DEQN_agent:
         self.policy_network = policy_network
         # Initialize other necessary components like memory buffer, etc.
 
-    def act(self, state):
+    def get_action(self, state) -> Dict[str, tf.Tensor]:
         """Returns actions for given state as per current policy."""
-        # Implement the action selection logic
-        # Usually involves feeding the state through the policy network
-        raise NotImplementedError
+        # TODO: get_action can return a dict with the action variables
+
+        return self.policy_network(state)
 
     def learn(self, experiences):
         """Update the agent's knowledge based on experiences."""
