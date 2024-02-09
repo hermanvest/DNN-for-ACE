@@ -62,7 +62,7 @@ class DICE_Prod_Stateupdater:
         - Technology: a_t
         - Current capital level: k_t
         - Population: N_t
-        - Emissions: E_t and E_t_BAU (Business As Usual
+        - Emissions: E_t and E_t_BAU (Business As Usual)
         - Abatement cost reduction over time: Theta_{1,t}
 
         Returns: log F_t

@@ -52,14 +52,14 @@ class Algorithm_DEQN:
 
         for t in range(self.t_max):
             a_t = self.agent.get_actions(s_t)  # shape [batch, actionvars]
-            s_tplus = self.env.step(a_t)
+            s_tplus = self.env.step(s_t, a_t)
             states.append(s_t)
             s_t = s_tplus
         states_tensor = tf.stack(states)
         return states_tensor
 
     def epoch(self, batches: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
-        # TODO: Consider renaming batches to statesample! More informative
+        # TODO: Consider renaming batches to statesample. More informative?
         total_loss = 0.0
         total_loss_with_penalty = 0.0
         num_batches = 0
