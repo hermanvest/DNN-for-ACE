@@ -3,14 +3,16 @@ from typing import Any, Dict
 
 
 class DEQN_agent:
-    def __init__(self, policy_network: tf.keras.Model) -> None:
+    def __init__(
+        self, policy_network: tf.keras.Model, config_env_specifics: Dict[str, Any]
+    ) -> None:
         self.policy_network = policy_network
-        # Initialize other necessary components like memory buffer, etc.
+        self.action_names = [
+            action["name"] for action in config_env_specifics["action_variables"]
+        ]
 
-    def get_action(self, state) -> Dict[str, tf.Tensor]:
+    def get_actions(self, state: tf.Tensor) -> tf.Tensor:
         """Returns actions for given state as per current policy."""
-        # TODO: get_action can return a dict with the action variables
-
         return self.policy_network(state)
 
     def learn(self, experiences):
