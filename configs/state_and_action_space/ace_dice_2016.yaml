@@ -2,22 +2,30 @@ parameters:
   production_specific:
     # ACE specific parameters
     xi_0: 0.2219
-    #xi_1: 0.25 # Baked int the tau. probably not needed.
+    #xi_1: 0.25 # Baked into the tau. probably not needed.
     kappa: 0.3
     delta_k: 0.44
     g_k: 0.29
 
     # DICE Production specific parameters
-    ## For carbon intensity
+    ## For carbon intensity sigma_t
     g_0_sigma: -0.0152
     delta_sigma: 0.001
     sigma_0: 0.00009556
     delta_t: 5
-    ## For abatement costs
+    ## For abatement costs theta_{1,t}
     p_0_back: 0.55
     g_back: 0.005
     theta_2: 2.6
     c2co2: 3.666
+    ## For initializing labor (N_t)
+    pop0: 7403              # Initial world population 2015 (millions)
+    popadj: 0.134           # Growth rate to calibrate to 2050 pop projection
+    popasym: 11500          # Asymptotic population (millions)
+    ## For initializing total factor productivity
+    dela: 0.005             # Decline rate of TFP per 5 years
+    ga0: 0.076              # Initial growth rate for TFP per 5 years
+    a0: 5.115               # Initial level of total factor productivity
 
   climate_specific:
     sigma_forc: 0.5198

@@ -17,7 +17,7 @@ class Equations_of_motion_Ace_Dice:
     """
 
     def __init__(
-        self, states: List, actions: List, parameters_config: Dict[str, Any]
+        self, t_max: int, states: List, actions: List, parameters_config: Dict[str, Any]
     ) -> None:
         # Initialization based on config file
         # Note that all variables can be found there
@@ -27,6 +27,7 @@ class Equations_of_motion_Ace_Dice:
 
         self.states = states
         self.actions = actions
+        self.N_t = self.create_N_t(t_max)
 
     def update_state(self, s_t: tf.Tensor, a_t: tf.Tensor) -> tf.Tensor:
         # state- and action values should be in the same order as in the config
@@ -62,14 +63,14 @@ class Equations_of_motion_Ace_Dice:
         return s_t_plus_tensor
 
     # --- HELPER METHODS ---
-    def N_t(self, t: int) -> float:
+    def create_N_t(self, t_max) -> np.ndarray:
         """_summary_
 
         Args:
-            t (int): _description_
+            None
 
         Returns:
-            float: _description_
+            np.ndarray: A list of the labor inputs we need for all time steps.
 
         Relevant GAMS code:
             set        t  Time periods (5 years per period)           /1*100   /
@@ -80,16 +81,23 @@ class Equations_of_motion_Ace_Dice:
             loop(t, l(t+1)=l(t););
             loop(t, l(t+1)=l(t)*(popasym/L(t))**popadj ;);
         """
-        raise NotImplementedError
+        labor = np.zeros(t_max + 1)
+        labor[1] = self.pop0
 
-    def a_t(self, t: int) -> float:
-        """_summary_
+        for t in range(1, t_max):
+            labor[t + 1] = labor[t] * (self.popasym / labor[t]) ** self.popaj
+
+        return labor
+
+    def create_a_t(self, t_max) -> np.ndarray:
+        """
+        Creates a list of log total factor productivity we need for all time steps.
 
         Args:
-            t (int): _description_
+            None
 
         Returns:
-            float: _description_
+            np.ndarray: A list of the log of total factor productivity for all time steps.
 
         Relevant GAMS code:
             set        t  Time periods (5 years per period)           /1*100   /
@@ -99,17 +107,30 @@ class Equations_of_motion_Ace_Dice:
             ga(t)=ga0*exp(-dela*5*((t.val-1)));
             al("1") = a0; loop(t, al(t+1)=al(t)/((1-ga(t))););
         """
-        raise NotImplementedError
+        tfp = np.zeros(t_max + 1)
+        tfp[1] = self.a0  # Set the initial value
 
-    def E_t_BAU(self):
+        # Pre-calculate the ga values for efficiency
+        t_values = np.arange(1, t_max + 1)
+        ga = self.ga0 * np.exp(-self.dela * self.timestep * (t_values - 1))
+
+        # Calculate TFP levels
+        for t in range(1, t_max):
+            tfp[t + 1] = tfp[t] / (1 - ga[t])
+
+        # Return the log of TFP levels
+        return np.log(tfp[1:])  # Exclude the first element as it's initialized to 0
+
+    def E_t_BAU(self) -> float:
         """_summary_
 
         Relevant Matlab code:
-            E_BAU(i,t)=sigma(t,i)*Y_gross(i,t);
             Y_gross(i,t)=A_tfp(i,t)*(N(i,t)/1000)^(1-kappa(i))*K(i,t)^(kappa(i)); % trillion USD
+            E_BAU(i,t)=sigma(t,i)*Y_gross(i,t);
 
             # The i is for the region, so we can disregard that.
         """
+        raise NotImplementedError
 
     def theta_1_t(self, t: int) -> float:
         """
@@ -157,7 +178,8 @@ class Equations_of_motion_Ace_Dice:
 
         return self.sigma_0 * np.exp(step_intensity * decline)
 
-    # --- MAIN EQUATIONS ---
+    def y_gross():
+        return
 
     def log_f_t(
         self, a_t: float, k_t: float, N_t: float, E_t: float, E_t_BAU: float, t: int
@@ -179,6 +201,8 @@ class Equations_of_motion_Ace_Dice:
         )
 
         return a_t + capital_contrib + labor_contrib + energy_sector
+
+    # --- MAIN EQUATIONS ---
 
     def k_tplus(
         self,
