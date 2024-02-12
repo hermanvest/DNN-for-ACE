@@ -1,16 +1,22 @@
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, List
 from environments.abstract_environment import Abstract_Environment
+from equations_of_motion import Equations_of_motion_Ace_Dice
 import tensorflow as tf
 import numpy as np
 
 
 class Ace_dice_2016(Abstract_Environment):
-    def __init__(self, config: Dict[str, Any]) -> None:
-        raise NotImplementedError
-
-    def update_state(self, s_t: tf.Tensor, a_t: tf.Tensor) -> tf.Tensor:
-        # dumbest way to do this:
-        pass
+    def __init__(
+        self,
+        num_batches: int,
+        state_config: List,
+        parameter_config: Dict[str, Any],
+    ) -> None:
+        self.num_batches = num_batches
+        self.state_config = state_config
+        self.equations_of_motion = Equations_of_motion_Ace_Dice(
+            state_config, parameter_config
+        )
 
     def step(self, batch_s_t: tf.Tensor, batch_a_t: tf.Tensor) -> tf.Tensor:
         """
@@ -25,18 +31,26 @@ class Ace_dice_2016(Abstract_Environment):
         """
         next_states = []
         for s_t, a_t in zip(batch_s_t, batch_a_t):
-            s_tplus = self.update_state(s_t, a_t)
+            s_tplus = self.equations_of_motion.update_state(s_t, a_t)
             next_states.append(s_tplus)
 
         next_states_tensor = tf.stack(next_states)
         return next_states_tensor
 
-    def compute_loss(self, batch: np.ndarray) -> Any:
+    def compute_loss(self, batch: tf.Tensor) -> Tuple[float, float]:
         raise NotImplementedError
 
-    def reset(self) -> None:
+    def reset(self) -> tf.Tensor:
         """
         Resets state to the initial states in the config file.
         Returns initial states.
         """
-        raise NotImplementedError
+        batches = []
+        for batch in range(self.num_batches):
+            state = []
+            for init_val in self.state_config:
+                state.append(init_val.get("init_val"))
+            batches.append(tf.convert_to_tensor(state))
+
+        state_tensor = tf.stack(state)
+        return state_tensor

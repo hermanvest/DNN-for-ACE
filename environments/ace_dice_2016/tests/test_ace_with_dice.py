@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from ..state_updates import DICE_Prod_Stateupdater
+from ..equations_of_motion import DICE_Prod_Stateupdater
 
 config_dict = {
     "production_specific": {

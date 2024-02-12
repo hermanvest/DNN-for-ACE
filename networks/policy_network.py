@@ -50,6 +50,7 @@ class Policy_Network(tf.keras.Model):
         processed_output = unprocessed_output
 
         # Iterate through each policy configuration
+        # a_i is action index, action_information is a dict
         for a_i, action_information in enumerate(self._config_action_variables):
             # Check if an activation is specified
             if "activation" in action_information:
