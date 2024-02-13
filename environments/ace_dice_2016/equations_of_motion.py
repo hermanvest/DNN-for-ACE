@@ -282,9 +282,9 @@ class Equations_of_motion_Ace_Dice:
 
         Returns: tau_{1,t+1}
         """
-        sigma_row_1 = np.array(self.sigma[0][:])
+        sigma_transition_row_1 = np.array(self.sigma_transition[0][:])
 
-        temp_transitions = np.dot(sigma_row_1, tau_t)
+        temp_transitions = np.dot(sigma_transition_row_1, tau_t)
         forcing = self.sigma_forc * ((m_1_t + G_t) / self.M_pre)
 
         return temp_transitions + forcing
@@ -298,5 +298,5 @@ class Equations_of_motion_Ace_Dice:
 
         Returns: tau_{2,t+1}
         """
-        sigma_row_2 = np.array(self.sigma[1][:])
-        return np.dot(sigma_row_2, tau_t)
+        sigma_transition_row_2 = np.array(self.sigma_transition[1][:])
+        return np.dot(sigma_transition_row_2, tau_t)

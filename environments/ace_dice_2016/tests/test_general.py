@@ -37,20 +37,60 @@ def test_calculation_of_k_t_plus():
     log_Y_t = eq.log_Y_t(k_t, E_t, t)
     k_tplus = eq.k_tplus(log_Y_t, tau_1_t, 0.5, 1)
     print(f"The value of capital for the next period is: {k_tplus}")
-
     print("============ End of test_calculation_of_k_t_plus ============\n\n")
 
 
 def test_calculation_of_m_1_plus():
     print("============ Running test_calculation_of_m_1_plus ============")
     eq = get_equations()
-
+    m = np.ones(3)
+    print(f" The value of the carbon stock in the next period is {eq.m_1plus(m, 1)}")
     print("============ End of test_calculation_of_m_1_plus ============\n\n")
+
+
+def test_calculation_of_m_2_plus():
+    print("============ Running test_calculation_of_m_2_plus ============")
+    eq = get_equations()
+    m = np.ones(3)
+    print(f" The value of the carbon stock in the next period is {eq.m_2plus(m)}")
+    print("============ End of test_calculation_of_m_2_plus ============\n\n")
+
+
+def test_calculation_of_m_3_plus():
+    print("============ Running test_calculation_of_m_3_plus ============")
+    eq = get_equations()
+    m = np.ones(3)
+    print(f" The value of the carbon stock in the next period is {eq.m_3plus(m)}")
+    print("============ End of test_calculation_of_m_3_plus ============\n\n")
+
+
+def test_calculation_of_tau_1plus():
+    print("============ Running test_calculation_of_tau_1plus ============")
+    eq = get_equations()
+    tau_t = [1, 1]
+    print(
+        f" The value of the carbon stock in the next period is {eq.tau_1plus(tau_t,1)}"
+    )
+    print("============ End of test_calculation_of_tau_1plus ============\n\n")
+
+
+def test_calculation_of_tau_2plus():
+    print("============ Running test_calculation_of_tau_2plus ============")
+    eq = get_equations()
+    tau_t = [1, 1]
+    print(
+        f" The value of the carbon stock in the next period is {eq.tau_2plus(tau_t = [1,1])}"
+    )
+    print("============ End of test_calculation_of_tau_2plus ============\n\n")
 
 
 def main():
     test_calculation_of_k_t_plus()
     test_calculation_of_m_1_plus()
+    test_calculation_of_m_2_plus()
+    test_calculation_of_m_3_plus()
+    test_calculation_of_tau_1plus()
+    test_calculation_of_tau_2plus()
 
 
 if __name__ == "__main__":
