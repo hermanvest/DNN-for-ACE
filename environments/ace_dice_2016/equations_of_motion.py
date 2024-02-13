@@ -28,6 +28,9 @@ class Equations_of_motion_Ace_Dice:
         self.states = states
         self.actions = actions
         self.N_t = self.create_N_t(t_max)
+        self.a_t = self.create_a_t(t_max)
+        self.sigma = self.create_sigma(t_max)
+        self.theta_1 = self.create_theta_1(t_max)
 
     def update_state(self, s_t: tf.Tensor, a_t: tf.Tensor) -> tf.Tensor:
         # state- and action values should be in the same order as in the config
@@ -42,14 +45,11 @@ class Equations_of_motion_Ace_Dice:
         t = s_t.numpy()[6]
 
         # 3. call functions with variables and get state values
-        # how do I get a_t, N_t, E_t_BAU, G_t?
-        a_t = 1
-        N_t = 1
-        E_t_BAU = 1
+        # how do I get G_t?
         G_t = 0
 
-        log_f_t = self.log_f_t(a_t, k_t, N_t, E_t, E_t_BAU, t)
-        k_tplus = self.k_tplus(log_f_t, tau_vector[0], x_t)
+        log_Y_t = self.log_Y_t(k_t, E_t, t)
+        k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t)
         m_1plus = self.m_1plus(m_vector, E_t)
         m_2plus = self.m_2plus(m_vector)
         m_3plus = self.m_3plus(m_vector)
@@ -87,7 +87,7 @@ class Equations_of_motion_Ace_Dice:
         for t in range(1, t_max):
             labor[t + 1] = labor[t] * (self.popasym / labor[t]) ** self.popaj
 
-        return labor
+        return labor[1:]
 
     def create_a_t(self, t_max) -> np.ndarray:
         """
@@ -108,7 +108,7 @@ class Equations_of_motion_Ace_Dice:
             al("1") = a0; loop(t, al(t+1)=al(t)/((1-ga(t))););
         """
         tfp = np.zeros(t_max + 1)
-        tfp[1] = self.a0  # Set the initial value
+        tfp[1] = self.a0
 
         # Pre-calculate the ga values for efficiency
         t_values = np.arange(1, t_max + 1)
@@ -118,43 +118,26 @@ class Equations_of_motion_Ace_Dice:
         for t in range(1, t_max):
             tfp[t + 1] = tfp[t] / (1 - ga[t])
 
-        # Return the log of TFP levels
-        return np.log(tfp[1:])  # Exclude the first element as it's initialized to 0
+        return np.log(tfp[1:])
 
-    def E_t_BAU(self) -> float:
+    def y_gross(self, t: int, k_t: float) -> float:
         """_summary_
-
-        Relevant Matlab code:
-            Y_gross(i,t)=A_tfp(i,t)*(N(i,t)/1000)^(1-kappa(i))*K(i,t)^(kappa(i)); % trillion USD
-            E_BAU(i,t)=sigma(t,i)*Y_gross(i,t);
-
-            # The i is for the region, so we can disregard that.
-        """
-        raise NotImplementedError
-
-    def theta_1_t(self, t: int) -> float:
-        """
-        Computes and returns the abatement costs.
-
         Args:
-            t (int): time
 
-        Returns:
-            float: Abatement costs Theta_{1,t}
+        Returns: Y_t gross in trillion USD
 
-        Relevant GAMS code:
-            expcost2  Exponent of control cost function               / 2.6  /
-            pback     Cost of backstop 2010$ per tCO2 2015            / 550  /
-            gback     Initial cost decline backstop cost per period   / .025 /
-            pbacktime(t)=pback*(1-gback)**(t.val-1);
-            cost1(t) = pbacktime(t)*sigma(t)/expcost2/1000;
+        Relevant equation:
+            Y_t = A_t (N_t^{1-kappa} / 1000) K_t^{kappa}
         """
-        backstop = self.p_0_back * (1 + np.exp(-self.g_back * t))
-        carbon = 1000 * self.c2co2 * self.sigma_t(t)
 
-        return (backstop * carbon) / self.theta_2
+        A_t = np.exp(self.a_t[t])
+        N_t = self.N_t[t]
 
-    def sigma_t(self, t: int) -> float:
+        return (
+            A_t * (np.power(N_t, (1 - self.kappa)) / 1000) * np.power(k_t, self.kappa)
+        )
+
+    def create_sigma(self, t_max: int) -> tf.Tensor:
         """
         Computes and returns the carbon intensity sigma_t
 
@@ -171,36 +154,67 @@ class Equations_of_motion_Ace_Dice:
             gsig("1")=gsigma1; loop(t,gsig(t+1)=gsig(t)*((1+dsig)**tstep) ;);
             sigma("1")=sig0;   loop(t,sigma(t+1)=(sigma(t)*exp(gsig(t)*tstep)););
         """
-        step_intensity = (self.delta_t * self.g_0_sigma) / (
-            np.log(1 + self.delta_t * self.delta_sigma)
-        )
-        decline = np.power(1 + self.delta_t * self.delta_sigma, t) - 1
+        sigma = []
+        for t in range(t_max):
+            step_intensity = (self.delta_t * self.g_0_sigma) / (
+                np.log(1 + self.delta_t * self.delta_sigma)
+            )
+            decline = np.power(1 + self.delta_t * self.delta_sigma, t) - 1
+            sigma.append(self.sigma_0 * np.exp(step_intensity * decline))
 
-        return self.sigma_0 * np.exp(step_intensity * decline)
+        return tf.stack(sigma)
 
-    def y_gross():
-        return
-
-    def log_f_t(
-        self, a_t: float, k_t: float, N_t: float, E_t: float, E_t_BAU: float, t: int
-    ) -> float:
+    def theta_1_t(self, t_max: int) -> tf.Tensor:
         """
+        Computes and returns the abatement costs.
+
         Args:
-        - Technology: a_t
-        - Current capital level: k_t
-        - Population: N_t
-        - Emissions: E_t and E_t_BAU (Business As Usual)
-        - Abatement cost reduction over time: Theta_{1,t}
+            t (int): time
 
-        Returns: log F_t
+        Returns:
+            Tensor: Abatement costs for all timesteps Theta_{1,t}
+
+        Relevant GAMS code:
+            expcost2  Exponent of control cost function               / 2.6  /
+            pback     Cost of backstop 2010$ per tCO2 2015            / 550  /
+            gback     Initial cost decline backstop cost per period   / .025 /
+            pbacktime(t)=pback*(1-gback)**(t.val-1);
+            cost1(t) = pbacktime(t)*sigma(t)/expcost2/1000;
         """
-        capital_contrib = self.kappa * k_t
-        labor_contrib = (1 - self.kappa) * np.log(N_t)
-        energy_sector = np.log(
-            1 - self.theta_1_t(t) * np.power((1 - E_t / E_t_BAU), self.theta_2)
-        )
+        theta_1 = []
+        for t in range(t_max):
+            p_back_t = self.p_back * np.power((1 - self.g_back), t - 1)
+            theta_1_t = p_back_t * (self.sigma[t] / (self.theta2 * 1000))
+            theta_1.append(theta_1_t)
+        return tf.stack(theta_1)
 
-        return a_t + capital_contrib + labor_contrib + energy_sector
+    def E_t_BAU(self, t: int, k_t: float) -> float:
+        """Returns Business As Usual emissions at time t.
+
+        Relevant equation:
+            E_t_BAU = sigma_t * Y_gross_t
+        """
+        return self.sigma_t(t) * self.y_gross(t, k_t)
+
+    def log_Y_t(self, k_t: float, E_t: float, t: int) -> float:
+        """Computes log output with abatement costs for time t.
+
+        Args:
+            k_t (float): log capital for time step t
+            E_t (float): emisions for time step t
+
+        Returns:
+            log Y_t (float): logarithm of output Y_t
+
+        Relevant equation:
+            log(Y_t) = log(Y_t_gross) + log( 1 - theta_{1,t}(1-E_t/E_t_BAU)^theta_2 )
+        """
+        log_Y_t_gross = np.log(self.y_gross(t, k_t))
+        abatement_cost = 1 - self.theta_1[t] * np.power(
+            (1 - E_t / self.E_t_BAU(t, k_t))
+        )
+        log_abatement_cost = np.log(abatement_cost)
+        return log_Y_t_gross + log_abatement_cost
 
     # --- MAIN EQUATIONS ---
 
