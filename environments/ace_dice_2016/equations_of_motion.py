@@ -5,15 +5,7 @@ import tensorflow as tf
 
 class Equations_of_motion_Ace_Dice:
     """
-    The Equations_of_motion_Ace_Dice class is responsible for updating various state variables.
-    It utilizes a set of constants and current state parameters to calculate the next state.
-
-    The class methods include calculations for next-state values of technology, capital levels, carbon stocks,
-    and transformed temperatures, among others. Each method requires specific input parameters relevant to the
-    component it updates and returns the calculated next state value.
-
-    Attributes:
-        constants (Dict[str, Any]): A dictionary of constants used in state update calculations. These constants are defined in the config files
+    Docstring
     """
 
     def __init__(
@@ -85,7 +77,7 @@ class Equations_of_motion_Ace_Dice:
         labor[1] = self.pop0
 
         for t in range(1, t_max):
-            labor[t + 1] = labor[t] * (self.popasym / labor[t]) ** self.popaj
+            labor[t + 1] = labor[t] * (self.popasym / labor[t]) ** self.popadj
 
         return labor[1:]
 
@@ -137,7 +129,7 @@ class Equations_of_motion_Ace_Dice:
             A_t * (np.power(N_t, (1 - self.kappa)) / 1000) * np.power(k_t, self.kappa)
         )
 
-    def create_sigma(self, t_max: int) -> tf.Tensor:
+    def create_sigma(self, t_max: int) -> np.ndarray:
         """
         Computes and returns the carbon intensity sigma_t
 
@@ -154,17 +146,21 @@ class Equations_of_motion_Ace_Dice:
             gsig("1")=gsigma1; loop(t,gsig(t+1)=gsig(t)*((1+dsig)**tstep) ;);
             sigma("1")=sig0;   loop(t,sigma(t+1)=(sigma(t)*exp(gsig(t)*tstep)););
         """
-        sigma = []
-        for t in range(t_max):
-            step_intensity = (self.delta_t * self.g_0_sigma) / (
-                np.log(1 + self.delta_t * self.delta_sigma)
-            )
-            decline = np.power(1 + self.delta_t * self.delta_sigma, t) - 1
-            sigma.append(self.sigma_0 * np.exp(step_intensity * decline))
+        # Initialize gsig and sigma as numpy arrays filled with zeros
+        gsig = np.zeros(t_max)
+        sigma = np.zeros(t_max)
 
-        return tf.stack(sigma)
+        # Set initial values
+        gsig[0] = self.g_0_sigma
+        sigma[0] = self.sigma_0
 
-    def theta_1_t(self, t_max: int) -> tf.Tensor:
+        for t in range(1, t_max):
+            gsig[t] = gsig[t - 1] * np.power((1 + self.delta_sigma), self.delta_t)
+            sigma[t] = sigma[t - 1] * np.exp(gsig[t - 1] * self.delta_t)
+
+        return sigma
+
+    def create_theta_1(self, t_max: int) -> np.ndarray:
         """
         Computes and returns the abatement costs.
 
@@ -181,12 +177,12 @@ class Equations_of_motion_Ace_Dice:
             pbacktime(t)=pback*(1-gback)**(t.val-1);
             cost1(t) = pbacktime(t)*sigma(t)/expcost2/1000;
         """
-        theta_1 = []
+        theta_1 = np.zeros(t_max)
         for t in range(t_max):
             p_back_t = self.p_back * np.power((1 - self.g_back), t - 1)
-            theta_1_t = p_back_t * (self.sigma[t] / (self.theta2 * 1000))
-            theta_1.append(theta_1_t)
-        return tf.stack(theta_1)
+            theta_1_t = p_back_t * (self.sigma[t] / (self.theta_2 * 1000))
+            theta_1[t] = theta_1_t
+        return theta_1
 
     def E_t_BAU(self, t: int, k_t: float) -> float:
         """Returns Business As Usual emissions at time t.

@@ -8,13 +8,14 @@ parameters:
     g_k: 0.29
 
     # DICE Production specific parameters
+    timestep: 5
     ## For carbon intensity sigma_t
     g_0_sigma: -0.0152
     delta_sigma: 0.001
     sigma_0: 0.00009556
     delta_t: 5
     ## For abatement costs theta_{1,t}
-    p_0_back: 0.55
+    p_back: 0.55
     g_back: 0.005
     theta_2: 2.6
     c2co2: 3.666
