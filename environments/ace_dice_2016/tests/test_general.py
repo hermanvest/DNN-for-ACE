@@ -78,9 +78,7 @@ def test_calculation_of_tau_2plus():
     print("============ Running test_calculation_of_tau_2plus ============")
     eq = get_equations()
     tau_t = [1, 1]
-    print(
-        f" The value of the carbon stock in the next period is {eq.tau_2plus(tau_t = [1,1])}"
-    )
+    print(f" The value of the carbon stock in the next period is {eq.tau_2plus(tau_t)}")
     print("============ End of test_calculation_of_tau_2plus ============\n\n")
 
 
