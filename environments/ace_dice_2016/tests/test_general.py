@@ -26,26 +26,31 @@ def get_equations() -> Equations_of_motion_Ace_Dice:
     return Equations_of_motion_Ace_Dice(t_max, states, actions, parameters)
 
 
-def test_carbon_intensity_creation():
+def test_calculation_of_k_t_plus():
     eq = get_equations()
-    print("============ Running test_carbon_intensity_creation ============")
-    print(f" Size of list: {eq.sigma.size}")
-    for sigma_t in eq.sigma:
-        print(sigma_t)
+    print("============ Running test_calculation_of_k_t_plus ============")
+    k_t = 1
+    tau_1_t = 1
+    E_t = eq.E_t_BAU(1, 1) - 1e-5
+    t = 1
 
-    print("============ End of test_carbon_intensity_creation ============\n\n")
+    log_Y_t = eq.log_Y_t(k_t, E_t, t)
+    k_tplus = eq.k_tplus(log_Y_t, tau_1_t, 0.5, 1)
+    print(f"The value of capital for the next period is: {k_tplus}")
+
+    print("============ End of test_calculation_of_k_t_plus ============\n\n")
 
 
-def test_labor_creation():
-    print("============ Running test_labor_creation ============")
+def test_calculation_of_m_1_plus():
+    print("============ Running test_calculation_of_m_1_plus ============")
     eq = get_equations()
 
-    print("============ End of test_labor_creation ============\n\n")
+    print("============ End of test_calculation_of_m_1_plus ============\n\n")
 
 
 def main():
-    test_carbon_intensity_creation()
-    test_labor_creation()
+    test_calculation_of_k_t_plus()
+    test_calculation_of_m_1_plus()
 
 
 if __name__ == "__main__":

@@ -190,7 +190,7 @@ class Equations_of_motion_Ace_Dice:
         Relevant equation:
             E_t_BAU = sigma_t * Y_gross_t
         """
-        return self.sigma_t(t) * self.y_gross(t, k_t)
+        return self.sigma[t] * self.y_gross(t, k_t)
 
     def log_Y_t(self, k_t: float, E_t: float, t: int) -> float:
         """Computes log output with abatement costs for time t.
@@ -205,21 +205,26 @@ class Equations_of_motion_Ace_Dice:
         Relevant equation:
             log(Y_t) = log(Y_t_gross) + log( 1 - theta_{1,t}(1-E_t/E_t_BAU)^theta_2 )
         """
+
         log_Y_t_gross = np.log(self.y_gross(t, k_t))
-        abatement_cost = 1 - self.theta_1[t] * np.power(
-            (1 - E_t / self.E_t_BAU(t, k_t))
-        )
+        E_t_BAU = self.E_t_BAU(t, k_t)
+
+        base = 1 - E_t / E_t_BAU
+        if base < 0 and not float(self.theta_2).is_integer():
+            print(
+                f"Error: Trying to take the power of a negative number {base} with a non-integer exponent {self.theta_2} results in a complex number"
+            )
+            raise ValueError(
+                f"Invalid operation: base {base} with exponent {self.theta_2}"
+            )
+
+        abatement_cost = 1 - self.theta_1[t] * np.power((base), self.theta_2)
         log_abatement_cost = np.log(abatement_cost)
         return log_Y_t_gross + log_abatement_cost
 
     # --- MAIN EQUATIONS ---
 
-    def k_tplus(
-        self,
-        log_Y_t: float,
-        tau_1_t: float,
-        x_t: float,
-    ) -> float:
+    def k_tplus(self, log_Y_t: float, tau_1_t: float, x_t: float, t: int) -> float:
         """
         Args:
         - log Y_t = log F_t(A_t,N_t,K_t,E_t)

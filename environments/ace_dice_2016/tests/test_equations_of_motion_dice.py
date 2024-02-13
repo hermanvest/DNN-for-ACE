@@ -28,6 +28,7 @@ def setUp():
     return Equations_of_motion_Ace_Dice(t_max, states, actions, parameters)
 
 
+################## Test initialization of constants ##################
 def test_carbon_intensity_creation_length(setUp):
     assert t_max == setUp.sigma.size
 
@@ -42,3 +43,6 @@ def test_labor_creation_length(setUp):
 
 def test_tfp_creation_length(setUp):
     assert t_max == setUp.a_t.size
+
+
+################## Test... ##################
