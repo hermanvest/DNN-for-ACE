@@ -1,10 +1,15 @@
 from typing import Tuple, Dict, Any
+from ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
 import tensorflow as tf
 import numpy as np
 
 
 class Computeloss:
-    def __init__(self, parameters_config: Dict[str, Any]) -> None:
+    def __init__(
+        self,
+        parameters_config: Dict[str, Any],
+        equations_of_motion: Equations_of_motion_Ace_Dice,
+    ) -> None:
         # Variable initialization based on the config files parameters
         for _, section_value in parameters_config.items():
             for variable_name, variable_value in section_value.items():
@@ -12,6 +17,14 @@ class Computeloss:
 
         self.Phi = np.array(self.Phi)
         self.sigma_transition = np.array(self.sigma_transition)
+        self.equations_of_motion = equations_of_motion
+
+    ################ HELPER FUNCITONS ################
+    def fischer_burmeister_function(a: float, b: float):
+        powers = np.power(a, 2) + np.power(b, 2)
+        square_roots = np.sqrt(powers)
+
+        return a + b - square_roots
 
     ################ PENALTY BOUNDS ################
     # Penalizing for negative consumption and so on...
@@ -50,7 +63,7 @@ class Computeloss:
         """Loss function based on FOC for tau_{t+1}.
 
         Args:
-            var (type): descr
+            lambda_tau_t_vector (np.ndarray): vector of lagrange multipliers for transformed temperatures at time t
 
         Returns:
             loss (float)
@@ -60,35 +73,56 @@ class Computeloss:
 
         return self.beta * (transitions) - lambda_tau_t_vector
 
-    def ell_7(self) -> float:
+    def ell_7(
+        self, k_tplus: float, x_t: float, E_t: float, k_t: float, tau_1_t: float, t: int
+    ) -> float:
         """Loss function based on lambda{k,t} - budget constraint.
 
         Args:
-            var (type): descr
+            k_tplus (float): log capital in the next time period
+            x_t (float): consumption rate
+            E_t (float): emissions at time t
+            k_t (float): log capital at time t
+            tau_1_t (float): transformed temperature 1
+            t (int): timestep
 
         Returns:
             loss (float)
         """
+        production = self.equations_of_motion.log_Y_t(k_t, E_t, t)
+        damages = -self.xi_0 * tau_1_t + self.xi_0
+        consumption = np.log(1 - x_t)
+        investment_multiplier = np.log(1 + self.g_k) - np.log(self.delta_k + self.g_k)
 
-    def ell_8(self) -> float:
-        """Loss function based on Fischer-Burmeister function for E_t > 0.
+        return production + damages + consumption + investment_multiplier - k_tplus
+
+    def ell_8(self, lambda_E_t: float, E_t: float) -> float:
+        """Loss function based on Fischer-Burmeister function for E_t \geq 0.
 
         Args:
-            var (type): descr
+            lambda_E_t (float): lagrange multiplier for the constraint on E_t \geq 0
+            E_t (float): emissions at time t
 
         Returns:
             loss (float)
         """
+        return self.fischer_burmeister_function(lambda_E_t, E_t)
 
-    def ell_9(self) -> float:
-        """Loss function based on Fischer-Burmeister function for E_t < E_t_BAU.
+    def ell_9(self, lambda_t_BAU: float, E_t: float, k_t: float, t: int) -> float:
+        """Loss function based on Fischer-Burmeister function for E_t \leq E_t_BAU.
 
         Args:
-            var (type): descr
+            lambda_t_BAU (flaot): lagrange multiplier for the condition that E_t \leq E_t_BAU
+            E_t (float): emissions at time t
+            k_t (float): log capital at time t
+            t (int): timestep
 
         Returns:
             loss (float)
         """
+        E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
+        emissions_diff = E_t_BAU - E_t
+        return self.fischer_burmeister_function(lambda_t_BAU, emissions_diff)
 
     def ell_10(self) -> float:
         """Loss function based on Bellman Equation.
@@ -99,6 +133,7 @@ class Computeloss:
         Returns:
             loss (float)
         """
+        #
 
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     def squared_error_for_transition(
@@ -119,8 +154,8 @@ class Computeloss:
         E_t = a_t.numpy()[1]
         V_t = a_t.numpy()[2]
         lambda_k_t = a_t.numpy()[3]
-        lambda_m_vector = a_t.numpy()[4:7]
-        lambda_tau_vector = a_t.numpy()[7:9]
+        lambda_m_vector = a_t.numpy()[4:7]  # Indexes look wierd, but are correct
+        lambda_tau_vector = a_t.numpy()[7:9]  # Indexes look wierd, but are correct
 
         # state variables
         k_t = s_t.numpy()[0]

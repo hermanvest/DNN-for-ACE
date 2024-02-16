@@ -6,7 +6,7 @@ parameters:
     #xi_1: 0.25 # Baked into the tau. probably not needed.
     kappa: 0.3
     delta_k: 0.44
-    g_k: 0.29
+    g_k: 0.29 # Assumed to be the same as g_kt
 
     # DICE Production specific parameters
     timestep: 5
