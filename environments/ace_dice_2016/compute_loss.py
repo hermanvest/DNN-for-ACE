@@ -124,16 +124,36 @@ class Computeloss:
         emissions_diff = E_t_BAU - E_t
         return self.fischer_burmeister_function(lambda_t_BAU, emissions_diff)
 
-    def ell_10(self) -> float:
+    def ell_10(
+        self,
+        value_func_t: float,
+        x_t: float,
+        E_t: float,
+        k_t: float,
+        tau_1_t: float,
+        t: int,
+    ) -> float:
         """Loss function based on Bellman Equation.
 
         Args:
-            var (type): descr
+            value_func_t (float): value function of state at time t
+            x_t (float): consumption rate
+            E_t (float): emissions at time t
+            k_t (float): log capital at time t
+            tau_1_t (float): transformed temperature 1
+            t (int): timestep
 
         Returns:
             loss (float)
         """
-        #
+        production = self.equations_of_motion.log_Y_t(k_t, E_t, t)
+        damages = -self.xi_0 * tau_1_t + self.xi_0
+        # Problem: how do i get the value function of the next state?
+        # Solution?: do another prediction from s_tplus to obtain v_tplus
+
+        return (
+            np.log(x_t) + production + damages - value_func_t
+        )  # need to add beta*v_{t+1}
 
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     def squared_error_for_transition(
