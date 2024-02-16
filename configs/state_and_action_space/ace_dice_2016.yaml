@@ -1,6 +1,7 @@
 parameters:
   production_specific:
     # ACE specific parameters
+    beta: 0.9 # NOT THE PROPER VALUE
     xi_0: 0.2219
     #xi_1: 0.25 # Baked into the tau. probably not needed.
     kappa: 0.3
@@ -81,4 +82,8 @@ action_variables:
   - name: lambda_tau_1
     activation: tf.keras.activations.linear
   - name: lambda_tau_2
+    activation: tf.keras.activations.linear
+  - name: lambda_t_BAU
+    activation: tf.keras.activations.linear
+  - name: lambda_E_t
     activation: tf.keras.activations.linear

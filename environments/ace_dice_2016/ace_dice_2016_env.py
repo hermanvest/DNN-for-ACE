@@ -1,8 +1,10 @@
+import tensorflow as tf
+import numpy as np
+
 from typing import Any, Dict, Tuple, List
 from environments.abstract_environment import Abstract_Environment
 from equations_of_motion import Equations_of_motion_Ace_Dice
-import tensorflow as tf
-import numpy as np
+from compute_loss import Computeloss
 
 
 class Ace_dice_2016(Abstract_Environment):
@@ -17,6 +19,7 @@ class Ace_dice_2016(Abstract_Environment):
         self.equations_of_motion = Equations_of_motion_Ace_Dice(
             state_config, parameter_config
         )
+        self.loss = Computeloss()
 
     def step(self, batch_s_t: tf.Tensor, batch_a_t: tf.Tensor) -> tf.Tensor:
         """
@@ -37,8 +40,32 @@ class Ace_dice_2016(Abstract_Environment):
         next_states_tensor = tf.stack(next_states)
         return next_states_tensor
 
-    def compute_loss(self, batch: tf.Tensor) -> Tuple[float, float]:
-        raise NotImplementedError
+    def compute_loss(
+        self, batch_s_t: tf.Tensor, batch_a_t: tf.Tensor
+    ) -> Tuple[float, float]:
+        """_summary_
+
+        Args:
+            batch_s_t (tf.Tensor): _description_
+            batch_a_t (tf.Tensor): _description_
+
+        Returns:
+            Tuple[float, float]: (mse without penalty, mse with penalty)
+        """
+        # get the next state taken from current step
+        s_tplus_batch = self.step(batch_s_t, batch_a_t)
+
+        total_mse = 0.0
+        total_mse_with_penalty = 0.0
+
+        for s_t, a_t, s_t_plus in zip(batch_s_t, batch_a_t, s_tplus_batch):
+            se_no_penalty, se_penalty = self.loss.squared_error_for_transition(
+                s_t, a_t, s_t_plus
+            )
+            total_mse += se_no_penalty
+            total_mse_with_penalty += se_penalty
+
+        return total_mse, total_mse_with_penalty
 
     def reset(self) -> tf.Tensor:
         """

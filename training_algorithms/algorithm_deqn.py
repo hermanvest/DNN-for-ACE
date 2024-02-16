@@ -68,7 +68,7 @@ class Algorithm_DEQN:
             with tf.GradientTape() as tape:
                 # TODO: make sure prediction is with old parameters?????
                 a_t = self.agent.get_action(batch)
-                loss, loss_with_penalty = self.env.compute_loss(a_t, batch)
+                loss, loss_with_penalty = self.env.compute_loss(batch, a_t)
 
             gradients = tape.gradient(
                 loss, self.agent.policy_network.trainable_variables

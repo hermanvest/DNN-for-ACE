@@ -203,22 +203,15 @@ class Equations_of_motion_Ace_Dice:
             log Y_t (float): logarithm of output Y_t
 
         Relevant equation:
-            log(Y_t) = log(Y_t_gross) + log( 1 - theta_{1,t}(1-E_t/E_t_BAU)^theta_2 )
+            log(Y_t) = log(Y_t_gross) + log( 1 - theta_{1,t}(|1-E_t/E_t_BAU|)^theta_2 )
         """
 
         log_Y_t_gross = np.log(self.y_gross(t, k_t))
-        E_t_BAU = self.E_t_BAU(t, k_t)
+        mu_t = 1 - E_t / self.E_t_BAU(t, k_t)
 
-        base = 1 - E_t / E_t_BAU
-        if base < 0 and not float(self.theta_2).is_integer():
-            print(
-                f"Error: Trying to take the power of a negative number {base} with a non-integer exponent {self.theta_2} results in a complex number"
-            )
-            raise ValueError(
-                f"Invalid operation: base {base} with exponent {self.theta_2}"
-            )
-
-        abatement_cost = 1 - self.theta_1[t] * np.power((base), self.theta_2)
+        abatement_cost = 1 - self.theta_1[t] * np.power(
+            (np.absolute(mu_t)), self.theta_2
+        )
         log_abatement_cost = np.log(abatement_cost)
         return log_Y_t_gross + log_abatement_cost
 
