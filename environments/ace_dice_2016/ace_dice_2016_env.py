@@ -52,6 +52,7 @@ class Ace_dice_2016(Abstract_Environment):
         Returns:
             Tuple[float, float]: (mse without penalty, mse with penalty)
         """
+        # TODO: just input s_t, a_t, s_tplus, a_tplus!
         # get the next state taken from current step
         s_tplus_batch = self.step(batch_s_t, batch_a_t)
 

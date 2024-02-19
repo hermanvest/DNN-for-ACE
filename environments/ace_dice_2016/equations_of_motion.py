@@ -206,13 +206,15 @@ class Equations_of_motion_Ace_Dice:
             log(Y_t) = log(Y_t_gross) + log( 1 - theta_{1,t}(|1-E_t/E_t_BAU|)^theta_2 )
         """
 
-        log_Y_t_gross = np.log(self.y_gross(t, k_t))
-        mu_t = 1 - E_t / self.E_t_BAU(t, k_t)
+        E_t_BAU = self.E_t_BAU(t, k_t)
+        if E_t > E_t_BAU:
+            E_t = E_t_BAU
 
-        abatement_cost = 1 - self.theta_1[t] * np.power(
-            (np.absolute(mu_t)), self.theta_2
-        )
+        log_Y_t_gross = np.log(self.y_gross(t, k_t))
+        mu_t = 1 - E_t / E_t_BAU
+        abatement_cost = 1 - self.theta_1[t] * np.power((mu_t), self.theta_2)
         log_abatement_cost = np.log(abatement_cost)
+
         return log_Y_t_gross + log_abatement_cost
 
     # --- MAIN EQUATIONS ---

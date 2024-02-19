@@ -1,5 +1,5 @@
 from typing import Tuple, Dict, Any
-from ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
+from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
 import tensorflow as tf
 import numpy as np
 
@@ -43,7 +43,9 @@ class Computeloss:
         """
         return self.beta * lambda_k_t * self.kappa - lambda_k_t
 
-    def ell_2_4(self, lambda_m_t_vector: np.ndarray, lambda_tau_1_t: float) -> float:
+    def ell_2_4(
+        self, lambda_m_t_vector: np.ndarray, lambda_tau_1_t: float
+    ) -> np.ndarray:
         """Loss function based on FOC for M_{t+1}.
 
         Args:
@@ -57,9 +59,9 @@ class Computeloss:
         e_1 = np.array([1, 0, 0])
         forc = lambda_tau_1_t * self.sigma_forc * (1 / self.M_pre)
 
-        return self.beta * (transitions + np.matmul(e_1, forc)) - lambda_m_t_vector
+        return self.beta * (transitions + e_1 * forc) - lambda_m_t_vector
 
-    def ell_5_6(self, lambda_tau_t_vector: np.ndarray) -> float:
+    def ell_5_6(self, lambda_tau_t_vector: np.ndarray) -> np.ndarray:
         """Loss function based on FOC for tau_{t+1}.
 
         Args:
