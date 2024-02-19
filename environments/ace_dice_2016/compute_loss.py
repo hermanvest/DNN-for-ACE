@@ -20,7 +20,7 @@ class Computeloss:
         self.equations_of_motion = equations_of_motion
 
     ################ HELPER FUNCITONS ################
-    def fischer_burmeister_function(a: float, b: float):
+    def fischer_burmeister_function(self, a: float, b: float):
         powers = np.power(a, 2) + np.power(b, 2)
         square_roots = np.sqrt(powers)
 
@@ -108,7 +108,9 @@ class Computeloss:
         Returns:
             loss (float)
         """
-        return self.fischer_burmeister_function(lambda_E_t, E_t)
+        print(f"lambda: {lambda_E_t} E_t: {E_t}")
+        fb = self.fischer_burmeister_function(lambda_E_t, E_t)
+        return fb
 
     def ell_9(self, lambda_t_BAU: float, E_t: float, k_t: float, t: int) -> float:
         """Loss function based on Fischer-Burmeister function for E_t \leq E_t_BAU.
