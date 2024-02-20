@@ -1,8 +1,6 @@
 import numpy as np
 import tensorflow as tf
 from typing import Tuple
-
-from tensorflow.keras.optimizers import Optimizer
 from agents.deqn_agent import DEQN_agent
 from environments.abstract_environment import Abstract_Environment
 
@@ -16,7 +14,7 @@ class Algorithm_DEQN:
         batch_size: int,
         env: Abstract_Environment,
         agent: DEQN_agent,
-        optimizer: Optimizer,
+        optimizer: tf.keras.optimizers.Optimizer,
     ) -> None:
         self.n_episodes = n_episodes
         self.n_epochs = n_epochs
@@ -58,17 +56,24 @@ class Algorithm_DEQN:
         states_tensor = tf.stack(states)
         return states_tensor
 
-    def epoch(self, batches: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def epoch(self, batches: tf.Tensor) -> tf.Tensor:
+        """_summary_
+
+        Args:
+            batches (tf.Tensor): _description_
+
+        Returns:
+            tf.Tensor: _description_
+        """
         # TODO: Consider renaming batches to statesample. More informative?
         total_loss = 0.0
-        total_loss_with_penalty = 0.0
         num_batches = 0
 
         for batch in batches:
             with tf.GradientTape() as tape:
                 # TODO: make sure prediction is with old parameters?????
                 a_t = self.agent.get_action(batch)
-                loss, loss_with_penalty = self.env.compute_loss(batch, a_t)
+                loss = self.env.compute_loss(batch, a_t)
 
             gradients = tape.gradient(
                 loss, self.agent.policy_network.trainable_variables
@@ -78,16 +83,19 @@ class Algorithm_DEQN:
             )
 
             total_loss += loss
-            total_loss_with_penalty += loss_with_penalty
             num_batches += 1
 
         # Average MSE over all batches
         average_mse = total_loss / num_batches
-        average_mse_with_penalty = total_loss_with_penalty / num_batches
 
-        return average_mse, average_mse_with_penalty
+        return average_mse
 
     def train_on_episodes(self, episodes: tf.Tensor) -> None:
+        """_summary_
+
+        Args:
+            episodes (tf.Tensor): _description_
+        """
         # Flattened, means shape from [batchnumbers, timesteps, state_variables] to [batchnumbers*timesteps, state_variables]
         flattened_episodes = tf.reshape(episodes, [-1, episodes.shape[-1]])
         shuffled_episodes = tf.random.shuffle(flattened_episodes)

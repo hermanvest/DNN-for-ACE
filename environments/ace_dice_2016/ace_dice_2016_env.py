@@ -46,7 +46,7 @@ class Ace_dice_2016(Abstract_Environment):
         batch_a_t: tf.Tensor,
         batch_s_tplus: tf.Tensor,
         batch_a_tplus: tf.Tensor,
-    ) -> Tuple[float, float]:
+    ) -> float:
         """_summary_
 
         Args:
@@ -56,7 +56,7 @@ class Ace_dice_2016(Abstract_Environment):
             batch_a_tplus (tf.Tensor): _description_
 
         Returns:
-            Tuple[float, float]: (mse without penalty, mse with penalty)
+            float: (mse without penalty, mse with penalty)
         """
         total_mse = 0.0
         total_mse_with_penalty = 0.0

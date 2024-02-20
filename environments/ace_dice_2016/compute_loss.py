@@ -162,7 +162,7 @@ class Computeloss:
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     def squared_error_for_transition(
         self, s_t: tf.Tensor, a_t: tf.Tensor, s_tplus: tf.Tensor, a_tplus: tf.Tensor
-    ) -> Tuple[float, float]:
+    ) -> float:
         """Returns the squared error for the state transition from s_t to s_tplus, taking action a_t in the environment
 
         Args:

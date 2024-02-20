@@ -3,13 +3,15 @@ from typing import Any, Dict
 
 
 class DEQN_agent:
-    def __init__(
-        self, policy_network: tf.keras.Model, config_env_specifics: Dict[str, Any]
-    ) -> None:
+    """
+    __summary
+
+    Attributes:
+        policy_network (tf.keras.Model): A TensorFlow Keras model representing the policy network of the agent. This network takes the current state of the environment as input and outputs a decision or action to be taken by the agent.
+    """
+
+    def __init__(self, policy_network: tf.keras.Model) -> None:
         self.policy_network = policy_network
-        self.action_names = [
-            action["name"] for action in config_env_specifics["action_variables"]
-        ]
 
     def get_actions(self, state: tf.Tensor) -> tf.Tensor:
         """Returns actions for given state as per current policy."""

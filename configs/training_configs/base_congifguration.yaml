@@ -1,2 +1,4 @@
-T: 500 # episode lenght
-Mini_batch_size: 100
+n_episodes: 50
+n_epochs: 2
+t_max: 200
+batch_size: 64

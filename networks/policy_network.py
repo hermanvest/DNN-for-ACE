@@ -7,19 +7,38 @@ from typing import Any, Dict
 
 
 class Policy_Network(tf.keras.Model):
+    """
+    __summary
+
+    Parameters:
+    - hidden_nodes (int): The number of nodes in each hidden layer.
+    - hidden_activation_function (str): The activation function name for the hidden layers (e.g., 'relu', 'tanh').
+    - output_activation_function (str): The activation function name for the output layer.
+    - kernel_initializer_config (Dict[str, Any]): Configuration for the kernel initializer of each layer, allowing for detailed specification of initialization parameters.
+    - config_env (Dict[str, Any]): Environment configuration dictionary, which must include 'action_variables' and 'state_variables' keys with lists indicating the names of each.
+
+    Attributes:
+    - _config_action_variables: Stores the action variables from the environment configuration.
+    - _hidden1: The first hidden layer of the network.
+    - _hidden2: The second hidden layer of the network.
+    - _output_layer: The output layer of the network, sized to match the number of action variables.
+
+    The class inherits from `tf.keras.Model`, making it compatible with TensorFlow's model training and evaluation utilities.
+    """
+
     def __init__(
         self,
         hidden_nodes: int,
         hidden_activation_function: str,
         output_activation_function: str,
         kernel_initializer_config: Dict[str, Any],
-        config_env_specifics: Dict[str, Any],
+        config_env: Dict[str, Any],
     ) -> None:
         super(Policy_Network, self).__init__()
 
-        self._config_action_variables = config_env_specifics["action_variables"]
-        input_space = len(config_env_specifics["state_variables"])
-        output_space = len(config_env_specifics["action_variables"])
+        self._config_action_variables = config_env["action_variables"]
+        input_space = len(config_env["state_variables"])
+        output_space = len(config_env["action_variables"])
 
         self._hidden1 = Dense(
             hidden_nodes,
