@@ -1,5 +1,7 @@
 # Deep Equilibrium Nets for The Analytic Climate Economy
 
+![Cover Image](front_page_img.webp)
+
 ## Description
 
 ...
