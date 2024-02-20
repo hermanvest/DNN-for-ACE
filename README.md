@@ -2,23 +2,19 @@
 
 ## Description
 
-Briefly describe what the project is about and what it aims to achieve. Explain the problem it solves or the question it addresses.
+...
 
 ## Key Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+...
 
 ## Technologies
 
-List the technologies, languages, and frameworks used the project. For example:
-
-- Packages: pyyaml, Tensorflow, pytest
+...
 
 ## Installation
 
-Step-by-step instructions on how to install the project. Include any prerequisites or dependencies.
+...
 
 ### (Step 0): Miniconda for Package Management
 
@@ -31,11 +27,11 @@ Step-by-step instructions on how to install the project. Include any prerequisit
 
 ### Step 1
 
-Install packages with pip.
+...
 
 ## Usage
 
-How to use project after installation.
+...
 
 ## License
 
@@ -43,7 +39,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Add email here
+...
 
 ## Acknowledgements
 
