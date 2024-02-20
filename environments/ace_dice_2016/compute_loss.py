@@ -108,7 +108,6 @@ class Computeloss:
         Returns:
             loss (float)
         """
-        print(f"lambda: {lambda_E_t} E_t: {E_t}")
         fb = self.fischer_burmeister_function(lambda_E_t, E_t)
         return fb
 
@@ -131,6 +130,7 @@ class Computeloss:
     def ell_10(
         self,
         value_func_t: float,
+        value_func_tplus: float,
         x_t: float,
         E_t: float,
         k_t: float,
@@ -156,12 +156,12 @@ class Computeloss:
         # Solution?: do another prediction from s_tplus to obtain v_tplus
 
         return (
-            np.log(x_t) + production + damages - value_func_t
+            np.log(x_t) + production + damages + value_func_tplus - value_func_t
         )  # need to add beta*v_{t+1}
 
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     def squared_error_for_transition(
-        self, s_t: tf.Tensor, a_t: tf.Tensor, s_tplus: tf.Tensor
+        self, s_t: tf.Tensor, a_t: tf.Tensor, s_tplus: tf.Tensor, a_tplus: tf.Tensor
     ) -> Tuple[float, float]:
         """Returns the squared error for the state transition from s_t to s_tplus, taking action a_t in the environment
 
@@ -173,24 +173,52 @@ class Computeloss:
         Returns:
             Tuple[float, float]: (squared error without penalty, squared error with penalty)
         """
-        # action variables
+        # action variables t
         x_t = a_t.numpy()[0]
         E_t = a_t.numpy()[1]
-        V_t = a_t.numpy()[2]
+        value_func_t = a_t.numpy()[2]
         lambda_k_t = a_t.numpy()[3]
-        lambda_m_vector = a_t.numpy()[4:7]  # Indexes look wierd, but are correct
-        lambda_tau_vector = a_t.numpy()[7:9]  # Indexes look wierd, but are correct
+        lambda_m_t_vector = a_t.numpy()[4:7]  # Indexes look wierd, but are correct
+        lambda_tau_t_vector = a_t.numpy()[7:9]  # Indexes look wierd, but are correct
+        lambda_t_BAU = a_t.numpy()[9]
+        lambda_E_t = a_t.numpy()[10]
 
-        # state variables
+        # action variables t+1
+        value_func_tplus = a_tplus.numpy()[2]
+
+        # state variables t
         k_t = s_t.numpy()[0]
-        m_t_vector = s_t.numpy()[1:4]
-        tau_t_vector = s_t.numpy()[4:6]
-        t = s_t.numpy()[6]
+        tau_t_vector = s_t.numpy()[4:6]  # Indexes look wierd, but are correct
+        t = (int)(s_t.numpy()[6])
 
-        # next state variables
+        # state variables t+1
         k_tplus = s_tplus.numpy()[0]
-        m__tplus_vector = s_tplus.numpy()[1:4]
-        tau_tplus_vector = s_tplus.numpy()[4:6]
-        t_plus = s_tplus.numpy()[6]
 
-        # start calling individual loss functions
+        losses = np.array([], dtype=float)
+        losses = np.concatenate(
+            (
+                losses,
+                np.array([self.ell_1(lambda_k_t)]),
+                self.ell_2_4(lambda_m_t_vector, lambda_tau_t_vector[0]),
+                self.ell_5_6(lambda_tau_t_vector),
+                np.array([self.ell_7(k_tplus, x_t, E_t, k_t, tau_t_vector[0], t)]),
+                np.array([self.ell_8(lambda_E_t, E_t)]),
+                np.array([self.ell_9(lambda_t_BAU, E_t, k_t, t)]),
+                np.array(
+                    [
+                        self.ell_10(
+                            value_func_t,
+                            value_func_tplus,
+                            x_t,
+                            E_t,
+                            k_t,
+                            tau_t_vector[0],
+                            t,
+                        )
+                    ]
+                ),
+            )
+        )
+
+        squared_losses_sum = np.sum(losses**2)
+        return squared_losses_sum

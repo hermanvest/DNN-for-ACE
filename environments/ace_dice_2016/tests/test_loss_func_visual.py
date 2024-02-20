@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 from pathlib import Path
 
 from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
@@ -106,19 +107,49 @@ def test_ell9_calculation():
     print("================== TERMINATES: test_ell9_calculation() ==================")
 
 
+def test_ell10_calculation():
+    print("\n================== RUNNING: test_ell10_calculation() ==================")
+    calc = get_loss_class()
+    s_t = tf.constant(
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1], dtype=tf.float32
+    )  # Example state at time t
+    a_t = tf.constant(
+        [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1], dtype=tf.float32
+    )  # Example action at time t
+    s_tplus = tf.constant(
+        [1.1, 1.0, 1.0, 1.0, 1.0, 1.0, 2], dtype=tf.float32
+    )  # Example state at time t+1
+    a_tplus = tf.constant(
+        [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2], dtype=tf.float32
+    )  # Example action at time t+1
+
+    # Call the squared_error_for_transition function
+    result = calc.squared_error_for_transition(s_t, a_t, s_tplus, a_tplus)
+    print(f"Result: {result}")
+    print("================== TERMINATES: test_ell10_calculation() ==================")
+
+
 ##################### MAIN LOOP #####################
 
 
 def main():
-    print("================== IN MAIN FUNCTION ==================")
+    print("################## IN MAIN FUNCTION ##################")
+    print("\n\n#######################################################")
+    print("##################     UNIT TESTS    ##################")
+    print("#######################################################\n\n")
     test_ell1_calculation()
     test_ell2_4_calculation()
     test_ell5_6_calculation()
     test_ell7_calculation()
     test_ell8_calculation()
     test_ell9_calculation()
+    test_ell10_calculation()
 
-    print("================== END TESTS ==================")
+    print("\n\n#######################################################")
+    print("################## INTEGRATION TESTS ##################")
+    print("#######################################################\n\n")
+
+    print("################## END TESTS ##################")
 
 
 if __name__ == "__main__":

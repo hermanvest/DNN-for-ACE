@@ -41,31 +41,39 @@ class Ace_dice_2016(Abstract_Environment):
         return next_states_tensor
 
     def compute_loss(
-        self, batch_s_t: tf.Tensor, batch_a_t: tf.Tensor
+        self,
+        batch_s_t: tf.Tensor,
+        batch_a_t: tf.Tensor,
+        batch_s_tplus: tf.Tensor,
+        batch_a_tplus: tf.Tensor,
     ) -> Tuple[float, float]:
         """_summary_
 
         Args:
             batch_s_t (tf.Tensor): _description_
             batch_a_t (tf.Tensor): _description_
+            batch_s_tplus (tf.Tensor): _description_
+            batch_a_tplus (tf.Tensor): _description_
 
         Returns:
             Tuple[float, float]: (mse without penalty, mse with penalty)
         """
-        # TODO: just input s_t, a_t, s_tplus, a_tplus!
-        # get the next state taken from current step
-        s_tplus_batch = self.step(batch_s_t, batch_a_t)
-
         total_mse = 0.0
         total_mse_with_penalty = 0.0
+        sample_conunter = 0
 
-        for s_t, a_t, s_t_plus in zip(batch_s_t, batch_a_t, s_tplus_batch):
+        for s_t, a_t, st_plus, a_tplus in zip(
+            batch_s_t, batch_a_t, batch_s_tplus, batch_a_tplus
+        ):
             se_no_penalty, se_penalty = self.loss.squared_error_for_transition(
-                s_t, a_t, s_t_plus
+                s_t, a_t, st_plus, a_tplus
             )
             total_mse += se_no_penalty
             total_mse_with_penalty += se_penalty
+            sample_conunter += 1
 
+        total_mse = total_mse / sample_conunter
+        total_mse_with_penalty = total_mse_with_penalty / sample_conunter
         return total_mse, total_mse_with_penalty
 
     def reset(self) -> tf.Tensor:
