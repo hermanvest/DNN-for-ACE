@@ -40,7 +40,8 @@ class Ace_dice_2016(Abstract_Environment):
         next_states = []
         for s_t, a_t in zip(batch_s_t, batch_a_t):
             s_tplus = self.equations_of_motion.update_state(s_t, a_t)
-            next_states.append(s_tplus)
+            s_tplus_casted = tf.cast(s_tplus, tf.float32)
+            next_states.append(s_tplus_casted)
 
         next_states_tensor = tf.stack(next_states)
         return next_states_tensor
@@ -90,8 +91,9 @@ class Ace_dice_2016(Abstract_Environment):
         for batch in range(self.num_batches):
             state = []
             for init_val in self.state_config:
-                state.append(init_val.get("init_val"))
-            batches.append(tf.convert_to_tensor(state))
+                state.append(tf.constant(init_val.get("init_val"), dtype=tf.float32))
+            state_tensor = tf.convert_to_tensor(state)
+            batches.append(state_tensor)
 
         state_tensor = tf.stack(batches)
         return state_tensor

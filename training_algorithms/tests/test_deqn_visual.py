@@ -49,6 +49,7 @@ def setUp() -> Algorithm_DEQN:
     agent = DEQN_agent(network)
 
     # Initialization of algorithm
+    algorithm_config["t_max"] = env_config["general"]["t_max"]
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
@@ -63,11 +64,12 @@ def setUp() -> Algorithm_DEQN:
 def test_episode_generation():
     print("\n================== RUNNING: test_episode_generation() ==================")
     algorithm = setUp()
-    episodes = algorithm.generate_episodes().numpy()
+    print("Generating episode...")
+    episodes = algorithm.generate_episodes()
 
-    counter = 0
-    for timestep in episodes:
-        print(f"State variables at time {counter}: {timestep}")
+    print("Printing the episode")
+    print(episodes[:100].numpy())
+
     print("================== TERMINATES: test_episode_generation() ==================")
 
 

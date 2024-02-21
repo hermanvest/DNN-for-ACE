@@ -66,7 +66,7 @@ state_variables:
   - name: tau_2_t
     init_val: 1
   - name: t
-    init_val: 1
+    init_val: 0
 
 # ACTIONS VARIABLES AND ACTIVATION FUNCTIONS
 action_variables:
@@ -74,7 +74,7 @@ action_variables:
   - name: x_t
     activation: tf.keras.activations.sigmoid
   - name: E_t
-    activation: tf.keras.activations.linear
+    activation: tf.keras.activations.softplus
   # Value function prediction
   - name: V_t
     activation: tf.keras.activations.linear

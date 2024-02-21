@@ -55,6 +55,7 @@ class Algorithm_DEQN:
             s_tplus = self.env.step(s_t, a_t)
             states.append(s_t)
             s_t = s_tplus
+
         states_tensor = tf.stack(states)
         return states_tensor
 
