@@ -2,48 +2,38 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
+from pathlib import Path
 from networks.policy_network import Policy_Network
+from utils.config_loader import load_config
 
-network_config = {
-    "hidden_nodes": 1024,
-    "hidden_activation_function": "relu",
-    "output_activation_function": "linear",
-    "kernel_initializer_config": {
-        "mode": "fan_avg",
-        "distribution": "uniform",
-        "scale": 1.0,
-        "seed": 1,
-    },
-}
+current_script_path = Path(__file__).parent
 
-env_config = {
-    "state_variables": [
-        {"name": "k_t"},
-        {"name": "M_1_t"},
-        {"name": "M_2_t"},
-        {"name": "M_3_t"},
-        {"name": "tau_1_t"},
-        {"name": "tau_2_t"},
-        {"name": "t"},
-    ],
-    "action_variables": [
-        {"name": "x_t", "activation": "tf.keras.activations.linear"},
-        {"name": "E_t", "activation": "tf.keras.activations.linear"},
-        {"name": "V_t", "activation": "tf.keras.activations.linear"},
-        {"name": "lambda_k_t", "activation": "tf.keras.activations.linear"},
-        {"name": "lambda_m_1", "activation": "tf.keras.activations.linear"},
-        {"name": "lambda_m_2", "activation": "tf.keras.activations.linear"},
-        {"name": "lambda_m_3", "activation": "tf.keras.activations.linear"},
-        {"name": "lambda_tau_1", "activation": "tf.keras.activations.linear"},
-        {"name": "lambda_tau_2", "activation": "tf.keras.activations.linear"},
-    ],
-}
+# Navigate up to the common root and then to the YAML file
+env_config_path = (
+    current_script_path.parent.parent
+    / "configs"
+    / "state_and_action_space"
+    / "ace_dice_2016.yaml"
+)
+
+nw_config_path = (
+    current_script_path.parent.parent
+    / "configs"
+    / "network_configs"
+    / "network_config1.yaml"
+)
+
+
+env_config = load_config(env_config_path)
+config = load_config(nw_config_path)
+config["config_env"] = env_config
 
 
 @pytest.fixture
 def setUp():
     tf.keras.backend.clear_session()
-    return Policy_Network(**network_config, config_env_specifics=env_config)
+
+    return Policy_Network(**config)
 
 
 def test_prediction(setUp):

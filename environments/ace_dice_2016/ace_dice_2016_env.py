@@ -1,25 +1,30 @@
 import tensorflow as tf
 import numpy as np
 
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict
 from environments.abstract_environment import Abstract_Environment
-from equations_of_motion import Equations_of_motion_Ace_Dice
-from compute_loss import Computeloss
+from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
+from environments.ace_dice_2016.compute_loss import Computeloss
 
 
 class Ace_dice_2016(Abstract_Environment):
     def __init__(
         self,
-        num_batches: int,
-        state_config: List,
-        parameter_config: Dict[str, Any],
+        config: Dict[str, Any],
     ) -> None:
-        self.num_batches = num_batches
-        self.state_config = state_config
+        # Extracting the specific configurations
+        general_config = config["general"]
+        states_config = config["state_variables"]
+        actions_config = config["action_variables"]
+        parameters_config = config["parameters"]
+
+        self.num_batches = general_config["num_batches"]
+        self.state_config = states_config
+
         self.equations_of_motion = Equations_of_motion_Ace_Dice(
-            state_config, parameter_config
+            general_config["t_max"], states_config, actions_config, parameters_config
         )
-        self.loss = Computeloss()
+        self.loss = Computeloss(parameters_config, self.equations_of_motion)
 
     def step(self, batch_s_t: tf.Tensor, batch_a_t: tf.Tensor) -> tf.Tensor:
         """
@@ -88,5 +93,5 @@ class Ace_dice_2016(Abstract_Environment):
                 state.append(init_val.get("init_val"))
             batches.append(tf.convert_to_tensor(state))
 
-        state_tensor = tf.stack(state)
+        state_tensor = tf.stack(batches)
         return state_tensor

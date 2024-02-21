@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 from pathlib import Path
 
 from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
@@ -31,11 +32,12 @@ def test_calculation_of_k_t_plus():
     print("============ Running test_calculation_of_k_t_plus ============")
     k_t = 1
     tau_1_t = 1
-    E_t = eq.E_t_BAU(1, 1) - 1e-5
+    E_t = 1
     t = 1
+    x_t = 1
 
     log_Y_t = eq.log_Y_t(k_t, E_t, t)
-    k_tplus = eq.k_tplus(log_Y_t, tau_1_t, 0.5, 1)
+    k_tplus = eq.k_tplus(log_Y_t, tau_1_t, x_t, t)
     print(f"The value of capital for the next period is: {k_tplus}")
     print("============ End of test_calculation_of_k_t_plus ============\n\n")
 
@@ -82,6 +84,26 @@ def test_calculation_of_tau_2plus():
     print("============ End of test_calculation_of_tau_2plus ============\n\n")
 
 
+def test_update_state():
+    print("============ Running test_update_state ============")
+    eq = get_equations()
+    # Creating a state sample
+    s_t = [1, 1, 1, 1, 1, 1, 1]
+    s_t = tf.convert_to_tensor(s_t)
+
+    # Creating an action sample
+    a_t = [0.4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # 11 actions
+    a_t = tf.convert_to_tensor(a_t)
+
+    # Generating the next state and printing values
+    s_tplus = eq.update_state(s_t, a_t)
+    print(f"Current action variables: {a_t}")
+    print(f"Current state variables: {s_t}")
+    print(f"Next state variables: {s_tplus}")
+
+    print("============ End of test_update_state ============\n\n")
+
+
 def main():
     test_calculation_of_k_t_plus()
     test_calculation_of_m_1_plus()
@@ -89,6 +111,7 @@ def main():
     test_calculation_of_m_3_plus()
     test_calculation_of_tau_1plus()
     test_calculation_of_tau_2plus()
+    test_update_state()
 
 
 if __name__ == "__main__":

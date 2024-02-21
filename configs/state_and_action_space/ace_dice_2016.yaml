@@ -1,29 +1,37 @@
+general:
+  t_max: 100
+  num_batches: 1
+
 parameters:
   production_specific:
     # ACE specific parameters
-    beta: 0.9 # NOT THE PROPER VALUE
+    beta: 0.9               # NOT THE PROPER VALUE
     xi_0: 0.2219
-    #xi_1: 0.25 # Baked into the tau. probably not needed.
+    #xi_1: 0.25             # Baked into the tau. probably not needed.
     kappa: 0.3
     delta_k: 0.44
-    g_k: 0.29 # Assumed to be the same as g_kt
+    g_k: 0.29               # Assumed to be the same as g_kt
 
     # DICE Production specific parameters
     timestep: 5
+    
     ## For carbon intensity sigma_t
     g_0_sigma: -0.0152
     delta_sigma: 0.001
     sigma_0: 0.00009556
     delta_t: 5
+    
     ## For abatement costs theta_{1,t}
     p_back: 0.55
     g_back: 0.005
     theta_2: 2.6
     c2co2: 3.666
+    
     ## For initializing labor (N_t)
     pop0: 7403              # Initial world population 2015 (millions)
     popadj: 0.134           # Growth rate to calibrate to 2050 pop projection
     popasym: 11500          # Asymptotic population (millions)
+    
     ## For initializing total factor productivity
     dela: 0.005             # Decline rate of TFP per 5 years
     ga0: 0.076              # Initial growth rate for TFP per 5 years
@@ -31,7 +39,7 @@ parameters:
 
   climate_specific:
     sigma_forc: 0.5198
-    M_pre: 596.4 # Pre-industrial atmospheric carbon concentration ACE
+    M_pre: 596.4            # Pre-industrial atmospheric carbon concentration ACE
     # M_pre: 600 # Pre-industrial atmospheric carbon concentration DICE?
     
     Phi:
@@ -48,11 +56,11 @@ state_variables:
   - name: k_t
     init_val: 10
   - name: M_1_t
-    init_val: 862.86 # 2015 Carbon stock
+    init_val: 862.86        # 2015 Carbon stock
   - name: M_2_t
-    init_val: 1541.11 # 2015 Carbon stock
+    init_val: 1541.11       # 2015 Carbon stock
   - name: M_3_t
-    init_val: 10010.44 # 2015 Carbon stock
+    init_val: 10010.44      # 2015 Carbon stock
   - name: tau_1_t
     init_val: 1
   - name: tau_2_t
@@ -64,7 +72,7 @@ state_variables:
 action_variables:
   # Controls
   - name: x_t
-    activation: tf.keras.activations.linear
+    activation: tf.keras.activations.sigmoid
   - name: E_t
     activation: tf.keras.activations.linear
   # Value function prediction

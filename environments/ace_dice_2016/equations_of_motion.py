@@ -34,14 +34,14 @@ class Equations_of_motion_Ace_Dice:
         k_t = s_t.numpy()[0]
         m_vector = s_t.numpy()[1:4]
         tau_vector = s_t.numpy()[4:6]
-        t = s_t.numpy()[6]
+        t = (int)(s_t.numpy()[6])
 
         # 3. call functions with variables and get state values
         # how do I get G_t?
         G_t = 0
 
         log_Y_t = self.log_Y_t(k_t, E_t, t)
-        k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t)
+        k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t, t)
         m_1plus = self.m_1plus(m_vector, E_t)
         m_2plus = self.m_2plus(m_vector)
         m_3plus = self.m_3plus(m_vector)
@@ -51,7 +51,7 @@ class Equations_of_motion_Ace_Dice:
         # 4. return state values for next state
         s_t_plus = [k_tplus, m_1plus, m_2plus, m_3plus, tau_1plus, tau_2plus, t + 1]
 
-        s_t_plus_tensor = tf.stack(s_t_plus)
+        s_t_plus_tensor = tf.convert_to_tensor(s_t_plus)
         return s_t_plus_tensor
 
     # --- HELPER METHODS ---

@@ -15,6 +15,7 @@ class Algorithm_DEQN:
         env: Abstract_Environment,
         agent: DEQN_agent,
         optimizer: tf.keras.optimizers.Optimizer,
+        log_dir: str = "logs/train",
     ) -> None:
         self.n_episodes = n_episodes
         self.n_epochs = n_epochs
@@ -23,6 +24,7 @@ class Algorithm_DEQN:
         self.env = env
         self.agent = agent
         self.optimizer = optimizer
+        self.writer = tf.summary.create_file_writer(log_dir)
 
     def check_compatibility(self) -> None:
         """
@@ -65,13 +67,11 @@ class Algorithm_DEQN:
         Returns:
             tf.Tensor: _description_
         """
-        # TODO: Consider renaming batches to statesample. More informative?
         total_loss = 0.0
         num_batches = 0
 
         for batch in batches:
             with tf.GradientTape() as tape:
-                # TODO: make sure prediction is with old parameters?????
                 a_t = self.agent.get_action(batch)
                 loss = self.env.compute_loss(batch, a_t)
 
@@ -104,18 +104,23 @@ class Algorithm_DEQN:
             batches = tf.data.Dataset.from_tensor_slices(shuffled_episodes).batch(
                 self.batch_size
             )
-            total_loss, loss_without_penalty_bounds = self.epoch(batches)
+            total_loss = self.epoch(batches)
             shuffled_episodes = tf.random.shuffle(shuffled_episodes)
-            # TODO: Log loss with and without bound penalization
+
+            # Logging
+            with self.writer.as_default():
+                tf.summary.scalar("Total Epoch Loss", total_loss, step=epoch_i)
+                self.writer.flush()
+            print(f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {total_loss}")
 
     def main_loop(self) -> None:
         training_start = tf.timestamp()
 
         for episode_i in range(self.n_episodes):
+            print(f"Starting Episode {episode_i+1}/{self.n_episodes}")
             episode = self.generate_episodes()
             self.train_on_episodes(episode)
 
             print(f"==== Time elapsed: {tf.timestamp()-training_start} ====")
 
         # TODO: checkpoint of model if it is performing better
-        # TODO: create relevant plots for the best performing model
