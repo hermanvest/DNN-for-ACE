@@ -91,8 +91,8 @@ def test_calculation_of_k_t_plus():
     k_t = tf.constant(1.0, dtype=tf.float32)
     tau_1_t = tf.constant(1.0, dtype=tf.float32)
     E_t = tf.constant(1.0, dtype=tf.float32)
-    t = tf.constant(1.0, dtype=tf.float32)
     x_t = tf.constant(0.6, dtype=tf.float32)
+    t = 1
 
     print("Calculating log_Y_t...")
     log_Y_t = eq.log_Y_t(k_t, E_t, t)
@@ -106,15 +106,24 @@ def test_calculation_of_k_t_plus():
 def test_calculation_of_m_1_plus():
     print("============ Running test_calculation_of_m_1_plus ============")
     eq = get_equations()
-    m = np.ones(3)
-    print(f" The value of the carbon stock in the next period is {eq.m_1plus(m, 1)}")
+
+    print("Creating constants...")
+    E_t = tf.constant(1.0, dtype=tf.float32)
+    m = tf.ones([3], dtype=tf.float32)
+
+    print("Calculating m_1plus...")
+    print(f" The value of the carbon stock in the next period is {eq.m_1plus(m, E_t)}")
     print("============ End of test_calculation_of_m_1_plus ============\n\n")
 
 
 def test_calculation_of_m_2_plus():
     print("============ Running test_calculation_of_m_2_plus ============")
     eq = get_equations()
-    m = np.ones(3)
+
+    print("Creating constants...")
+    m = tf.ones([3], dtype=tf.float32)
+
+    print("Calculating m_2plus...")
     print(f" The value of the carbon stock in the next period is {eq.m_2plus(m)}")
     print("============ End of test_calculation_of_m_2_plus ============\n\n")
 
@@ -122,7 +131,11 @@ def test_calculation_of_m_2_plus():
 def test_calculation_of_m_3_plus():
     print("============ Running test_calculation_of_m_3_plus ============")
     eq = get_equations()
-    m = np.ones(3)
+
+    print("Creating constants...")
+    m = tf.ones([3], dtype=tf.float32)
+
+    print("Calculating m_3plus...")
     print(f" The value of the carbon stock in the next period is {eq.m_3plus(m)}")
     print("============ End of test_calculation_of_m_3_plus ============\n\n")
 
@@ -130,9 +143,10 @@ def test_calculation_of_m_3_plus():
 def test_calculation_of_tau_1plus():
     print("============ Running test_calculation_of_tau_1plus ============")
     eq = get_equations()
-    tau_t = [1, 1]
+    m_1_t = tf.constant(1.0, dtype=tf.float32)
+    tau_t = tf.ones([2], dtype=tf.float32)
     print(
-        f" The value of the carbon stock in the next period is {eq.tau_1plus(tau_t,1)}"
+        f" The value of the transformed temperatures in the next period is {eq.tau_1plus(tau_t, m_1_t)}"
     )
     print("============ End of test_calculation_of_tau_1plus ============\n\n")
 
@@ -140,23 +154,26 @@ def test_calculation_of_tau_1plus():
 def test_calculation_of_tau_2plus():
     print("============ Running test_calculation_of_tau_2plus ============")
     eq = get_equations()
-    tau_t = [1, 1]
-    print(f" The value of the carbon stock in the next period is {eq.tau_2plus(tau_t)}")
+    tau_t = tf.ones([2], dtype=tf.float32)
+    print(
+        f" The value of the transformed temperatures in the next period is {eq.tau_2plus(tau_t)}"
+    )
     print("============ End of test_calculation_of_tau_2plus ============\n\n")
 
 
 def test_update_state():
     print("============ Running test_update_state ============")
     eq = get_equations()
-    # Creating a state sample
+
+    print("Creating a state sample...")
     s_t = [1, 1, 1, 1, 1, 1, 1]
-    s_t = tf.convert_to_tensor(s_t)
+    s_t = tf.convert_to_tensor(s_t, dtype=tf.float32)
 
-    # Creating an action sample
+    print("Creating an action sample...")
     a_t = [0.4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # 11 actions
-    a_t = tf.convert_to_tensor(a_t)
+    a_t = tf.convert_to_tensor(a_t, dtype=tf.float32)
 
-    # Generating the next state and printing values
+    print("Generating the next state and printing values...")
     s_tplus = eq.update_state(s_t, a_t)
     print(f"Current action variables: {a_t}")
     print(f"Current state variables: {s_t}")

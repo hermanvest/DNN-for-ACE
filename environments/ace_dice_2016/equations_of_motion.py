@@ -15,7 +15,8 @@ class Equations_of_motion_Ace_Dice:
         # Note that all variables can be found there
         for _, section_value in parameters_config.items():
             for variable_name, variable_value in section_value.items():
-                setattr(self, variable_name, variable_value)
+                tensor_value = tf.constant(variable_value, dtype=tf.float32)
+                setattr(self, variable_name, tensor_value)
 
         self.states = states
         self.actions = actions
@@ -25,16 +26,38 @@ class Equations_of_motion_Ace_Dice:
         self.theta_1 = self.create_theta_1(t_max)
 
     def update_state(self, s_t: tf.Tensor, a_t: tf.Tensor) -> tf.Tensor:
+        """Updates the state based on current state and action tensors.
+
+        Args:
+            s_t (tf.Tensor): The current state tensor.
+            a_t (tf.Tensor): The action tensor.
+
+        Returns:
+            tf.Tensor: The updated state tensor.
+
+        Raises:
+            TypeError: If either s_t or a_t is not of dtype tf.float32.
+        """
+        if s_t.dtype != tf.float32:
+            raise TypeError(
+                f"Invalid argument for s_t: Expected tf.float32, got {s_t.dtype}"
+            )
+        if a_t.dtype != tf.float32:
+            raise TypeError(
+                f"Invalid argument for a_t: Expected tf.float32, got {a_t.dtype}"
+            )
+
         # state- and action values should be in the same order as in the config
         # 1. get x_t and E_t
-        x_t = a_t.numpy()[0]
-        E_t = a_t.numpy()[1]
+        x_t = a_t[0]
+        E_t = a_t[1]
 
         # 2. get all the state values
-        k_t = s_t.numpy()[0]
-        m_vector = s_t.numpy()[1:4]
-        tau_vector = s_t.numpy()[4:6]
-        t = (int)(s_t.numpy()[6])
+        k_t = s_t[0]
+        m_vector = s_t[1:4]
+        tau_vector = s_t[4:6]
+        t = (int)(s_t[6].numpy())
+        t_plus = s_t[6] + 1
 
         # 3. call functions with variables and get state values
         # how do I get G_t?
@@ -49,7 +72,7 @@ class Equations_of_motion_Ace_Dice:
         tau_2plus = self.tau_2plus(tau_vector)
 
         # 4. return state values for next state
-        s_t_plus = [k_tplus, m_1plus, m_2plus, m_3plus, tau_1plus, tau_2plus, t + 1]
+        s_t_plus = [k_tplus, m_1plus, m_2plus, m_3plus, tau_1plus, tau_2plus, t_plus]
 
         s_t_plus_tensor = tf.convert_to_tensor(s_t_plus, dtype=tf.float32)
         return s_t_plus_tensor
@@ -189,8 +212,10 @@ class Equations_of_motion_Ace_Dice:
 
         A_t = self.A_t[t]
         N_t = self.N_t[t]
+        labor_contrib = tf.pow(N_t, (1 - self.kappa)) / 1000
+        capital_contrib = tf.pow(k_t, self.kappa)
 
-        return A_t * (tf.pow(N_t, (1 - self.kappa)) / 1000) * tf.pow(k_t, self.kappa)
+        return A_t * labor_contrib * capital_contrib
 
     def E_t_BAU(self, t: int, k_t: tf.Tensor) -> tf.Tensor:
         """Returns Business As Usual emissions at time t.
@@ -227,56 +252,67 @@ class Equations_of_motion_Ace_Dice:
 
     # --- MAIN EQUATIONS ---
 
-    def k_tplus(self, log_Y_t: float, tau_1_t: float, x_t: float, t: int) -> float:
+    def k_tplus(
+        self, log_Y_t: tf.Tensor, tau_1_t: tf.Tensor, x_t: tf.Tensor, t: int
+    ) -> tf.Tensor:
         """
         Args:
-        - log Y_t = log F_t(A_t,N_t,K_t,E_t)
-        - tau_{1,t}
-        - x_t
+            log Y_t (tf.Tensor): Log of production function
+            tau_1_t (tf.Tensor): transformed temperatures in layer 1
+            x_t (tf.Tensor): consumption rate
+            t (int): time index
 
-        Returns: k_{t+1}
+        Returns:
+            k_{t+1} (tf.Tensor): log capital in the next period
         """
         damages = -self.xi_0 * tau_1_t + self.xi_0
-        log_one_x_t = np.log(1 - x_t)
-        depreciation_factor = np.log(1 + self.g_k) - np.log(self.delta_k + self.g_k)
+        log_one_x_t = tf.math.log(1 - x_t)
+        depreciation_factor = tf.math.log(1 + self.g_k) - tf.math.log(
+            self.delta_k + self.g_k
+        )
 
         return log_Y_t + damages + log_one_x_t + depreciation_factor
 
-    def m_1plus(self, m_t: np.array, E_t: float) -> float:
+    def m_1plus(self, m_t: tf.Tensor, E_t: tf.Tensor) -> tf.Tensor:
         """
         Args:
-        - The current vector of carbon stocks M_t
-        - All emissions at current timestep, including exogenous emissions
+            m_t (tf.Tensor): The current vector of carbon stocks M_t
+            E_t (tf.Tensor): All emissions at current timestep, including exogenous emissions
 
-        Returns: M_{1,t+1}
+        Returns
+            M_{1,t+1} (tf.Tensor): Carbon stock for layer 1 at the next time step.
         """
-        phi_row_1 = np.array(self.Phi[0][:])
-        phi_dot_m = np.dot(phi_row_1, m_t)
+        phi_row_1 = self.Phi[0, :]
+        phi_dot_m = tf.tensordot(phi_row_1, m_t, axes=1)
 
         return phi_dot_m + E_t
 
-    def m_2plus(self, m_t: np.array) -> float:
+    def m_2plus(self, m_t: np.array) -> tf.Tensor:
         """
         Args:
-        - The current vector of carbon stocks M_t
+            m_t (tf.Tensor): The current vector of carbon stocks M_t
 
-        Returns: M_{2,t+1}
+        Returns:
+            M_{2,t+1} (tf.Tensor): Carbon stock for layer 2 at the next time step.
         """
-        phi_row_2 = np.array(self.Phi[1][:])
-        return np.dot(phi_row_2, m_t)
+        phi_row_2 = self.Phi[1, :]
+        return tf.tensordot(phi_row_2, m_t, axes=1)
 
-    def m_3plus(self, m_t: np.array) -> float:
+    def m_3plus(self, m_t: np.array) -> tf.Tensor:
         """
         Args:
-        - The current vector of carbon stocks M_t
+            m_t (tf.Tensor): The current vector of carbon stocks M_t
 
-        Returns: M_{3,t+1}
+        Returns:
+            M_{3,t+1} (tf.Tensor): Carbon stock for layer 3 at the next time step.
         """
 
-        phi_row_3 = np.array(self.Phi[2][:])
-        return np.dot(phi_row_3, m_t)
+        phi_row_3 = self.Phi[2, :]
+        return tf.tensordot(phi_row_3, m_t, axes=1)
 
-    def tau_1plus(self, tau_t: np.array, m_1_t: float, G_t: float = 0.0) -> float:
+    def tau_1plus(
+        self, tau_t: tf.Tensor, m_1_t: tf.Tensor, G_t: tf.Tensor = 0.0
+    ) -> tf.Tensor:
         """
         Args:
         - The current vector of transformed temperatures tau
@@ -285,14 +321,14 @@ class Equations_of_motion_Ace_Dice:
 
         Returns: tau_{1,t+1}
         """
-        sigma_transition_row_1 = np.array(self.sigma_transition[0][:])
+        sigma_transition_row_1 = self.sigma_transition[0, :]
 
-        temp_transitions = np.dot(sigma_transition_row_1, tau_t)
+        temp_transitions = tf.tensordot(sigma_transition_row_1, tau_t, axes=1)
         forcing = self.sigma_forc * ((m_1_t + G_t) / self.M_pre)
 
         return temp_transitions + forcing
 
-    def tau_2plus(self, tau_t: np.array) -> float:
+    def tau_2plus(self, tau_t: tf.Tensor) -> tf.Tensor:
         """
         Args:
         - Transition matrix for temperatures
@@ -301,5 +337,5 @@ class Equations_of_motion_Ace_Dice:
 
         Returns: tau_{2,t+1}
         """
-        sigma_transition_row_2 = np.array(self.sigma_transition[1][:])
-        return np.dot(sigma_transition_row_2, tau_t)
+        sigma_transition_row_2 = self.sigma_transition[1, :]
+        return tf.tensordot(sigma_transition_row_2, tau_t, axes=1)
