@@ -68,9 +68,30 @@ def test_episode_generation():
     episodes = algorithm.generate_episodes()
 
     print("Printing the episode")
-    print(episodes[:100].numpy())
+    print(episodes[:5].numpy())
 
     print("================== TERMINATES: test_episode_generation() ==================")
+
+
+def test_epoch_and_episode():
+    print("\n================== RUNNING: test_epoch_and_episode() ==================")
+    algorithm = setUp()
+    print("Generating episode...")
+    episodes = algorithm.generate_episodes()
+    print(f"Finished generating an episode with shape: {episodes.numpy().shape}")
+
+    # Creating batches:
+    batch_size = 12
+    flattened_episodes = tf.reshape(episodes, [-1, episodes.shape[-1]])
+    shuffled_episodes = tf.random.shuffle(flattened_episodes)
+    batches = tf.data.Dataset.from_tensor_slices(shuffled_episodes).batch(batch_size)
+    print(f"Shuffled data with {sum(1 for _ in batches)} batches")
+
+    print("\nRunning an Epoch on the batches...")
+    epoch_average_mse = algorithm.epoch(batches)
+    print(f"Average MSE over the epoch was: {epoch_average_mse}")
+
+    print("================== TERMINATES: test_epoch_and_episode() ==================")
 
 
 def main():
@@ -79,7 +100,14 @@ def main():
     print("\n\n#######################################################")
     print("##################     UNIT TESTS    ##################")
     print("#######################################################\n\n")
+
     test_episode_generation()
+
+    print("\n\n#######################################################")
+    print("###############     INTEGRATION TESTS    ##############")
+    print("#######################################################\n\n")
+
+    test_epoch_and_episode()
 
     print("################## END TESTS ##################")
 

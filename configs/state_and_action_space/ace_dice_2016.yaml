@@ -72,26 +72,26 @@ state_variables:
 action_variables:
   # Controls
   - name: x_t
-    activation: tf.keras.activations.sigmoid
+    activation: sigmoid
   - name: E_t
-    activation: tf.keras.activations.softplus
+    activation: softplus
   # Value function prediction
   - name: V_t
-    activation: tf.keras.activations.linear
+    activation: linear
   # Lagrange multipliers
   - name: lambda_k_t
-    activation: tf.keras.activations.linear
+    activation: linear
   - name: lambda_m_1
-    activation: tf.keras.activations.linear
+    activation: linear
   - name: lambda_m_2
-    activation: tf.keras.activations.linear
+    activation: linear
   - name: lambda_m_3
-    activation: tf.keras.activations.linear
+    activation: linear
   - name: lambda_tau_1
-    activation: tf.keras.activations.linear
+    activation: linear
   - name: lambda_tau_2
-    activation: tf.keras.activations.linear
+    activation: linear
   - name: lambda_t_BAU
-    activation: tf.keras.activations.linear
+    activation: linear
   - name: lambda_E_t
-    activation: tf.keras.activations.linear
+    activation: linear

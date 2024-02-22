@@ -152,8 +152,7 @@ class Computeloss:
         """
         production = self.equations_of_motion.log_Y_t(k_t, E_t, t)
         damages = -self.xi_0 * tau_1_t + self.xi_0
-        # Problem: how do i get the value function of the next state?
-        # Solution?: do another prediction from s_tplus to obtain v_tplus
+        print(f"x_t: {x_t}")
 
         return (
             np.log(x_t) + production + damages + value_func_tplus - value_func_t

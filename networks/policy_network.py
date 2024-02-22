@@ -64,32 +64,26 @@ class Policy_Network(tf.keras.Model):
         )
 
     def apply_actionspecific_activations(self, unprocessed_output) -> Any:
-        # Output is in a Tensor shaped [batchsize, single_prediction_size]
-        batch_size = unprocessed_output.shape[0]
-        processed_output = unprocessed_output
+        # Tensorflow calls this function once for each bath
+        # Therefore unprocessed output will always be shape (None, num_actions)
+        processed_outputs = []
 
-        # Iterate through each policy configuration
-        # a_i is action index, action_information is a dict
+        # Iterate over the action configurations to apply specified activations
         for a_i, action_information in enumerate(self._config_action_variables):
-            # Check if an activation is specified
-            if "activation" in action_information:
-                activation_func = getattr(
-                    tf.keras.activations,
-                    action_information["activation"],
-                    None,
-                )
+            # Extract the activation function if specified, else use linear (no change)
+            activation_name = action_information.get(
+                "activation", "linear"
+            )  # Default to linear
+            activation_func = getattr(tf.keras.activations, activation_name)
 
-                # Apply the activation function if it's not None
-                if activation_func:
-                    # Apply activation function to each element for the current policy variable across the batch
-                    activated_output = activation_func(processed_output[:, a_i])
-                    # Update processed_output with the activated output for the current policy variable
-                    indices = [[batch_i, a_i] for batch_i in range(batch_size)]
+            # Apply the activation function to the corresponding slice of output
+            processed_output = activation_func(unprocessed_output[:, a_i : a_i + 1])
 
-                    processed_output = tf.tensor_scatter_nd_update(
-                        processed_output, indices, activated_output
-                    )
-        return processed_output
+            # Collect the processed output
+            processed_outputs.append(processed_output)
+
+        # Reassemble the processed outputs into a single tensor
+        return tf.concat(processed_outputs, axis=1)
 
     def call(self, inputs) -> Any:
         # Standard feed forward dense neural network

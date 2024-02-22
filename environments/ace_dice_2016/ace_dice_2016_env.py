@@ -71,15 +71,13 @@ class Ace_dice_2016(Abstract_Environment):
         for s_t, a_t, st_plus, a_tplus in zip(
             batch_s_t, batch_a_t, batch_s_tplus, batch_a_tplus
         ):
-            se_no_penalty, se_penalty = self.loss.squared_error_for_transition(
+            se_no_penalty = self.loss.squared_error_for_transition(
                 s_t, a_t, st_plus, a_tplus
             )
             total_mse += se_no_penalty
-            total_mse_with_penalty += se_penalty
             sample_conunter += 1
 
         total_mse = total_mse / sample_conunter
-        total_mse_with_penalty = total_mse_with_penalty / sample_conunter
         return total_mse, total_mse_with_penalty
 
     def reset(self) -> tf.Tensor:

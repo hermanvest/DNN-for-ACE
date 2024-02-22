@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Tuple
 from agents.deqn_agent import DEQN_agent
-from environments.abstract_environment import Abstract_Environment
+from environments.ace_dice_2016.ace_dice_2016_env import Ace_dice_2016
 
 
 class Algorithm_DEQN:
@@ -12,7 +12,7 @@ class Algorithm_DEQN:
         n_epochs: int,
         t_max: int,
         batch_size: int,
-        env: Abstract_Environment,
+        env: Ace_dice_2016,
         agent: DEQN_agent,
         optimizer: tf.keras.optimizers.Optimizer,
         log_dir: str = "logs/train",
@@ -71,10 +71,15 @@ class Algorithm_DEQN:
         total_loss = 0.0
         num_batches = 0
 
-        for batch in batches:
+        for batch_s_t in batches:
             with tf.GradientTape() as tape:
-                a_t = self.agent.get_action(batch)
-                loss = self.env.compute_loss(batch, a_t)
+                batch_a_t = self.agent.get_actions(batch_s_t)
+                batch_s_tplus = self.env.step(batch_s_t, batch_a_t)
+                batch_a_tplus = self.agent.get_actions(batch_s_tplus)
+
+                loss = self.env.compute_loss(
+                    batch_s_t, batch_a_t, batch_s_tplus, batch_a_tplus
+                )
 
             gradients = tape.gradient(
                 loss, self.agent.policy_network.trainable_variables
@@ -105,14 +110,16 @@ class Algorithm_DEQN:
             batches = tf.data.Dataset.from_tensor_slices(shuffled_episodes).batch(
                 self.batch_size
             )
-            total_loss = self.epoch(batches)
+            epoch_average_mse = self.epoch(batches)
             shuffled_episodes = tf.random.shuffle(shuffled_episodes)
 
             # Logging
             with self.writer.as_default():
-                tf.summary.scalar("Total Epoch Loss", total_loss, step=epoch_i)
+                tf.summary.scalar("Total Epoch Loss", epoch_average_mse, step=epoch_i)
                 self.writer.flush()
-            print(f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {total_loss}")
+            print(
+                f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {epoch_average_mse}"
+            )
 
     def main_loop(self) -> None:
         training_start = tf.timestamp()
