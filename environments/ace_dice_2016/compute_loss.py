@@ -236,7 +236,7 @@ class Computeloss:
             )
         )
 
-        return (
+        total_loss = (
             loss1
             + tf.reduce_sum(loss2_4)
             + tf.reduce_sum(loss5_6)
@@ -245,3 +245,6 @@ class Computeloss:
             + loss9
             + loss10
         )
+        total_loss_float32 = tf.cast(total_loss, dtype=tf.float32)
+
+        return total_loss_float32

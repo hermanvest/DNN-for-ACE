@@ -44,7 +44,8 @@ class Ace_dice_2016(Abstract_Environment):
             next_states.append(s_tplus_casted)
 
         next_states_tensor = tf.stack(next_states)
-        return next_states_tensor
+
+        return tf.cast(next_states_tensor, dtype=tf.float32)
 
     def compute_loss(
         self,
@@ -64,9 +65,8 @@ class Ace_dice_2016(Abstract_Environment):
         Returns:
             float: (mse without penalty, mse with penalty)
         """
-        total_mse = 0.0
-        total_mse_with_penalty = 0.0
-        sample_conunter = 0
+        total_mse = tf.constant(0.0, dtype=tf.float32)
+        sample_counter = tf.constant(0, dtype=tf.float32)
 
         for s_t, a_t, st_plus, a_tplus in zip(
             batch_s_t, batch_a_t, batch_s_tplus, batch_a_tplus
@@ -75,10 +75,12 @@ class Ace_dice_2016(Abstract_Environment):
                 s_t, a_t, st_plus, a_tplus
             )
             total_mse += se_no_penalty
-            sample_conunter += 1
+            sample_counter += 1.0
 
-        total_mse = total_mse / sample_conunter
-        return total_mse, total_mse_with_penalty
+        total_mse = total_mse / sample_counter
+        total_mse = tf.cast(total_mse, dtype=tf.float32)
+
+        return total_mse
 
     def reset(self) -> tf.Tensor:
         """
@@ -94,4 +96,4 @@ class Ace_dice_2016(Abstract_Environment):
             batches.append(state_tensor)
 
         state_tensor = tf.stack(batches)
-        return state_tensor
+        return tf.cast(state_tensor, dtype=tf.float32)

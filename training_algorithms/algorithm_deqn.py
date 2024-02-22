@@ -57,7 +57,7 @@ class Algorithm_DEQN:
             s_t = s_tplus
 
         states_tensor = tf.stack(states)
-        return states_tensor
+        return tf.cast(states_tensor, dtype=tf.float32)
 
     def epoch(self, batches: tf.Tensor) -> tf.Tensor:
         """_summary_
