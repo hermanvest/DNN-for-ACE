@@ -27,16 +27,77 @@ def get_equations() -> Equations_of_motion_Ace_Dice:
     return Equations_of_motion_Ace_Dice(t_max, states, actions, parameters)
 
 
-def test_calculation_of_k_t_plus():
+def test_constant_creations():
     eq = get_equations()
-    print("============ Running test_calculation_of_k_t_plus ============")
-    k_t = 1
-    tau_1_t = 1
-    E_t = 1
-    t = 1
-    x_t = 1
+    print("============ Running test_constant_creations ============")
+    print(f"The list of labor is: {eq.N_t.numpy()}")
+    print(f"The list of tfp is: {eq.A_t.numpy()}")
+    print(f"The list of carbon intensity is: {eq.sigma.numpy()}")
+    print(f"The list of abatement costs is: {eq.theta_1.numpy()}")
+    print("============ End of test_constant_creations ============\n\n")
 
+
+def test_y_gross():
+    print("============ Running test_y_gross ============")
+    eq = get_equations()
+
+    print("Creating constants...")
+    k_t = tf.constant(1.0, dtype=tf.float32)
+    t = 1
+
+    print("Calculating y_gross...")
+    y_t_gross = eq.y_gross(t, k_t)
+
+    print(f"The value of y_gross is: {y_t_gross}")
+    print("============ End of test_y_gross ============\n\n")
+
+
+def test_E_t_BAU():
+    print("============ Running test_E_t_BAU ============")
+    eq = get_equations()
+
+    print("Creating constants...")
+    k_t = tf.constant(1.0, dtype=tf.float32)
+    t = 1
+
+    print("Calculating e_t_BAU...")
+    e_t_BAU = eq.E_t_BAU(t, k_t)
+
+    print(f"The value of E_t_BAU is: {e_t_BAU}")
+    print("============ End of test_E_t_BAU ============\n\n")
+
+
+def test_log_Y_t():
+    print("============ Running test_log_Y_t ============")
+    eq = get_equations()
+
+    print("Creating constants...")
+    k_t = tf.constant(1.0, dtype=tf.float32)
+    E_t = tf.constant(1.0, dtype=tf.float32)
+    t = 1
+
+    print("Calculating log_Y_t...")
     log_Y_t = eq.log_Y_t(k_t, E_t, t)
+
+    print(f"The value of log_Y_t is: {log_Y_t}")
+    print("============ End of test_log_Y_t ============\n\n")
+
+
+def test_calculation_of_k_t_plus():
+    print("============ Running test_calculation_of_k_t_plus ============")
+    eq = get_equations()
+
+    print("Creating constants...")
+    k_t = tf.constant(1.0, dtype=tf.float32)
+    tau_1_t = tf.constant(1.0, dtype=tf.float32)
+    E_t = tf.constant(1.0, dtype=tf.float32)
+    t = tf.constant(1.0, dtype=tf.float32)
+    x_t = tf.constant(0.6, dtype=tf.float32)
+
+    print("Calculating log_Y_t...")
+    log_Y_t = eq.log_Y_t(k_t, E_t, t)
+
+    print("Calculating k_tplus...")
     k_tplus = eq.k_tplus(log_Y_t, tau_1_t, x_t, t)
     print(f"The value of capital for the next period is: {k_tplus}")
     print("============ End of test_calculation_of_k_t_plus ============\n\n")
@@ -105,6 +166,15 @@ def test_update_state():
 
 
 def main():
+    print("##################    CONSTANTS     ##################")
+    test_constant_creations()
+
+    print("################## HELPER FUNCTIONS ##################")
+    test_y_gross()
+    test_E_t_BAU()
+    test_log_Y_t()
+
+    print("##################   CALCULATIONS   ##################")
     test_calculation_of_k_t_plus()
     test_calculation_of_m_1_plus()
     test_calculation_of_m_2_plus()

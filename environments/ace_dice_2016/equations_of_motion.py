@@ -20,7 +20,7 @@ class Equations_of_motion_Ace_Dice:
         self.states = states
         self.actions = actions
         self.N_t = self.create_N_t(t_max)
-        self.a_t = self.create_a_t(t_max)
+        self.A_t = self.create_A_t(t_max)
         self.sigma = self.create_sigma(t_max)
         self.theta_1 = self.create_theta_1(t_max)
 
@@ -55,14 +55,14 @@ class Equations_of_motion_Ace_Dice:
         return s_t_plus_tensor
 
     # --- HELPER METHODS ---
-    def create_N_t(self, t_max) -> np.ndarray:
+    def create_N_t(self, t_max: int) -> tf.Tensor:
         """_summary_
 
         Args:
             None
 
         Returns:
-            np.ndarray: A list of the labor inputs we need for all time steps.
+            tf.Tensor: A list of the labor inputs we need for all time steps.
 
         Relevant GAMS code:
             set        t  Time periods (5 years per period)           /1*100   /
@@ -79,9 +79,11 @@ class Equations_of_motion_Ace_Dice:
         for t in range(1, t_max):
             labor[t + 1] = labor[t] * (self.popasym / labor[t]) ** self.popadj
 
-        return labor[1:]
+        labor_tensor = tf.convert_to_tensor(labor[1:], dtype=tf.float32)
 
-    def create_a_t(self, t_max) -> np.ndarray:
+        return labor_tensor
+
+    def create_A_t(self, t_max: int) -> tf.Tensor:
         """
         Creates a list of log total factor productivity we need for all time steps.
 
@@ -89,7 +91,7 @@ class Equations_of_motion_Ace_Dice:
             None
 
         Returns:
-            np.ndarray: A list of the log of total factor productivity for all time steps.
+            tf.Tensor: A list of the log of total factor productivity for all time steps.
 
         Relevant GAMS code:
             set        t  Time periods (5 years per period)           /1*100   /
@@ -110,26 +112,11 @@ class Equations_of_motion_Ace_Dice:
         for t in range(1, t_max):
             tfp[t + 1] = tfp[t] / (1 - ga[t])
 
-        return np.log(tfp[1:])
+        labor_tensor = tf.convert_to_tensor(tfp[1:], dtype=tf.float32)
 
-    def y_gross(self, t: int, k_t: float) -> float:
-        """_summary_
-        Args:
+        return labor_tensor
 
-        Returns: Y_t gross in trillion USD
-
-        Relevant equation:
-            Y_t = A_t (N_t^{1-kappa} / 1000) K_t^{kappa}
-        """
-
-        A_t = np.exp(self.a_t[t])
-        N_t = self.N_t[t]
-
-        return (
-            A_t * (np.power(N_t, (1 - self.kappa)) / 1000) * np.power(k_t, self.kappa)
-        )
-
-    def create_sigma(self, t_max: int) -> np.ndarray:
+    def create_sigma(self, t_max: int) -> tf.Tensor:
         """
         Computes and returns the carbon intensity sigma_t
 
@@ -137,7 +124,7 @@ class Equations_of_motion_Ace_Dice:
             t (int): time
 
         Returns:
-            float: carbon intensity sigma_t
+            tf.Tensor: carbon intensity sigma_t
 
         Relevant GAMS code:
             tstep    Years per Period                                     /5       /
@@ -158,9 +145,10 @@ class Equations_of_motion_Ace_Dice:
             gsig[t] = gsig[t - 1] * np.power((1 + self.delta_sigma), self.delta_t)
             sigma[t] = sigma[t - 1] * np.exp(gsig[t - 1] * self.delta_t)
 
-        return sigma
+        sigma_tensor = tf.convert_to_tensor(sigma, dtype=tf.float32)
+        return sigma_tensor
 
-    def create_theta_1(self, t_max: int) -> np.ndarray:
+    def create_theta_1(self, t_max: int) -> tf.Tensor:
         """
         Computes and returns the abatement costs.
 
@@ -182,9 +170,29 @@ class Equations_of_motion_Ace_Dice:
             p_back_t = self.p_back * np.power((1 - self.g_back), t - 1)
             theta_1_t = p_back_t * (self.sigma[t] / (self.theta_2 * 1000))
             theta_1[t] = theta_1_t
-        return theta_1
 
-    def E_t_BAU(self, t: int, k_t: float) -> float:
+        theta_1_tensor = tf.convert_to_tensor(theta_1, dtype=tf.float32)
+        return theta_1_tensor
+
+    def y_gross(self, t: int, k_t: tf.Tensor) -> tf.Tensor:
+        """_summary_
+        Args:
+            t (int): time index
+            k_t (tf.Tensor): log capital in period t
+
+        Returns:
+            Y_t gross (tf.Tensor): Gross output in trillion USD
+
+        Relevant equation:
+            Y_t = A_t (N_t^{1-kappa} / 1000) K_t^{kappa}
+        """
+
+        A_t = self.A_t[t]
+        N_t = self.N_t[t]
+
+        return A_t * (tf.pow(N_t, (1 - self.kappa)) / 1000) * tf.pow(k_t, self.kappa)
+
+    def E_t_BAU(self, t: int, k_t: tf.Tensor) -> tf.Tensor:
         """Returns Business As Usual emissions at time t.
 
         Relevant equation:
@@ -192,15 +200,15 @@ class Equations_of_motion_Ace_Dice:
         """
         return self.sigma[t] * self.y_gross(t, k_t)
 
-    def log_Y_t(self, k_t: float, E_t: float, t: int) -> float:
+    def log_Y_t(self, k_t: tf.Tensor, E_t: tf.Tensor, t: int) -> tf.Tensor:
         """Computes log output with abatement costs for time t.
 
         Args:
-            k_t (float): log capital for time step t
-            E_t (float): emisions for time step t
+            k_t (tf.Tensor): log capital for time step t
+            E_t (tf.Tensor): emisions for time step t
 
         Returns:
-            log Y_t (float): logarithm of output Y_t
+            log Y_t (tf.Tensor): logarithm of output Y_t
 
         Relevant equation:
             log(Y_t) = log(Y_t_gross) + log( 1 - theta_{1,t}(|1-E_t/E_t_BAU|)^theta_2 )
@@ -210,10 +218,10 @@ class Equations_of_motion_Ace_Dice:
         if E_t > E_t_BAU:
             E_t = E_t_BAU
 
-        log_Y_t_gross = np.log(self.y_gross(t, k_t))
+        log_Y_t_gross = tf.math.log(self.y_gross(t, k_t))
         mu_t = 1 - E_t / E_t_BAU
-        abatement_cost = 1 - self.theta_1[t] * np.power((mu_t), self.theta_2)
-        log_abatement_cost = np.log(abatement_cost)
+        abatement_cost = 1 - self.theta_1[t] * tf.pow((mu_t), self.theta_2)
+        log_abatement_cost = tf.math.log(abatement_cost)
 
         return log_Y_t_gross + log_abatement_cost
 
