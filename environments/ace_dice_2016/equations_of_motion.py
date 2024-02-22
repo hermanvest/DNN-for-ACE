@@ -287,7 +287,7 @@ class Equations_of_motion_Ace_Dice:
 
         return phi_dot_m + E_t
 
-    def m_2plus(self, m_t: np.array) -> tf.Tensor:
+    def m_2plus(self, m_t: tf.Tensor) -> tf.Tensor:
         """
         Args:
             m_t (tf.Tensor): The current vector of carbon stocks M_t
@@ -298,7 +298,7 @@ class Equations_of_motion_Ace_Dice:
         phi_row_2 = self.Phi[1, :]
         return tf.tensordot(phi_row_2, m_t, axes=1)
 
-    def m_3plus(self, m_t: np.array) -> tf.Tensor:
+    def m_3plus(self, m_t: tf.Tensor) -> tf.Tensor:
         """
         Args:
             m_t (tf.Tensor): The current vector of carbon stocks M_t

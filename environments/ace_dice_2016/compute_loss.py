@@ -43,39 +43,45 @@ class Computeloss:
         """
         return self.beta * lambda_k_t * self.kappa - lambda_k_t
 
-    def ell_2_4(self, lambda_m_t_vector: tf.Tensor, lambda_tau_1_t: float) -> tf.Tensor:
+    def ell_2_4(self, lambda_m_t: tf.Tensor, lambda_tau_1_t: tf.Tensor) -> tf.Tensor:
         """Loss function based on FOC for M_{t+1}.
 
         Args:
-            lambda_m_t_vector (tf.Tensor): vector of langrange multipliers for the carbon stocks
+            lambda_m_t (tf.Tensor): vector of langrange multipliers for the carbon stocks
             lambda_tau_1_t (tf.Tensor): lagrange multiplier for transformed temperature 1 at time t
 
         Returns:
             loss (tf.Tensor)
         """
-        transitions = tf.matmul(self.Phi, lambda_m_t_vector)
+        # Ensuring that the lambda vector is of the correct shape
+        lambda_m_t_reshaped = tf.reshape(lambda_m_t, (3, 1))
+        transitions = tf.matmul(self.Phi, lambda_m_t_reshaped)
+
         e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
         e_1 = tf.reshape(e_1, shape=[3, 1])
 
         forc = lambda_tau_1_t * self.sigma_forc * (1 / self.M_pre)
 
-        loss = self.beta * (transitions + e_1 * forc) - lambda_m_t_vector
+        loss = self.beta * (transitions + e_1 * forc) - lambda_m_t_reshaped
 
         return loss
 
-    def ell_5_6(self, lambda_tau_t_vector: tf.Tensor) -> tf.Tensor:
+    def ell_5_6(self, lambda_tau_t: tf.Tensor) -> tf.Tensor:
         """Loss function based on FOC for tau_{t+1}.
 
         Args:
-            lambda_tau_t_vector (tf.Tensor): vector of lagrange multipliers for transformed temperatures at time t
+            lambda_tau_t (tf.Tensor): vector of lagrange multipliers for transformed temperatures at time t
 
         Returns:
             loss (tf.Tensor)
         """
-        sigma_transposed = tf.transpose(self.sigma_transition)
-        transitions = tf.matmul(sigma_transposed, lambda_tau_t_vector)
-        loss = self.beta * transitions - lambda_tau_t_vector
+        # Ensuring that lambda_tau is of correct shape
+        lambda_tau_t_reshaped = tf.reshape(lambda_tau_t, (2, 1))
 
+        sigma_transposed = tf.transpose(self.sigma_transition)
+        transitions = tf.matmul(sigma_transposed, lambda_tau_t_reshaped)
+
+        loss = self.beta * transitions - lambda_tau_t_reshaped
         return loss
 
     def ell_7(
@@ -211,31 +217,31 @@ class Computeloss:
         # state variables t+1
         k_tplus = s_tplus[0]
 
-        losses = np.array([], dtype=float)
-        losses = np.concatenate(
-            (
-                losses,
-                np.array([self.ell_1(lambda_k_t)]),
-                self.ell_2_4(lambda_m_t_vector, lambda_tau_t_vector[0]),
-                self.ell_5_6(lambda_tau_t_vector),
-                np.array([self.ell_7(k_tplus, x_t, E_t, k_t, tau_t_vector[0], t)]),
-                np.array([self.ell_8(lambda_E_t, E_t)]),
-                np.array([self.ell_9(lambda_t_BAU, E_t, k_t, t)]),
-                np.array(
-                    [
-                        self.ell_10(
-                            value_func_t,
-                            value_func_tplus,
-                            x_t,
-                            E_t,
-                            k_t,
-                            tau_t_vector[0],
-                            t,
-                        )
-                    ]
-                ),
+        # TODO: This is an abomination. Need find time to make this prettier.
+        loss1 = tf.square(self.ell_1(lambda_k_t))
+        loss2_4 = tf.square(self.ell_2_4(lambda_m_t_vector, lambda_tau_t_vector[0]))
+        loss5_6 = tf.square(self.ell_5_6(lambda_tau_t_vector))
+        loss7 = tf.square(self.ell_7(k_tplus, x_t, E_t, k_t, tau_t_vector[0], t))
+        loss8 = tf.square(self.ell_8(lambda_E_t, E_t))
+        loss9 = tf.square(self.ell_9(lambda_t_BAU, E_t, k_t, t))
+        loss10 = tf.square(
+            self.ell_10(
+                value_func_t,
+                value_func_tplus,
+                x_t,
+                E_t,
+                k_t,
+                tau_t_vector[0],
+                t,
             )
         )
 
-        squared_losses_sum = np.sum(losses**2)
-        return squared_losses_sum
+        return (
+            loss1
+            + tf.reduce_sum(loss2_4)
+            + tf.reduce_sum(loss5_6)
+            + loss7
+            + loss8
+            + loss9
+            + loss10
+        )

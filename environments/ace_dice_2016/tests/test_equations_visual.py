@@ -28,8 +28,8 @@ def get_equations() -> Equations_of_motion_Ace_Dice:
 
 
 def test_constant_creations():
-    eq = get_equations()
     print("============ Running test_constant_creations ============")
+    eq = get_equations()
     print(f"The list of labor is: {eq.N_t.numpy()}")
     print(f"The list of tfp is: {eq.A_t.numpy()}")
     print(f"The list of carbon intensity is: {eq.sigma.numpy()}")
