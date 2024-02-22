@@ -51,7 +51,7 @@ class Equations_of_motion_Ace_Dice:
         # 4. return state values for next state
         s_t_plus = [k_tplus, m_1plus, m_2plus, m_3plus, tau_1plus, tau_2plus, t + 1]
 
-        s_t_plus_tensor = tf.convert_to_tensor(s_t_plus)
+        s_t_plus_tensor = tf.convert_to_tensor(s_t_plus, dtype=tf.float32)
         return s_t_plus_tensor
 
     # --- HELPER METHODS ---
