@@ -26,17 +26,32 @@ class Algorithm_DEQN:
         self.optimizer = optimizer
         self.writer = tf.summary.create_file_writer(log_dir)
 
-    def check_compatibility(self) -> None:
+    ################ HELPER FUNCITONS ################
+    def print_time_elapsed(
+        self, current_time: tf.Tensor, start_time: tf.Tensor
+    ) -> None:
         """
-        Chekcs if the agent's inputspace is the same as the state space of the environment.
-        checks if the agent's outputspace is compatible with the actionspace in the environment.
+        Converts a duration from seconds to a formatted string showing the equivalent time in hours, minutes, and seconds.
 
-        Raises:
-            ValueError: inputs are not compatible
+        Args:
+            current_time (tf.Tensor): A tensor representing the current time in seconds.
+            start_time (tf.Tensor): A tensor representing the start time in seconds.
+
+        Returns:
+            str: A string representing the elapsed time in the format "Hh Mm Ss", where H, M, and S are hours, minutes, and seconds, respectively.
         """
-        # raise ValueError(f"Incompatible parameters: {param1} and {param2}")
-        raise NotImplementedError
+        elapsed_time = current_time - start_time
+        elapsed_time = float(elapsed_time.numpy())
 
+        hours = elapsed_time // 3600
+        minutes = (elapsed_time % 3600) // 60
+        seconds = (elapsed_time % 3600) % 60
+
+        print(
+            f"========== Time elapsed: {int(hours)}h {int(minutes)}m {int(seconds)}s =========="
+        )
+
+    ################ MAIN TRAINING FUNCTIONS ################
     def generate_episodes(self) -> tf.Tensor:
         """
         Generates an episode with the policy network and returns a tensor with states visited.
@@ -106,7 +121,7 @@ class Algorithm_DEQN:
         flattened_episodes = tf.reshape(episodes, [-1, episodes.shape[-1]])
         shuffled_episodes = tf.random.shuffle(flattened_episodes)
 
-        for epoch_i in self.n_epochs:
+        for epoch_i in range(self.n_epochs):
             batches = tf.data.Dataset.from_tensor_slices(shuffled_episodes).batch(
                 self.batch_size
             )
@@ -125,10 +140,9 @@ class Algorithm_DEQN:
         training_start = tf.timestamp()
 
         for episode_i in range(self.n_episodes):
-            print(f"Starting Episode {episode_i+1}/{self.n_episodes}")
+            print(f"\nStarting Episode {episode_i+1}/{self.n_episodes}")
             episode = self.generate_episodes()
             self.train_on_episodes(episode)
 
-            print(f"==== Time elapsed: {tf.timestamp()-training_start} ====")
-
+            self.print_time_elapsed(tf.timestamp(), training_start)
         # TODO: checkpoint of model if it is performing better

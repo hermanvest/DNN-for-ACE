@@ -94,6 +94,30 @@ def test_epoch_and_episode():
     print("================== TERMINATES: test_epoch_and_episode() ==================")
 
 
+def test_train_on_episodes():
+    print("\n================== RUNNING: test_epoch_and_episode() ==================")
+    algorithm = setUp()
+
+    print("Generating episode...")
+    episodes = algorithm.generate_episodes()
+    print(f"Finished generating an episode with shape: {episodes.numpy().shape}")
+
+    print("training on episodes...")
+    algorithm.train_on_episodes(episodes)
+
+    print("================== TERMINATES: test_epoch_and_episode() ==================")
+
+
+def test_main_training_loop():
+    print("\n================== RUNNING: test_epoch_and_episode() ==================")
+    algorithm = setUp()
+
+    print("training on episodes...")
+    algorithm.main_loop()
+
+    print("================== TERMINATES: test_epoch_and_episode() ==================")
+
+
 def main():
     print("################## IN MAIN FUNCTION ##################")
 
@@ -108,6 +132,8 @@ def main():
     print("#######################################################\n\n")
 
     test_epoch_and_episode()
+    test_train_on_episodes()
+    test_main_training_loop()
 
     print("################## END TESTS ##################")
 
