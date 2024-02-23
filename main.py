@@ -34,6 +34,7 @@ def main():
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
         learning_rate=0.001, clipvalue=1.0
     )
+    algorithm_config["checkpoint_dir"] = "checkpoints/ace_dice_2016"
 
     algorithm = Algorithm_DEQN(**algorithm_config)
 

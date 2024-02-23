@@ -16,15 +16,36 @@ class Algorithm_DEQN:
         agent: DEQN_agent,
         optimizer: tf.keras.optimizers.Optimizer,
         log_dir: str = "logs/train",
+        checkpoint_dir: str = "checkpoints",
     ) -> None:
+        # Initializations related to the algorithm
         self.n_iterations = n_iterations
         self.n_epochs = n_epochs
         self.t_max = t_max
         self.batch_size = batch_size
+
+        # Initializations for env, agent and optimizer
         self.env = env
         self.agent = agent
         self.optimizer = optimizer
+
+        # Initializations related to logging model performance and model checkpointing
         self.writer = tf.summary.create_file_writer(log_dir)
+        self.checkpoint = tf.train.Checkpoint(
+            optimizer=optimizer, model=self.agent.policy_network
+        )
+        self.checkpoint_manager = tf.train.CheckpointManager(
+            self.checkpoint, directory=checkpoint_dir, max_to_keep=5
+        )
+
+        # Restore the latest checkpoint
+        if self.checkpoint_manager.latest_checkpoint:
+            self.checkpoint.restore(self.checkpoint_manager.latest_checkpoint)
+            print(
+                f"\nRestoring policynetwork from {self.checkpoint_manager.latest_checkpoint}"
+            )
+        else:
+            print("\nInitializing policy network from scratch.")
 
     ################ HELPER FUNCITONS ################
     def print_time_elapsed(
@@ -179,5 +200,8 @@ class Algorithm_DEQN:
                 )
                 self.writer.flush()
 
+            # Save the model checkpoint
+            self.checkpoint_manager.save()
+            print(f"Checkpoint saved at {self.checkpoint_manager.latest_checkpoint}")
+
             self.print_time_elapsed(tf.timestamp(), training_start)
-        # TODO: checkpoint of model if it is performing better
