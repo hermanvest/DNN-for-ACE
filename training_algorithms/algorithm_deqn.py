@@ -8,7 +8,7 @@ from environments.ace_dice_2016.ace_dice_2016_env import Ace_dice_2016
 class Algorithm_DEQN:
     def __init__(
         self,
-        n_episodes: int,
+        n_iterations: int,
         n_epochs: int,
         t_max: int,
         batch_size: int,
@@ -17,7 +17,7 @@ class Algorithm_DEQN:
         optimizer: tf.keras.optimizers.Optimizer,
         log_dir: str = "logs/train",
     ) -> None:
-        self.n_episodes = n_episodes
+        self.n_iterations = n_iterations
         self.n_epochs = n_epochs
         self.t_max = t_max
         self.batch_size = batch_size
@@ -75,16 +75,18 @@ class Algorithm_DEQN:
         return tf.cast(states_tensor, dtype=tf.float32)
 
     def epoch(self, batches: tf.Tensor) -> tf.Tensor:
-        """_summary_
+        """
+        Processes a series of batches for a single epoch, computes the loss for each batch,
+        applies gradients, and returns the average loss across all batches as a float32 tensor.
 
         Args:
-            batches (tf.Tensor): _description_
+            batches (tf.Tensor): A batched dataset of inputs for the epoch.
 
         Returns:
-            tf.Tensor: _description_
+            tf.Tensor: The mean loss across all batches for the epoch as a float32 tensor.
         """
-        total_loss = 0.0
-        num_batches = 0
+        total_epoch_loss = tf.constant(0.0, dtype=tf.float32)
+        num_batches = tf.constant(0, dtype=tf.float32)
 
         for batch_s_t in batches:
             with tf.GradientTape() as tape:
@@ -103,46 +105,79 @@ class Algorithm_DEQN:
                 zip(gradients, self.agent.policy_network.trainable_variables)
             )
 
-            total_loss += loss
-            num_batches += 1
+            total_epoch_loss += loss
+            num_batches += 1.0
 
-        # Average MSE over all batches
-        average_mse = total_loss / num_batches
+        # MSE over all batches
+        epoch_mse = total_epoch_loss / num_batches
+        epoch_mse = tf.cast(epoch_mse, dtype=tf.float32)
 
-        return average_mse
+        return epoch_mse
 
-    def train_on_episodes(self, episodes: tf.Tensor) -> None:
-        """_summary_
+    def train_on_episodes(self, episodes: tf.Tensor) -> tf.Tensor:
+        """
+        Trains the model on a dataset of episodes, reshaping and shuffling the episodes
+        before processing them in batches for each epoch. The method computes the mean
+        squared error loss for each epoch and returns the average loss across all epochs.
+
+        The episodes tensor is first flattened to combine the batch and timestep dimensions,
+        which is then shuffled to ensure variability in the training batches. For each epoch,
+        the shuffled episodes are divided into batches based on the predefined batch size,
+        and the model is trained on these batches. The episodes are reshuffled after each epoch.
 
         Args:
-            episodes (tf.Tensor): _description_
+            episodes (tf.Tensor): A 3D tensor of shape [batch_numbers, timesteps, state_variables]
+                                representing the collected episodes to train on.
+
+        Returns:
+            tf.Tensor: The mean squared error loss averaged over all epochs, as a float32 tensor.
         """
         # Flattened, means shape from [batchnumbers, timesteps, state_variables] to [batchnumbers*timesteps, state_variables]
         flattened_episodes = tf.reshape(episodes, [-1, episodes.shape[-1]])
         shuffled_episodes = tf.random.shuffle(flattened_episodes)
 
+        total_epochs_loss = tf.constant(0.0, dtype=tf.float32)
+        num_batches = tf.constant(0, dtype=tf.float32)
+
         for epoch_i in range(self.n_epochs):
             batches = tf.data.Dataset.from_tensor_slices(shuffled_episodes).batch(
                 self.batch_size
             )
-            epoch_average_mse = self.epoch(batches)
+            # Calculating losses
+            epoch_mse = self.epoch(batches)
+            total_epochs_loss += epoch_mse
+            num_batches += 1.0
+
+            # Shuffling up the episodes for the next iteration
             shuffled_episodes = tf.random.shuffle(shuffled_episodes)
 
-            # Logging
-            with self.writer.as_default():
-                tf.summary.scalar("Total Epoch Loss", epoch_average_mse, step=epoch_i)
-                self.writer.flush()
-            print(
-                f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {epoch_average_mse}"
-            )
+            print(f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {epoch_mse}")
+
+        # MSE over all batches
+        mean_epoch_loss = total_epochs_loss / num_batches
+        mean_epoch_loss = tf.cast(mean_epoch_loss, dtype=tf.float32)
+
+        return mean_epoch_loss
 
     def main_loop(self) -> None:
         training_start = tf.timestamp()
 
-        for episode_i in range(self.n_episodes):
-            print(f"\nStarting Episode {episode_i+1}/{self.n_episodes}")
+        for iteration_i in range(self.n_iterations):
+            print(f"\nStarting iteration {iteration_i+1}/{self.n_iterations}")
             episode = self.generate_episodes()
-            self.train_on_episodes(episode)
+            iteration_loss = self.train_on_episodes(episode)
+            print(
+                f"Loss for iteration {iteration_i+1}/{self.n_iterations}: Loss = {iteration_loss}"
+            )
+
+            # Logging
+            with self.writer.as_default():
+                tf.summary.scalar(
+                    "Mean squared errors averaged over all epochs",
+                    iteration_loss,
+                    step=iteration_i,
+                )
+                self.writer.flush()
 
             self.print_time_elapsed(tf.timestamp(), training_start)
         # TODO: checkpoint of model if it is performing better

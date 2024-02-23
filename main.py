@@ -10,29 +10,26 @@ from utils.config_loader import load_config
 
 def main():
     # Paths
-    path_to_environment_config = "configs/state_and_action_space/ace_dice_2016.yaml"
-    path_to_network_config = "configs/network_configs/network_config1.yaml"
-    path_to_algorithm_config = "configs/training_configs/base_configuration.yaml"
+    env_config_path = "configs/state_and_action_space/ace_dice_2016.yaml"
+    nw_config_path = "configs/network_configs/network_config1.yaml"
+    algorithm_config_path = "configs/training_configs/base_configuration.yaml"
 
-    # Loading of config files
-    ace_dice_2016_config = load_config(path_to_environment_config)
-    network_config = load_config(path_to_network_config)
-    algorithm_config = load_config(path_to_algorithm_config)
+    # Loading configs
+    env_config = load_config(env_config_path)
+    network_config = load_config(nw_config_path)
+    algorithm_config = load_config(algorithm_config_path)
 
-    # Initialization of environment
-    parameter_config = ace_dice_2016_config["parameters"]
-    state_configs = ace_dice_2016_config["state_variables"]
-    t_max = 10
-    num_batches = 10
-    env = Ace_dice_2016(t_max, num_batches, ace_dice_2016_config)
+    # Initialization of the environment
+    environment = Ace_dice_2016(env_config)
 
-    # Initialization of agent and policy network
-    network_config["config_env"] = ace_dice_2016_config
-    policy_network = Policy_Network(**network_config)
-    agent = DEQN_agent(policy_network)
+    # Initialization of the agent
+    network_config["config_env"] = env_config
+    network = Policy_Network(**network_config)
+    agent = DEQN_agent(network)
 
-    # Initialization of training algorithm and optimizer
-    algorithm_config["env"] = env
+    # Initialization of algorithm
+    algorithm_config["t_max"] = env_config["general"]["t_max"]
+    algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
         learning_rate=0.001, clipvalue=1.0
