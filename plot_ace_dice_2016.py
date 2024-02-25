@@ -20,9 +20,6 @@ def setup() -> Tuple[Ace_dice_2016, DEQN_agent, int]:
     network_config = load_config(nw_config_path)
     algorithm_config = load_config(algorithm_config_path)
 
-    # Only need to simulate one batch for plotting
-    env_config["general"]["num_batches"] = 1
-
     # Initialization of the environment
     environment = Ace_dice_2016(env_config)
 
@@ -32,37 +29,6 @@ def setup() -> Tuple[Ace_dice_2016, DEQN_agent, int]:
     agent = DEQN_agent(network)
 
     return environment, agent, env_config["general"]["t_max"]
-
-
-def load_model(
-    checkpoint_dir: str, optimizer: tf.keras.optimizers.Optimizer, model: tf.keras.Model
-):
-    """
-    Attempts to restore a model and its optimizer from the most recent checkpoint in the specified directory.
-    Prints a message indicating whether the restoration was successful or if no checkpoint was found.
-
-    Args:
-        checkpoint_dir (str): The directory where model checkpoints are saved.
-        optimizer (tf.keras.optimizers.Optimizer): The optimizer associated with the model.
-        model (tf.keras.Model): The model to be restored.
-
-    Returns:
-        tf.keras.Model: The restored model if a checkpoint was found and successfully restored; otherwise, None.
-    """
-    checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=model)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint, directory=checkpoint_dir, max_to_keep=5
-    )
-
-    # TODO: Restore model from previous checkpoint. If no previous checkpoint, return None
-    if checkpoint_manager.latest_checkpoint:
-        restoration_status = checkpoint.restore(checkpoint_manager.latest_checkpoint)
-        restoration_status.assert_consumed()
-        print(f"\nRestoring policynetwork from {checkpoint_manager.latest_checkpoint}")
-        return model
-    else:
-        print("\nNo previous checkpoint for policynetwork.")
-        return None
 
 
 def simulate_episodes_with_trained_agent(
@@ -121,25 +87,35 @@ def generate_plots(
 
 
 def main():
+    print("##################### INITIALIZING ENV AND AGENT  #####################")
     environment, agent, t_max = setup()
 
-    # Loading model
-    checkpoint_dir = "checkpoints/ace_dice_2016"
+    print("##################### RESTORING NETWORK WEIGHTS   #####################")
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, clipvalue=1.0)
 
-    loaded_model = load_model(checkpoint_dir, agent.policy_network, optimizer)
-    if loaded_model is not None:
-        agent.policy_network = loaded_model
+    # loaded_model = load_model(agent.policy_network, optimizer)
+    checkpoint_dir = "checkpoints/ace_dice_2016"
+    checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=agent.policy_network)
+    checkpoint_manager = tf.train.CheckpointManager(
+        checkpoint, directory=checkpoint_dir, max_to_keep=5
+    )
+
+    if checkpoint_manager.latest_checkpoint:
+        checkpoint.restore(checkpoint_manager.latest_checkpoint)
+        print(f"\nRestoring policynetwork from {checkpoint_manager.latest_checkpoint}")
     else:
-        # Failed to load the model from weights. Exiting plotting program
+        print("\nNo previous checkpoint for policynetwork.")
         exit(1)
 
-    # Simulating an episode with trained network
+    print("##################### SIMULATING EPISODE WITH NW  #####################")
     simulated_states, simulated_actions = simulate_episodes_with_trained_agent(
         environment, agent, t_max
     )
 
     generate_plots(simulated_states, simulated_actions)
+
+    print("\n##################### FINISHED GENERATING PLOTS   #####################")
+    print(f"Look in the plots directory for results.")
 
 
 if __name__ == "__main__":
