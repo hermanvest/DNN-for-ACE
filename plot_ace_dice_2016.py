@@ -6,10 +6,34 @@ from environments.ace_dice_2016.ace_dice_2016_env import Ace_dice_2016
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from utils.config_loader import load_config
-from typing import Tuple
+from typing import Tuple, List
 
 
-def setup() -> Tuple[Ace_dice_2016, DEQN_agent, int]:
+def setup() -> Tuple[Ace_dice_2016, DEQN_agent, List, List, int]:
+    """
+    Sets up the environment, agent, and extracts state and action variable names
+    from configuration files for the Ace Dice 2016 simulation.
+
+    This function performs the following steps:
+    1. Loads configuration settings from YAML files for the environment, network, and algorithm.
+    2. Extracts names of state and action variables from the environment configuration.
+    3. Initializes the Ace_dice_2016 environment with the loaded configuration.
+    4. Initializes the policy network and the DEQN agent with the network and environment configurations.
+    5. Returns the initialized environment, agent, lists of state and action variable names, and the maximum number of timesteps (t_max) from the configuration.
+
+    Returns:
+        Tuple[Ace_dice_2016, DEQN_agent, List[str], List[str], int]: A tuple containing:
+        - The initialized Ace_dice_2016 environment instance.
+        - The initialized DEQN_agent instance.
+        - A list of strings representing the names of state variables.
+        - A list of strings representing the names of action variables.
+        - An integer representing the maximum number of timesteps (t_max) for the simulation, extracted from the environment configuration.
+
+    Note:
+    - Configuration paths for the environment, network, and algorithm are hardcoded within the function.
+    - This function assumes the presence of 'state_variables' and 'action_variables' keys within the environment configuration file,
+      and a 'general' key with a 't_max' subkey indicating the maximum number of timesteps.
+    """
     # Paths
     env_config_path = "configs/state_and_action_space/ace_dice_2016.yaml"
     nw_config_path = "configs/network_configs/network_config1.yaml"
@@ -20,6 +44,10 @@ def setup() -> Tuple[Ace_dice_2016, DEQN_agent, int]:
     network_config = load_config(nw_config_path)
     algorithm_config = load_config(algorithm_config_path)
 
+    # Getting state and action names
+    state_names = [var["name"] for var in env_config["state_variables"]]
+    action_names = [var["name"] for var in env_config["action_variables"]]
+
     # Initialization of the environment
     environment = Ace_dice_2016(env_config)
 
@@ -28,7 +56,7 @@ def setup() -> Tuple[Ace_dice_2016, DEQN_agent, int]:
     network = Policy_Network(**network_config)
     agent = DEQN_agent(network)
 
-    return environment, agent, env_config["general"]["t_max"]
+    return environment, agent, state_names, action_names, env_config["general"]["t_max"]
 
 
 def simulate_episodes_with_trained_agent(
@@ -71,24 +99,44 @@ def simulate_episodes_with_trained_agent(
 
 
 def generate_plots(
-    simualted_states: tf.Tensor,
+    simulated_states: tf.Tensor,
     simulated_actions: tf.Tensor,
-    plot_dir: str = "plots/ace_dice_2016/state_variables",
+    state_names: List,
+    action_names: List,
+    plot_dir: str = "plots/ace_dice_2016",
 ):
     # Ensure the plot directory exists
     os.makedirs(plot_dir, exist_ok=True)
 
-    capital_data = simualted_states[:, 0].numpy()
-    plt.figure()
-    plt.plot(capital_data, label=f"Simulated path of Capital")
-    plt.legend()
-    plt.savefig(os.path.join(plot_dir, f"simulated_capital.png"))
-    plt.close()
+    # Assuming name index in name lists are corresponding to index in state and action tensors
+    # Loop through the states and generate the relevant plots
+    for i, name in enumerate(state_names):
+        state_data = simulated_states[:, i].numpy()
+        plt.figure()
+        plt.plot(state_data, label=f"Simulated path of {name}")
+        plt.title(f"State Variable: {name}")
+        plt.xlabel("Time Step")
+        plt.ylabel(name)
+        plt.legend()
+        plt.savefig(os.path.join(plot_dir, f"simulated_{name}.png"))
+        plt.close()
+
+    # Loop through the actions and generate the relevant plots
+    for i, name in enumerate(action_names):
+        action_data = simulated_actions[:, i].numpy()
+        plt.figure()
+        plt.plot(action_data, label=f"Action taken in simulation: {name}")
+        plt.title(f"Action Variable: {name}")
+        plt.xlabel("Time Step")
+        plt.ylabel(name)
+        plt.legend()
+        plt.savefig(os.path.join(plot_dir, f"simulated_{name}_action.png"))
+        plt.close()
 
 
 def main():
     print("##################### INITIALIZING ENV AND AGENT  #####################")
-    environment, agent, t_max = setup()
+    environment, agent, state_names, action_names, t_max = setup()
 
     print("##################### RESTORING NETWORK WEIGHTS   #####################")
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, clipvalue=1.0)
@@ -101,7 +149,7 @@ def main():
     )
 
     if checkpoint_manager.latest_checkpoint:
-        checkpoint.restore(checkpoint_manager.latest_checkpoint)
+        checkpoint.restore(checkpoint_manager.latest_checkpoint).expect_partial()
         print(f"\nRestoring policynetwork from {checkpoint_manager.latest_checkpoint}")
     else:
         print("\nNo previous checkpoint for policynetwork.")
@@ -112,7 +160,7 @@ def main():
         environment, agent, t_max
     )
 
-    generate_plots(simulated_states, simulated_actions)
+    generate_plots(simulated_states, simulated_actions, state_names, action_names)
 
     print("\n##################### FINISHED GENERATING PLOTS   #####################")
     print(f"Look in the plots directory for results.")
