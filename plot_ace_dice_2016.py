@@ -1,6 +1,7 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 from environments.ace_dice.ace_dice_env import Ace_dice_env
 from networks.policy_network import Policy_Network
@@ -103,6 +104,7 @@ def generate_plots(
     simulated_actions: tf.Tensor,
     state_names: List,
     action_names: List,
+    env: Ace_dice_env,
     plot_dir: str = "plots/ace_dice_2016",
 ):
     # Ensure the plot directory exists
@@ -133,6 +135,31 @@ def generate_plots(
         plt.savefig(os.path.join(plot_dir, f"simulated_{name}_action.png"))
         plt.close()
 
+    # Comparison of Emissions from policy network and adjusted ones used in environment
+    capital = simulated_states[:, 0]
+
+    # Generating a list of E_t_BAU along simulated path
+    emissions_BAU = np.array(
+        [
+            env.equations_of_motion.E_t_BAU(timestep, capital[timestep]).numpy()
+            for timestep in range(len(capital))
+        ]
+    )
+    emissions = simulated_actions[:, 1].numpy()
+    emissions_adj = np.where(emissions > emissions_BAU, emissions_BAU, emissions)
+
+    # Plotting
+    plt.figure()
+    plt.plot(emissions, label="Emissions (unadjusted)")
+    plt.plot(emissions_BAU, label="Emissions BAU", linestyle="--")
+    plt.plot(emissions_adj, label="Emissions (adjusted)", linestyle=":")
+    plt.title("Emissions Comparison")
+    plt.xlabel("Time Step")
+    plt.ylabel("Emissions")
+    plt.legend()
+    plt.savefig(os.path.join(plot_dir, "emissions_comparison.png"))
+    plt.close()
+
 
 def main():
     print("##################### INITIALIZING ENV AND AGENT  #####################")
@@ -141,7 +168,6 @@ def main():
     print("##################### RESTORING NETWORK WEIGHTS   #####################")
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, clipvalue=1.0)
 
-    # loaded_model = load_model(agent.policy_network, optimizer)
     checkpoint_dir = "checkpoints/ace_dice_2016"
     checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=agent.policy_network)
     checkpoint_manager = tf.train.CheckpointManager(
@@ -160,7 +186,9 @@ def main():
         environment, agent, t_max
     )
 
-    generate_plots(simulated_states, simulated_actions, state_names, action_names)
+    generate_plots(
+        simulated_states, simulated_actions, state_names, action_names, environment
+    )
 
     print("\n##################### FINISHED GENERATING PLOTS   #####################")
     print(f"Look in the plots directory for results.")

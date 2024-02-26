@@ -10,9 +10,9 @@ class Abstract_Environment(ABC):
         pass
 
     @abstractmethod
-    def reset(self) -> None:
+    def reset(self) -> tf.Tensor:
         pass
 
     @abstractmethod
-    def compute_loss(self, batch: np.ndarray) -> Any:
+    def compute_loss(self, batch: tf.Tensor) -> Any:
         pass
