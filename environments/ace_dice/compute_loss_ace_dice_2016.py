@@ -17,6 +17,10 @@ class Computeloss_Ace_Dice_2016:
             for variable_name, variable_value in section_value.items():
                 setattr(self, variable_name, variable_value)
 
+        self.beta = tf.constant(
+            (1 / (1 + self.prtp)) ** self.timestep, dtype=tf.float32
+        )
+
         self.Phi = tf.constant(self.Phi, dtype=tf.float32)
         self.sigma_transition = tf.constant(self.sigma_transition, dtype=tf.float32)
         self.equations_of_motion = equations_of_motion
@@ -66,7 +70,7 @@ class Computeloss_Ace_Dice_2016:
 
         loss = self.beta * (transitions + e_1 * forc) - lambda_m_t_reshaped
 
-        return loss
+        return tf.reduce_sum(loss)
 
     def ell_5_6(self, lambda_tau_t: tf.Tensor) -> tf.Tensor:
         """Loss function based on FOC for tau_{t+1}.
@@ -84,7 +88,7 @@ class Computeloss_Ace_Dice_2016:
         transitions = tf.matmul(sigma_transposed, lambda_tau_t_reshaped)
 
         loss = self.beta * transitions - lambda_tau_t_reshaped
-        return loss
+        return tf.reduce_sum(loss)
 
     def ell_7(
         self,
@@ -219,7 +223,7 @@ class Computeloss_Ace_Dice_2016:
         # state variables t+1
         k_tplus = s_tplus[0]
 
-        # TODO: This is an abomination. Need find time to make this prettier.
+        # TODO: This is an abomination. Need to find time to make this prettier.
         loss1 = tf.square(self.ell_1(lambda_k_t))
         loss2_4 = tf.square(self.ell_2_4(lambda_m_t_vector, lambda_tau_t_vector[0]))
         loss5_6 = tf.square(self.ell_5_6(lambda_tau_t_vector))
@@ -238,15 +242,7 @@ class Computeloss_Ace_Dice_2016:
             )
         )
 
-        total_loss = (
-            loss1
-            + tf.reduce_sum(loss2_4)
-            + tf.reduce_sum(loss5_6)
-            + loss7
-            + loss8
-            + loss9
-            + loss10
-        )
+        total_loss = loss1 + loss2_4 + loss5_6 + loss7 + loss8 + loss9 + loss10
         total_loss_float32 = tf.cast(total_loss, dtype=tf.float32)
 
         return total_loss_float32

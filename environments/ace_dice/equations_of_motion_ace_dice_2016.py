@@ -18,6 +18,10 @@ class Equations_of_motion_Ace_Dice_2016:
                 tensor_value = tf.constant(variable_value, dtype=tf.float32)
                 setattr(self, variable_name, tensor_value)
 
+        self.beta = tf.constant(
+            (1 / (1 + self.prtp)) ** self.timestep, dtype=tf.float32
+        )
+
         self.states = states
         self.actions = actions
         self.N_t = self.create_N_t(t_max)

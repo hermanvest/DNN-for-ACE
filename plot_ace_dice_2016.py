@@ -1,7 +1,9 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import os
+import shutil
 import numpy as np
+
 
 from environments.ace_dice.ace_dice_env import Ace_dice_env
 from networks.policy_network import Policy_Network
@@ -99,6 +101,30 @@ def simulate_episodes_with_trained_agent(
     return states_tensor, actions_tensor
 
 
+def clear_plot_directory(plot_dir: str) -> None:
+    """
+    Removes all files in the specified plot directory.
+
+    Args:
+        plot_dir (str): The path to the plot directory to be cleared.
+    """
+    # Check if the directory exists
+    if os.path.exists(plot_dir):
+        # Remove all files and subdirectories in the plot directory
+        for filename in os.listdir(plot_dir):
+            file_path = os.path.join(plot_dir, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)  # Remove file or link
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)  # Remove directory and all its contents
+            except Exception as e:
+                print(f"Failed to delete {file_path}. Reason: {e}")
+    else:
+        # If the directory does not exist, create it
+        os.makedirs(plot_dir, exist_ok=True)
+
+
 def generate_plots(
     simulated_states: tf.Tensor,
     simulated_actions: tf.Tensor,
@@ -106,16 +132,16 @@ def generate_plots(
     action_names: List,
     env: Ace_dice_env,
     plot_dir: str = "plots/ace_dice_2016",
-):
+) -> None:
     # Ensure the plot directory exists
-    os.makedirs(plot_dir, exist_ok=True)
+    clear_plot_directory(plot_dir)
 
     # Assuming name index in name lists are corresponding to index in state and action tensors
     # Loop through the states and generate the relevant plots
-    for i, name in enumerate(state_names):
-        state_data = simulated_states[:, i].numpy()
+    for timestep, name in enumerate(state_names):
+        state_data = simulated_states[:, timestep].numpy()
         plt.figure()
-        plt.plot(state_data, label=f"Simulated path of {name}")
+        plt.plot(state_data, label=f"{name}")
         plt.title(f"State Variable: {name}")
         plt.xlabel("Time Step")
         plt.ylabel(name)
@@ -124,10 +150,10 @@ def generate_plots(
         plt.close()
 
     # Loop through the actions and generate the relevant plots
-    for i, name in enumerate(action_names):
-        action_data = simulated_actions[:, i].numpy()
+    for timestep, name in enumerate(action_names):
+        action_data = simulated_actions[:, timestep].numpy()
         plt.figure()
-        plt.plot(action_data, label=f"Action taken in simulation: {name}")
+        plt.plot(action_data, label=f"{name}")
         plt.title(f"Action Variable: {name}")
         plt.xlabel("Time Step")
         plt.ylabel(name)
@@ -148,7 +174,7 @@ def generate_plots(
     emissions = simulated_actions[:, 1].numpy()
     emissions_adj = np.where(emissions > emissions_BAU, emissions_BAU, emissions)
 
-    # Plotting
+    # Plotting the comparison
     plt.figure()
     plt.plot(emissions, label="Emissions (unadjusted)")
     plt.plot(emissions_BAU, label="Emissions BAU", linestyle="--")
@@ -166,7 +192,7 @@ def main():
     environment, agent, state_names, action_names, t_max = setup()
 
     print("##################### RESTORING NETWORK WEIGHTS   #####################")
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, clipvalue=1.0)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=1e-5, clipvalue=1.0)
 
     checkpoint_dir = "checkpoints/ace_dice_2016"
     checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=agent.policy_network)
