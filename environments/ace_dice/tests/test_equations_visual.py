@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from pathlib import Path
 
-from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
+from environments.ace_dice.equations_of_motion_ace_dice_2016 import Equations_of_motion_Ace_Dice_2016
 from utils.config_loader import load_config
 
 # Define the path to the current script
@@ -19,12 +19,12 @@ yaml_file_path = (
 t_max = 10
 
 
-def get_equations() -> Equations_of_motion_Ace_Dice:
+def get_equations() -> Equations_of_motion_Ace_Dice_2016:
     configs = load_config(yaml_file_path)
     states = configs["state_variables"]
     actions = configs["action_variables"]
     parameters = configs["parameters"]
-    return Equations_of_motion_Ace_Dice(t_max, states, actions, parameters)
+    return Equations_of_motion_Ace_Dice_2016(t_max, states, actions, parameters)
 
 
 def test_constant_creations():

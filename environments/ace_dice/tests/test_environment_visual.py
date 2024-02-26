@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 import tensorflow as tf
 
-from environments.ace_dice_2016.ace_dice_2016_env import Ace_dice_2016
+from environments.ace_dice.ace_dice_env import Ace_dice_env
 from utils.config_loader import load_config
 
 # Define the path to the current script
@@ -17,9 +17,9 @@ yaml_file_path = (
 )
 
 
-def setUp() -> Ace_dice_2016:
+def setUp() -> Ace_dice_env:
     config = load_config(yaml_file_path)
-    env = Ace_dice_2016(config)
+    env = Ace_dice_env(config)
     return env
 
 

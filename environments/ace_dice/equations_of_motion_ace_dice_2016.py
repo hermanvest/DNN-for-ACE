@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 
-class Equations_of_motion_Ace_Dice:
+class Equations_of_motion_Ace_Dice_2016:
     """
     Docstring
     """

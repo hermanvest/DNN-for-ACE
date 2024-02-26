@@ -2,8 +2,10 @@ import numpy as np
 import tensorflow as tf
 from pathlib import Path
 
-from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
-from environments.ace_dice_2016.compute_loss import Computeloss
+from environments.ace_dice.equations_of_motion_ace_dice_2016 import (
+    Equations_of_motion_Ace_Dice_2016,
+)
+from environments.ace_dice.compute_loss_ace_dice_2016 import Computeloss_Ace_Dice_2016
 
 from utils.config_loader import load_config
 
@@ -21,18 +23,18 @@ t_max = 10
 
 
 ##################### INITIALIZATION #####################
-def get_equations() -> Equations_of_motion_Ace_Dice:
+def get_equations() -> Equations_of_motion_Ace_Dice_2016:
     configs = load_config(yaml_file_path)
     states = configs["state_variables"]
     actions = configs["action_variables"]
     parameters = configs["parameters"]
-    return Equations_of_motion_Ace_Dice(t_max, states, actions, parameters)
+    return Equations_of_motion_Ace_Dice_2016(t_max, states, actions, parameters)
 
 
-def get_loss_class() -> Computeloss:
+def get_loss_class() -> Computeloss_Ace_Dice_2016:
     configs = load_config(yaml_file_path)
     parameters = configs["parameters"]
-    return Computeloss(parameters, get_equations())
+    return Computeloss_Ace_Dice_2016(parameters, get_equations())
 
 
 #####################  CALCULATION TESTS #####################

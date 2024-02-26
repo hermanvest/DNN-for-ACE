@@ -3,11 +3,13 @@ import numpy as np
 
 from typing import Any, Dict
 from environments.abstract_environment import Abstract_Environment
-from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
-from environments.ace_dice_2016.compute_loss import Computeloss
+from environments.ace_dice.equations_of_motion_ace_dice_2016 import (
+    Equations_of_motion_Ace_Dice_2016,
+)
+from environments.ace_dice.compute_loss_ace_dice_2016 import Computeloss_Ace_Dice_2016
 
 
-class Ace_dice_2016(Abstract_Environment):
+class Ace_dice_env(Abstract_Environment):
     def __init__(
         self,
         config: Dict[str, Any],
@@ -21,10 +23,12 @@ class Ace_dice_2016(Abstract_Environment):
         self.num_batches = general_config["num_batches"]
         self.state_config = states_config
 
-        self.equations_of_motion = Equations_of_motion_Ace_Dice(
+        self.equations_of_motion = Equations_of_motion_Ace_Dice_2016(
             general_config["t_max"], states_config, actions_config, parameters_config
         )
-        self.loss = Computeloss(parameters_config, self.equations_of_motion)
+        self.loss = Computeloss_Ace_Dice_2016(
+            parameters_config, self.equations_of_motion
+        )
 
     def step(self, batch_s_t: tf.Tensor, batch_a_t: tf.Tensor) -> tf.Tensor:
         """

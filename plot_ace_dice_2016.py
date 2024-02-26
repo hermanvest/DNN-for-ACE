@@ -2,14 +2,14 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import os
 
-from environments.ace_dice_2016.ace_dice_2016_env import Ace_dice_2016
+from environments.ace_dice.ace_dice_env import Ace_dice_env
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from utils.config_loader import load_config
 from typing import Tuple, List
 
 
-def setup() -> Tuple[Ace_dice_2016, DEQN_agent, List, List, int]:
+def setup() -> Tuple[Ace_dice_env, DEQN_agent, List, List, int]:
     """
     Sets up the environment, agent, and extracts state and action variable names
     from configuration files for the Ace Dice 2016 simulation.
@@ -49,7 +49,7 @@ def setup() -> Tuple[Ace_dice_2016, DEQN_agent, List, List, int]:
     action_names = [var["name"] for var in env_config["action_variables"]]
 
     # Initialization of the environment
-    environment = Ace_dice_2016(env_config)
+    environment = Ace_dice_env(env_config)
 
     # Initialization of the agent
     network_config["config_env"] = env_config
@@ -60,7 +60,7 @@ def setup() -> Tuple[Ace_dice_2016, DEQN_agent, List, List, int]:
 
 
 def simulate_episodes_with_trained_agent(
-    env: Ace_dice_2016, agent: DEQN_agent, t_max: int
+    env: Ace_dice_env, agent: DEQN_agent, t_max: int
 ) -> Tuple[tf.Tensor, tf.Tensor]:
     """
     Generates an episode with the policy network and returns a tuple consisting of a tensor with states visited

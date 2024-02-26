@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from pathlib import Path
 
-from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
+from environments.ace_dice.equations_of_motion_ace_dice_2016 import Equations_of_motion_Ace_Dice_2016
 from utils.config_loader import load_config
 
 current_script_path = Path(__file__).parent
@@ -25,7 +25,7 @@ def setUp():
     states = configs["state_variables"]
     actions = configs["action_variables"]
     parameters = configs["parameters"]
-    return Equations_of_motion_Ace_Dice(t_max, states, actions, parameters)
+    return Equations_of_motion_Ace_Dice_2016(t_max, states, actions, parameters)
 
 
 ################## Test initialization of constants ##################

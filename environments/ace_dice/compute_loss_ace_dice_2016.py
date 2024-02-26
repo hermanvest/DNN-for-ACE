@@ -1,14 +1,16 @@
 from typing import Tuple, Dict, Any
-from environments.ace_dice_2016.equations_of_motion import Equations_of_motion_Ace_Dice
+from environments.ace_dice.equations_of_motion_ace_dice_2016 import (
+    Equations_of_motion_Ace_Dice_2016,
+)
 import tensorflow as tf
 import numpy as np
 
 
-class Computeloss:
+class Computeloss_Ace_Dice_2016:
     def __init__(
         self,
         parameters_config: Dict[str, Any],
-        equations_of_motion: Equations_of_motion_Ace_Dice,
+        equations_of_motion: Equations_of_motion_Ace_Dice_2016,
     ) -> None:
         # Variable initialization based on the config files parameters
         for _, section_value in parameters_config.items():
