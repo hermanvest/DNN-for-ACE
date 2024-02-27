@@ -188,6 +188,32 @@ class Computeloss_Ace_Dice_2016:
             - value_func_t
         )
 
+    def ell_11(self, x_t: tf.Tensor, lambda_k_t: tf.Tensor) -> tf.Tensor:
+        """Loss function based on foc for x_t
+
+        Args:
+        x_t (tf.Tensor): Current period's consumption rate.
+        lambda_k_t (tf.Tensor): Lagrange multiplier for the budget constraint on capital accumulation.
+
+        Returns:
+            loss (tf.Tensor)
+        """
+        log_x_derivative = 1 / x_t
+        marginal_value_of_consumption = -self.beta * (
+            (lambda_k_t * self.kappa) / (1 - x_t)
+        )
+        k_tplus_wrt_x = -lambda_k_t / (1 - x_t)
+
+        return log_x_derivative + marginal_value_of_consumption + k_tplus_wrt_x
+
+    def ell_12(self) -> tf.Tensor:
+        """Loss function based on foc for x_t
+
+        Returns:
+            tf.Tensor: _description_
+        """
+        pass
+
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     def squared_error_for_transition(
         self, s_t: tf.Tensor, a_t: tf.Tensor, s_tplus: tf.Tensor, a_tplus: tf.Tensor

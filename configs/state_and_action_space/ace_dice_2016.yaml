@@ -1,6 +1,6 @@
 general:
   t_max: 200
-  num_batches: 1
+  num_batches: 1 # Number of simultaneously simulated batches
 
 parameters:
   production_specific:
@@ -77,7 +77,7 @@ action_variables:
     activation: softplus
   # Value function prediction
   - name: V_t
-    activation: linear
+    activation: softplus
   # Lagrange multipliers
   - name: lambda_k_t
     activation: linear
@@ -92,6 +92,6 @@ action_variables:
   - name: lambda_tau_2
     activation: linear
   - name: lambda_t_BAU
-    activation: linear
+    activation: softplus
   - name: lambda_E_t
-    activation: linear
+    activation: softplus
