@@ -217,15 +217,26 @@ class Computeloss_Ace_Dice_2016:
         lambda_k_t: tf.Tensor,
         t: tf.Tensor,
     ) -> tf.Tensor:
-        """Loss function based on foc for E_t
+        """
+        Calculates a component of the loss function related to the first-order condition (FOC)
+        for emissions at time t.
+
+        Args:
+            E_t (tf.Tensor): Emissions at time t.
+            k_t (tf.Tensor): Log capital stock at time t.
+            lambda_m_t (tf.Tensor): Lagrange multipliers related to the carbon stock.
+            lambda_tau_1_t (tf.Tensor): Lagrange multiplier related to the transformed tempreatures.
+            lambda_k_t (tf.Tensor): Lagrange multiplier for the budget constraint on capital accumulation.
+            t (tf.Tensor): Tensor representing the current time period index.
 
         Returns:
-            tf.Tensor: _description_
+            tf.Tensor: Loss
         """
 
         # Get constants from equations of motion
         theta_1_t = self.equations_of_motion.theta_1[t]
         E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
+        E_t = tf.minimum(E_t, self.equations_of_motion.E_t_BAU(t, k_t))
 
         # Calculating dlogF/dE_t
         mu_t = 1 - E_t / E_t_BAU

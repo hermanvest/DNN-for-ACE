@@ -118,6 +118,37 @@ def test_ell9_calculation():
     print("================== TERMINATES: test_ell9_calculation() ==================")
 
 
+def test_ell11_calculation():
+    print("\n================== RUNNING: test_ell11_calculation() ==================")
+    calc = get_loss_class()
+    vars = {
+        "lambda_k_t": tf.constant(1.0, dtype=tf.float32),
+        "x_t": tf.constant(0.4, dtype=tf.float32),
+    }
+    result = calc.ell_11(**vars)
+    print(f"Result: {result}")
+    print("================== TERMINATES: test_ell11_calculation() ==================")
+
+
+def test_ell12_calculation():
+    print("\n================== RUNNING: test_ell12_calculation() ==================")
+    calc = get_loss_class()
+    vars = {
+        "E_t": tf.constant(1.0, dtype=tf.float32),
+        "k_t": tf.constant(1.0, dtype=tf.float32),
+        "lambda_m_t": tf.constant([1.0, 1.0, 1.0], dtype=tf.float32),
+        "lambda_tau_1_t": tf.constant(1.0, dtype=tf.float32),
+        "lambda_k_t": tf.constant(1.0, dtype=tf.float32),
+        "t": 1,
+    }
+    result = calc.ell_12(**vars)
+    print(f"Result: {result}")
+    print("================== TERMINATES: test_ell12_calculation() ==================")
+
+
+##################### INTEGRATION TESTS #####################
+
+
 def test_all_equations():
     print("\n================== RUNNING: test_all_equations() ==================")
     calc = get_loss_class()
@@ -154,6 +185,8 @@ def main():
     test_ell7_calculation()
     test_ell8_calculation()
     test_ell9_calculation()
+    test_ell11_calculation()
+    test_ell12_calculation()
 
     print("\n\n#######################################################")
     print("################## INTEGRATION TESTS ##################")
