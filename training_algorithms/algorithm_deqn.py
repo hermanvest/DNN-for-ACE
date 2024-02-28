@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Tuple
 from agents.deqn_agent import DEQN_agent
-from environments.ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
 
 
 class Algorithm_DEQN:

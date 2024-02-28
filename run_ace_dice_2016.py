@@ -1,7 +1,7 @@
 # Imports
 import tensorflow as tf
 
-from environments.ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
@@ -32,7 +32,7 @@ def main():
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
-        learning_rate=1e-6, clipvalue=1.0
+        learning_rate=1e-5, clipvalue=1.0
     )
     algorithm_config["checkpoint_dir"] = "checkpoints/ace_dice_2016"
 

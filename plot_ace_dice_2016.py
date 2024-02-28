@@ -5,7 +5,7 @@ import shutil
 import numpy as np
 
 
-from environments.ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from utils.config_loader import load_config

@@ -4,7 +4,7 @@ import numpy as np
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
 from agents.deqn_agent import DEQN_agent
 from networks.policy_network import Policy_Network
-from environments.ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
 
 from pathlib import Path
 from utils.config_loader import load_config
