@@ -32,7 +32,7 @@ def main():
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
-        learning_rate=1e-5, clipvalue=1.0
+        learning_rate=1e-7, clipvalue=1.0
     )
     algorithm_config["checkpoint_dir"] = "checkpoints/ace_dice_2016"
 

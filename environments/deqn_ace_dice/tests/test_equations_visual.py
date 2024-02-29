@@ -2,7 +2,9 @@ import numpy as np
 import tensorflow as tf
 from pathlib import Path
 
-from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import Equations_of_motion_Ace_Dice_2016
+from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
+    Equations_of_motion_Ace_Dice_2016,
+)
 from utils.config_loader import load_config
 
 # Define the path to the current script
@@ -110,9 +112,13 @@ def test_calculation_of_m_1_plus():
     print("Creating constants...")
     E_t = tf.constant(1.0, dtype=tf.float32)
     m = tf.ones([3], dtype=tf.float32)
+    k_t = tf.constant(1.0, dtype=tf.float32)
+    t = 1
 
     print("Calculating m_1plus...")
-    print(f" The value of the carbon stock in the next period is {eq.m_1plus(m, E_t)}")
+    print(
+        f" The value of the carbon stock in the next period is {eq.m_1plus(m, E_t, k_t, t)}"
+    )
     print("============ End of test_calculation_of_m_1_plus ============\n\n")
 
 

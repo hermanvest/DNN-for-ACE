@@ -64,6 +64,10 @@ def test_x_t_between_zero_and_one():
     )
 
 
+def test_loads_of_predictions():
+    pass
+
+
 def main():
     print("################## IN MAIN FUNCTION ##################")
 

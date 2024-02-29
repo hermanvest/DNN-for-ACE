@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+
 from typing import Tuple
 from agents.deqn_agent import DEQN_agent
 from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
@@ -128,6 +129,9 @@ class Algorithm_DEQN:
 
             total_epoch_loss += loss
             num_batches += 1.0
+
+            # DEBUGGING
+            (loss, "loss")
 
         # MSE over all batches
         epoch_mse = total_epoch_loss / num_batches

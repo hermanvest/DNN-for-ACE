@@ -1,10 +1,7 @@
-# Deep learning related libraries
 import tensorflow as tf
 from tensorflow.keras.layers import Dense
 
-# Type related libraries
 from typing import Any, Dict
-
 
 class Policy_Network(tf.keras.Model):
     """
@@ -81,14 +78,6 @@ class Policy_Network(tf.keras.Model):
 
             # Collect the processed output
             processed_outputs.append(processed_output)
-
-            """
-            For debugging
-            if activation_name == "sigmoid" or activation_name == "softplus":
-                print(
-                    f"{unprocessed_output[:, a_i : a_i + 1]} -> {activation_name} -> {processed_output}"
-                )
-            """
 
         # Reassemble the processed outputs into a single tensor
         return tf.concat(processed_outputs, axis=1)

@@ -1,9 +1,11 @@
+import tensorflow as tf
+import numpy as np
+
 from typing import Tuple, Dict, Any
 from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
     Equations_of_motion_Ace_Dice_2016,
 )
-import tensorflow as tf
-import numpy as np
+from utils.debug import assert_valid
 
 
 class Computeloss_Ace_Dice_2016:
@@ -199,7 +201,7 @@ class Computeloss_Ace_Dice_2016:
             loss (tf.Tensor)
         """
         # NOTE: Problem if x_t too close to 1 or 0.
-        x_t_adj = tf.minimum(tf.maximum(x_t, 1e-7), 1 - 1e-7)
+        x_t_adj = tf.clip_by_value(x_t, clip_value_min=1e-7, clip_value_max=1 - 1e-7)
         log_x_derivative = 1 / x_t_adj
         marginal_value_of_consumption = -self.beta * (
             (lambda_k_t * self.kappa) / (1 - x_t_adj)
@@ -236,7 +238,7 @@ class Computeloss_Ace_Dice_2016:
         # Get constants from equations of motion
         theta_1_t = self.equations_of_motion.theta_1[t]
         E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
-        E_t = tf.minimum(E_t, self.equations_of_motion.E_t_BAU(t, k_t))
+        E_t = tf.minimum(E_t, E_t_BAU)
 
         # Calculating dlogF/dE_t
         mu_t = 1 - E_t / E_t_BAU
@@ -268,6 +270,11 @@ class Computeloss_Ace_Dice_2016:
         Returns:
             Tuple[float, float]: (squared error without penalty, squared error with penalty)
         """
+        assert_valid(s_t, "s_t")
+        assert_valid(s_tplus, "s_tplus")
+        assert_valid(a_t, "a_t")
+        assert_valid(a_tplus, "a_tplus")
+
         # action variables t
         x_t = a_t[0]  # Adjusted below
         E_t = a_t[1]  # Adjusted below
@@ -291,8 +298,9 @@ class Computeloss_Ace_Dice_2016:
         k_tplus = s_tplus[0]
 
         ## Adjustments
-        x_t = tf.minimum(tf.maximum(x_t, 1e-7), 1 - 1e-7)
-        E_t = tf.minimum(E_t, self.equations_of_motion.E_t_BAU(t, k_t))
+        x_t = tf.clip_by_value(x_t, clip_value_min=1e-7, clip_value_max=1 - 1e-7)
+        E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
+        E_t = tf.minimum(E_t, E_t_BAU)
 
         # TODO: This is an abomination. Need to find time to make this prettier.
         loss1 = tf.square(self.ell_1(lambda_k_t))

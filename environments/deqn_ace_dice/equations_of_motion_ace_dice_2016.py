@@ -1,6 +1,8 @@
-from typing import Any, Dict, List
 import numpy as np
 import tensorflow as tf
+
+from typing import Any, Dict, List
+from utils.debug import assert_valid
 
 
 class Equations_of_motion_Ace_Dice_2016:
@@ -29,63 +31,7 @@ class Equations_of_motion_Ace_Dice_2016:
         self.sigma = self.create_sigma(t_max)
         self.theta_1 = self.create_theta_1(t_max)
 
-    def update_state(self, s_t: tf.Tensor, a_t: tf.Tensor) -> tf.Tensor:
-        """Updates the state based on current state and action tensors.
-
-        Args:
-            s_t (tf.Tensor): The current state tensor.
-            a_t (tf.Tensor): The action tensor.
-
-        Returns:
-            tf.Tensor: The updated state tensor.
-
-        Raises:
-            TypeError: If either s_t or a_t is not of dtype tf.float32.
-        """
-        if s_t.dtype != tf.float32:
-            raise TypeError(
-                f"Invalid argument for s_t: Expected tf.float32, got {s_t.dtype}"
-            )
-        if a_t.dtype != tf.float32:
-            raise TypeError(
-                f"Invalid argument for a_t: Expected tf.float32, got {a_t.dtype}"
-            )
-
-        # state- and action values should be in the same order as in the config
-        # 1. get x_t and E_t
-        x_t = a_t[0]
-        E_t = a_t[1]
-
-        # 2. get all the state values
-        k_t = s_t[0]
-        m_vector = s_t[1:4]
-        tau_vector = s_t[4:6]
-        t = (int)(s_t[6].numpy())
-        t_plus = s_t[6] + 1
-
-        ## Adjustments
-        x_t = tf.minimum(tf.maximum(x_t, 1e-7), 1 - 1e-7)
-        E_t = tf.minimum(E_t, self.E_t_BAU(t, k_tplus))
-
-        # 3. call functions with variables and get state values
-        # how do I get G_t?
-        G_t = 0
-
-        log_Y_t = self.log_Y_t(k_t, E_t, t)
-        k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t, t)
-        m_1plus = self.m_1plus(m_vector, E_t)
-        m_2plus = self.m_2plus(m_vector)
-        m_3plus = self.m_3plus(m_vector)
-        tau_1plus = self.tau_1plus(tau_vector, m_vector[0], G_t)
-        tau_2plus = self.tau_2plus(tau_vector)
-
-        # 4. return state values for next state
-        s_t_plus = [k_tplus, m_1plus, m_2plus, m_3plus, tau_1plus, tau_2plus, t_plus]
-
-        s_t_plus_tensor = tf.convert_to_tensor(s_t_plus, dtype=tf.float32)
-        return s_t_plus_tensor
-
-    # --- HELPER METHODS ---
+    ################ HELPER FUNCITONS ################
     def create_N_t(self, t_max: int) -> tf.Tensor:
         """_summary_
 
@@ -257,10 +203,10 @@ class Equations_of_motion_Ace_Dice_2016:
 
         return log_Y_t_gross + log_abatement_cost
 
-    # --- MAIN EQUATIONS ---
+    ################ MAIN EQUATIONS ################
 
     def k_tplus(
-        self, log_Y_t: tf.Tensor, tau_1_t: tf.Tensor, x_t: tf.Tensor, t: int
+        self, log_Y_t: tf.Tensor, tau_1_t: tf.Tensor, x_t: tf.Tensor
     ) -> tf.Tensor:
         """
         Args:
@@ -280,7 +226,9 @@ class Equations_of_motion_Ace_Dice_2016:
 
         return log_Y_t + damages + log_one_x_t + depreciation_factor
 
-    def m_1plus(self, m_t: tf.Tensor, E_t: tf.Tensor) -> tf.Tensor:
+    def m_1plus(
+        self, m_t: tf.Tensor, E_t: tf.Tensor, k_t: tf.Tensor, t: int
+    ) -> tf.Tensor:
         """
         Args:
             m_t (tf.Tensor): The current vector of carbon stocks M_t
@@ -291,6 +239,9 @@ class Equations_of_motion_Ace_Dice_2016:
         """
         phi_row_1 = self.Phi[0, :]
         phi_dot_m = tf.tensordot(phi_row_1, m_t, axes=1)
+
+        E_t_BAU = self.E_t_BAU(t, k_t)
+        E_t = tf.minimum(E_t, E_t_BAU)
 
         return phi_dot_m + E_t
 
@@ -346,3 +297,50 @@ class Equations_of_motion_Ace_Dice_2016:
         """
         sigma_transition_row_2 = self.sigma_transition[1, :]
         return tf.tensordot(sigma_transition_row_2, tau_t, axes=1)
+
+    def update_state(self, s_t: tf.Tensor, a_t: tf.Tensor) -> tf.Tensor:
+        """Updates the state based on current state and action tensors.
+
+        Args:
+            s_t (tf.Tensor): The current state tensor.
+            a_t (tf.Tensor): The action tensor.
+
+        Returns:
+            tf.Tensor: The updated state tensor.
+
+        Raises:
+            TypeError: If either s_t or a_t is not of dtype tf.float32.
+        """
+        assert_valid(s_t, "s_t")
+        assert_valid(a_t, "a_t")
+
+        # state- and action values should be in the same order as in the config
+        # 1. get x_t and E_t
+        x_t = a_t[0]
+        x_t = tf.clip_by_value(x_t, clip_value_min=1e-7, clip_value_max=1 - 1e-7)
+        E_t = a_t[1]
+
+        # 2. get all the state values
+        k_t = s_t[0]
+        m_vector = s_t[1:4]
+        tau_vector = s_t[4:6]
+        t = (int)(s_t[6].numpy())
+        t_plus = s_t[6] + 1
+
+        # 3. call functions with variables and get state values
+        # how do I get G_t?
+        G_t = 0
+
+        log_Y_t = self.log_Y_t(k_t, E_t, t)
+        k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t)
+        m_1plus = self.m_1plus(m_vector, E_t, k_t, t)
+        m_2plus = self.m_2plus(m_vector)
+        m_3plus = self.m_3plus(m_vector)
+        tau_1plus = self.tau_1plus(tau_vector, m_vector[0], G_t)
+        tau_2plus = self.tau_2plus(tau_vector)
+
+        # 4. return state values for next state
+        s_t_plus = [k_tplus, m_1plus, m_2plus, m_3plus, tau_1plus, tau_2plus, t_plus]
+
+        s_t_plus_tensor = tf.convert_to_tensor(s_t_plus, dtype=tf.float32)
+        return s_t_plus_tensor
