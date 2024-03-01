@@ -60,6 +60,7 @@ class Policy_Network(tf.keras.Model):
             ),
         )
 
+    
     def apply_actionspecific_activations(self, unprocessed_output) -> Any:
         # Tensorflow calls this function once for each bath
         # Therefore unprocessed output will always be shape (None, num_actions)

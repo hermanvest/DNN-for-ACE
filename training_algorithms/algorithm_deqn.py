@@ -22,8 +22,25 @@ class Algorithm_DEQN:
         # Initializations related to the algorithm
         self.n_iterations = n_iterations
         self.n_epochs = n_epochs
-        self.t_max = t_max
         self.batch_size = batch_size
+        self.t_max = t_max
+
+        # Adjusting task difficulty as network gets better
+        self.thresholds_and_sizes = [
+            (500, 32),  # "moderate loss threshold"
+            (200, 64),  # "small loss threshold"
+        ]
+
+        self.episodelengths = [
+            4,  # sorted easiest to hardest
+            8,
+            16,
+            32,
+            64,
+            128,
+            256,
+            300,
+        ]
 
         # Initializations for env, agent and optimizer
         self.env = env
@@ -73,6 +90,39 @@ class Algorithm_DEQN:
             f"========== Time elapsed: {int(hours)}h {int(minutes)}m {int(seconds)}s =========="
         )
 
+    def choose_batch_size(self, start: bool, total_loss: tf.Tensor = None) -> int:
+        # Handling the start condition by setting the batch size to the smallest one defined
+        if start:
+            # Assuming thresholds_and_sizes are sorted in descending order of thresholds
+            # The smallest batch size is the second element of the last tuple in the list
+            batch_size = self.thresholds_and_sizes[0][1]
+            return batch_size
+
+        # Ensure total_loss is a scalar and get its value
+        batch_size = 128
+
+        if total_loss is not None:
+            total_loss_value = total_loss.numpy()
+
+            # Reverse iterate to pop smaller thresholds without affecting indices of unvisited items
+            for i in reversed(range(len(self.thresholds_and_sizes))):
+                threshold, batch_size_i = self.thresholds_and_sizes[i]
+
+                # If total_loss is greater than the current threshold, update batch_size
+                if total_loss_value >= threshold:
+                    batch_size = batch_size_i
+
+                # If total_loss is less than the current threshold, pop this threshold off the list
+                else:
+                    self.thresholds_and_sizes.pop(i)
+        return batch_size
+
+    def choose_episode_length(self, total_loss: tf.Tensor = None) -> None:
+        if len(self.episodelengths) == 1:
+            return
+        if total_loss.numpy() < 20:
+            self.episodelengths.pop(0)
+
     ################ MAIN TRAINING FUNCTIONS ################
     def generate_episodes(self) -> tf.Tensor:
         """
@@ -87,7 +137,7 @@ class Algorithm_DEQN:
         s_t = self.env.reset()  # shape [batch, statevariables]
         states = []  # shape [timestep, batchnumber, statevariables]
 
-        for t in range(self.t_max):
+        for _ in range(self.t_max):
             a_t = self.agent.get_actions(s_t)  # shape [batch, actionvars]
             s_tplus = self.env.step(s_t, a_t)
             states.append(s_t)
@@ -96,13 +146,14 @@ class Algorithm_DEQN:
         states_tensor = tf.stack(states)
         return tf.cast(states_tensor, dtype=tf.float32)
 
-    def epoch(self, batches: tf.Tensor) -> tf.Tensor:
+    def epoch(self, batches: tf.Tensor, step_index: int) -> tf.Tensor:
         """
         Processes a series of batches for a single epoch, computes the loss for each batch,
         applies gradients, and returns the average loss across all batches as a float32 tensor.
 
         Args:
             batches (tf.Tensor): A batched dataset of inputs for the epoch.
+            step_index (int): episode number*epoch number
 
         Returns:
             tf.Tensor: The mean loss across all batches for the epoch as a float32 tensor.
@@ -110,7 +161,7 @@ class Algorithm_DEQN:
         total_epoch_loss = tf.constant(0.0, dtype=tf.float32)
         num_batches = tf.constant(0, dtype=tf.float32)
 
-        for batch_s_t in batches:
+        for batch_index, batch_s_t in enumerate(batches):
             with tf.GradientTape() as tape:
                 batch_a_t = self.agent.get_actions(batch_s_t)
                 batch_s_tplus = self.env.step(batch_s_t, batch_a_t)
@@ -130,8 +181,18 @@ class Algorithm_DEQN:
             total_epoch_loss += loss
             num_batches += 1.0
 
-            # DEBUGGING
-            (loss, "loss")
+            if any([tf.reduce_any(tf.math.is_nan(grad)) for grad in gradients]):
+                print("NaN gradient encountered for loss")
+
+            ###### Logging          ######
+            global_norm = tf.linalg.global_norm(gradients)
+            with self.writer.as_default():
+                tf.summary.scalar(
+                    "Gradient Norm",
+                    global_norm,
+                    step=step_index * len(batches) + batch_index,
+                )
+                self.writer.flush()
 
         # MSE over all batches
         epoch_mse = total_epoch_loss / num_batches
@@ -139,7 +200,9 @@ class Algorithm_DEQN:
 
         return epoch_mse
 
-    def train_on_episodes(self, episodes: tf.Tensor) -> tf.Tensor:
+    def train_on_episodes(
+        self, episodes: tf.Tensor, iteration_number: int
+    ) -> tf.Tensor:
         """
         Trains the model on a dataset of episodes, reshaping and shuffling the episodes
         before processing them in batches for each epoch. The method computes the mean
@@ -153,6 +216,7 @@ class Algorithm_DEQN:
         Args:
             episodes (tf.Tensor): A 3D tensor of shape [batch_numbers, timesteps, state_variables]
                                 representing the collected episodes to train on.
+            iteration_number (int): Integer representing current iteration in the main loop
 
         Returns:
             tf.Tensor: The mean squared error loss averaged over all epochs, as a float32 tensor.
@@ -169,7 +233,7 @@ class Algorithm_DEQN:
                 self.batch_size
             )
             # Calculating losses
-            epoch_mse = self.epoch(batches)
+            epoch_mse = self.epoch(batches, iteration_number)
             total_epochs_loss += epoch_mse
             num_batches += 1.0
 
@@ -186,16 +250,23 @@ class Algorithm_DEQN:
 
     def main_loop(self) -> None:
         training_start = tf.timestamp()
+        self.batch_size = self.choose_batch_size(True)
 
         for iteration_i in range(self.n_iterations):
             print(f"\nStarting iteration {iteration_i+1}/{self.n_iterations}")
+
+            ###### Algorithm steps  ######
             episode = self.generate_episodes()
-            iteration_loss = self.train_on_episodes(episode)
+            iteration_loss = self.train_on_episodes(episode, iteration_i)
+
+            # self.batch_size = self.choose_batch_size(False, iteration_loss)
+            # self.choose_episode_length(iteration_loss)
+
+            ###### Logging          ######
             print(
                 f"Loss for iteration {iteration_i+1}/{self.n_iterations}: Loss = {iteration_loss}"
             )
 
-            # Logging
             with self.writer.as_default():
                 tf.summary.scalar(
                     "Mean squared errors averaged over all epochs",
