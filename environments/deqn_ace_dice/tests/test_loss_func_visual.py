@@ -175,9 +175,46 @@ def test_all_equations():
     print("================== TERMINATES: test_all_equations() ==================")
 
 
+def test_all_differentiable():
+    print("\n================== RUNNING: test_all_differentiable() ==================")
+    calc = get_loss_class()
+    s_t = tf.Variable(
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1], dtype=tf.float32
+    )  # Example state at time t
+    a_t = tf.Variable(
+        [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1], dtype=tf.float32
+    )  # Example action at time t
+    s_tplus = tf.Variable(
+        [1.1, 1.0, 1.0, 1.0, 1.0, 1.0, 2], dtype=tf.float32
+    )  # Example state at time t+1
+    a_tplus = tf.Variable(
+        [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2], dtype=tf.float32
+    )  # Example action at time t+1
+
+    # Call the squared_error_for_transition function
+    with tf.GradientTape() as tape:
+        # Watch the action variables
+        tape.watch([a_t, a_tplus])
+
+        # Call the squared_error_for_transition function
+        result = calc.squared_error_for_transition(s_t, a_t, s_tplus, a_tplus)
+
+    # Compute the gradient of the result with respect to the inputs
+    gradients = tape.gradient(result, [a_t, a_tplus])
+
+    # Check if any gradient is None
+    if any(grad is None for grad in gradients):
+        print(
+            "At least one gradient is None, indicating a non-differentiable point or operation."
+        )
+    else:
+        print("All gradients computed successfully, indicating differentiability.")
+
+    print(f"Result: {result}")
+    print("================== TERMINATES: test_all_differentiable() ==================")
+
+
 ##################### MAIN LOOP #####################
-
-
 def main():
     print("################## IN MAIN FUNCTION ##################")
     print("\n\n#######################################################")
@@ -196,6 +233,7 @@ def main():
     print("################## INTEGRATION TESTS ##################")
     print("#######################################################\n\n")
     test_all_equations()
+    test_all_differentiable()
 
     print("################## END TESTS ##################")
 
