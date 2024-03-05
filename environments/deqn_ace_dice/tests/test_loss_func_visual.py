@@ -24,6 +24,15 @@ yaml_file_path = (
 t_max = 10
 
 
+##################### FOR PRINTING DIFFERENT COLS #####################
+def print_red(text):
+    print("\033[91m{}\033[0m".format(text))
+
+
+def print_green(text):
+    print("\033[92m{}\033[0m".format(text))
+
+
 ##################### INITIALIZATION #####################
 def get_equations() -> Equations_of_motion_Ace_Dice_2016:
     configs = load_config(yaml_file_path)
@@ -51,7 +60,10 @@ def test_ell1_calculation():
 
     print("Calculating ell1...")
     result = calc.ell_1(x_t, lambda_k_t, lambda_k_tplus)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print_green(f"Result: {result}")
     print("================== TERMINATES: test_ell1_calculation() ==================")
 
 
@@ -60,21 +72,25 @@ def test_ell2_calculation():
     calc = get_loss_class()
 
     print("Creating constants...")
+    E_t = calc.equations_of_motion.E_t_BAU(1, 1.0) - 1e-10
     vars = {
-        "E_t": tf.constant(0.5, dtype=tf.float32),
+        "E_t": E_t,
         "k_t": tf.constant(1.0, dtype=tf.float32),
         "t": 1,
         "lambda_k_t": tf.constant(1.0, dtype=tf.float32),
         "lambda_k_tplus": tf.constant(1.0, dtype=tf.float32),
         "lambda_k_tplus": tf.constant(1.0, dtype=tf.float32),
-        "lambda_M_1_t": tf.constant(1.0, dtype=tf.float32),
-        "lambda_M_tplus_vector": tf.ones([3], dtype=tf.float32),
+        "lambda_m_1_t": tf.constant(1.0, dtype=tf.float32),
+        "lambda_m_tplus": tf.ones([3], dtype=tf.float32),
         "lambda_tau_1_t": tf.constant(1.0, dtype=tf.float32),
     }
 
     print("Calculating ell2...")
     result = calc.ell_2(**vars)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print_green(f"Result: {result}")
     print("================== TERMINATES: test_ell2_calculation() ==================")
 
 
@@ -86,7 +102,10 @@ def test_ell3_calculation():
         "E_t": tf.constant(1.0, dtype=tf.float32),
     }
     result = calc.ell_3(**vars)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print_green(f"Result: {result}")
     print("================== TERMINATES: test_ell3_calculation() ==================")
 
 
@@ -100,7 +119,10 @@ def test_ell4_calculation():
         "t": 1,
     }
     result = calc.ell_4(**vars)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print_green(f"Result: {result}")
     print("================== TERMINATES: test_ell4_calculation() ==================")
 
 
@@ -112,12 +134,15 @@ def test_ell5_7_calculation():
     vars = {
         "lambda_m_t": tf.ones([3], dtype=tf.float32),
         "lambda_m_tplus": tf.ones([3], dtype=tf.float32),
-        "lambda_tau_1_t": tf.constant(1.0, dtype=tf.float32),
+        "lambda_tau_1_tplus": tf.constant(1.0, dtype=tf.float32),
     }
 
     print("Calculating ell5_7...")
     result = calc.ell_5_7(**vars)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print_green(f"Result: {result}")
     print("================== TERMINATES: test_ell5_7_calculation() ==================")
 
 
@@ -126,33 +151,39 @@ def test_ell8_9_calculation():
     calc = get_loss_class()
 
     vars = {
-        "lambda_tau_t_vector": tf.ones([2], dtype=tf.float32),
-        "lambda_tau_tplus_vector": tf.ones([2], dtype=tf.float32),
+        "lambda_tau_t": tf.ones([2], dtype=tf.float32),
+        "lambda_tau_tplus": tf.ones([2], dtype=tf.float32),
         "lambda_k_tplus": tf.constant(1.0, dtype=tf.float32),
     }
 
     result = calc.ell_8_9(**vars)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print_green(f"Result: {result}")
     print("================== TERMINATES: test_ell8_9_calculation() ==================")
 
 
 def test_ell10_calculation():
     print("\n================== RUNNING: test_ell10_calculation() ==================")
     calc = get_loss_class()
+    E_t = calc.equations_of_motion.E_t_BAU(1, 1.0) - 1e-10
 
     vars = {
         "x_t": tf.constant(0.5, dtype=tf.float32),
         "k_t": tf.constant(0.5, dtype=tf.float32),
-        "E_t": tf.constant(0.5, dtype=tf.float32),
-        "V_t": tf.constant(0.5, dtype=tf.float32),
-        "V_tplus": tf.constant(0.5, dtype=tf.float32),
-        "lambda_tau_t_vector": tf.ones([2], dtype=tf.float32),
-        "lambda_tau_tplus_vector": tf.ones([2], dtype=tf.float32),
+        "E_t": E_t,
+        "v_t": tf.constant(0.5, dtype=tf.float32),
+        "v_tplus": tf.constant(0.5, dtype=tf.float32),
         "tau_1_t": tf.constant(0.5, dtype=tf.float32),
+        "t": 1,
     }
 
     result = calc.ell_10(**vars)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print_green(f"Result: {result}")
     print("================== TERMINATES: test_ell10_calculation() ==================")
 
 
@@ -177,7 +208,10 @@ def test_all_equations():
 
     # Call the squared_error_for_transition function
     result = calc.squared_error_for_transition(s_t, a_t, s_tplus, a_tplus)
-    print(f"Result: {result}")
+    if tf.math.is_nan(result):
+        print_red("Non-valid point or operation resulted in Nan")
+    else:
+        print(f"Result: {result}")
     print("================== TERMINATES: test_all_equations() ==================")
 
 
@@ -209,12 +243,16 @@ def test_all_differentiable():
     gradients = tape.gradient(result, [a_t, a_tplus])
 
     # Check if any gradient is None
-    if any(grad is None for grad in gradients):
-        print(
-            "At least one gradient is None, indicating a non-differentiable point or operation."
+    if any(grad is None for grad in gradients) or any(
+        tf.reduce_any(tf.math.is_nan(grad)) for grad in gradients
+    ):
+        print_red(
+            "At least one gradient is None or Nan, indicating a non-differentiable point or operation."
         )
     else:
-        print("All gradients computed successfully, indicating differentiability.")
+        print_green(
+            "All gradients computed successfully, indicating differentiability."
+        )
 
     print(f"Result: {result}")
     print("================== TERMINATES: test_all_differentiable() ==================")

@@ -66,8 +66,8 @@ class Computeloss_Ace_Dice_2016:
         t: int,
         lambda_k_t: tf.Tensor,
         lambda_k_tplus: tf.Tensor,
-        lambda_M_1_t: tf.Tensor,
-        lambda_M_tplus_vector: tf.Tensor,
+        lambda_m_1_t: tf.Tensor,
+        lambda_m_tplus: tf.Tensor,
         lambda_tau_1_t: tf.Tensor,
     ) -> tf.Tensor:
         """Loss function based on FOC for E_t. The funciton assumes that appropriate bounds on E_t are applied.
@@ -78,8 +78,8 @@ class Computeloss_Ace_Dice_2016:
             t (int): time period
             lambda_k_t (tf.Tensor): Multiplier for capital stock at time t
             lambda_k_tplus (tf.Tensor): Multiplier for capital stock at time t+1
-            lambda_M_1_t (tf.Tensor): Multiplier for environmental variable M at time t
-            lambda_M_tplus_vector (tf.Tensor): Vector of multipliers for environmental variable M at time t+1
+            lambda_m_1_t (tf.Tensor): Multiplier for environmental variable M at time t
+            lambda_m_tplus (tf.Tensor): Vector of multipliers for environmental variable M at time t+1
             lambda_tau_1_t (tf.Tensor): Multiplier for tau at time t
 
         Returns:
@@ -97,7 +97,7 @@ class Computeloss_Ace_Dice_2016:
         # Calculating dV_t+1/dE_t
         dm_tplus_part = (
             tf.tensordot(
-                lambda_M_tplus_vector, self.Phi[:, 0]
+                lambda_m_tplus, self.Phi[:, 0], axes=1
             )  # Dotprod same as multiplying 1x3 with 3x1
             + (lambda_tau_1_t * self.sigma_forc) / self.M_pre
         )
@@ -105,7 +105,7 @@ class Computeloss_Ace_Dice_2016:
         d_V_tplus_d_E_t = dm_tplus_part + dk_tplus_part
 
         return (
-            d_logF_d_E_t * (1 + lambda_k_t) + lambda_M_1_t + self.beta * d_V_tplus_d_E_t
+            d_logF_d_E_t * (1 + lambda_k_t) + lambda_m_1_t + self.beta * d_V_tplus_d_E_t
         )
 
     # @tf.function add after debug
@@ -198,8 +198,8 @@ class Computeloss_Ace_Dice_2016:
         transitions = tf.matmul(sigma_transposed, lambda_tau_tplus_reshaped)
 
         # Calculating Forcing
-        e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
-        e_1 = tf.reshape(e_1, shape=[3, 1])
+        e_1 = tf.constant([1, 0], dtype=tf.float32)
+        e_1 = tf.reshape(e_1, shape=[2, 1])
         forc = e_1 * self.xi_0 * (1 + lambda_k_tplus)
 
         loss = self.beta * (transitions - forc) - lambda_tau_t_reshaped
@@ -246,9 +246,10 @@ class Computeloss_Ace_Dice_2016:
             s_t (tf.Tensor): state variables at time t
             a_t (tf.Tensor): action variables at time t
             s_tplus (tf.Tensor): state variables at time t+1
+            a_tplus (tf.Tensor): action variables at time t+1
 
         Returns:
-            Tuple[float, float]: (squared error without penalty, squared error with penalty)
+            float: squared error without penalty
         """
         assert_valid(s_t, "s_t")
         assert_valid(s_tplus, "s_tplus")
@@ -256,63 +257,56 @@ class Computeloss_Ace_Dice_2016:
         assert_valid(a_tplus, "a_tplus")
 
         # action variables t
-        x_t = a_t[0]  # Adjusted below
-        E_t = a_t[1]  # Adjusted below
+        x_t = a_t[0]
+        E_t = a_t[1]
 
-        value_func_t = a_t[2]
+        v_t = a_t[2]
         lambda_k_t = a_t[3]
-        lambda_m_t_vector = a_t[4:7]  # Indexes look wierd, but are correct
-        lambda_tau_t_vector = a_t[7:9]  # Indexes look wierd, but are correct
+        lambda_m_t = a_t[4:7]  # Indexes look wierd, but are correct
+        lambda_m_1_t = lambda_m_t[0]
+        lambda_tau_t = a_t[7:9]  # Indexes look wierd, but are correct
+        lambda_tau_1_t = lambda_tau_t[0]
         lambda_t_BAU = a_t[9]
         lambda_E_t = a_t[10]
 
         # action variables t+1
-        value_func_tplus = a_tplus[2]
+        v_tplus = a_tplus[2]
         lambda_k_tplus = a_tplus[3]
-        lambda_m_tplus_vector = a_tplus[4:7]  # Indexes look wierd, but are correct
-        lambda_tau_tplus_vector = a_tplus[7:9]  # Indexes look wierd, but are correct
+        lambda_m_tplus = a_tplus[4:7]  # Indexes look wierd, but are correct
+        lambda_tau_tplus = a_tplus[7:9]  # Indexes look wierd, but are correct
+        lambda_tau_1_tplus = lambda_tau_tplus[0]
 
         # state variables t
         k_t = s_t[0]
-        tau_t_vector = s_t[4:6]  # Indexes look wierd, but are correct
+        tau_t = s_t[4:6]  # Indexes look wierd, but are correct
+        tau_1_t = tau_t[0]
         t = tf.cast(s_t[6], tf.int32)
 
-        # state variables t+1
-        k_tplus = s_tplus[0]
-
-        ## Adjustments
-        x_t_adj = tf.raw_ops.ClipByValue(
-            x_t, clip_value_min=1e-7, clip_value_max=1 - 1e-7, name=None
-        )
-        E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
-        E_t_adj = tf.minimum(E_t, E_t_BAU)
-
         # TODO: This is an abomination. Need to find time to make this prettier.
-        loss1 = tf.square(self.ell_1(lambda_k_t, lambda_k_tplus))
-        loss2_4 = tf.square(
-            self.ell_2_4(
-                lambda_m_t_vector, lambda_m_tplus_vector, lambda_tau_tplus_vector[0]
-            )
-        )
-        loss5_6 = tf.square(self.ell_5_6(lambda_tau_t_vector, lambda_tau_tplus_vector))
-        loss7 = tf.square(
-            self.ell_7(k_tplus, x_t_adj, E_t_adj, k_t, tau_t_vector[0], t)
-        )
-        loss8 = tf.square(self.ell_8(lambda_E_t, E_t_adj))
-        loss9 = tf.square(self.ell_9(lambda_t_BAU, E_t_adj, k_t, t))
-        loss10 = tf.square(
-            self.ell_10(
-                value_func_t,
-                value_func_tplus,
-                x_t_adj,
-                E_t_adj,
-                k_t,
-                tau_t_vector[0],
-                t,
-            )
-        )
+        loss_functions = [
+            ((self.ell_1), (x_t, lambda_k_t, lambda_k_tplus)),
+            (
+                (self.ell_2),
+                (
+                    E_t,
+                    k_t,
+                    t,
+                    lambda_k_t,
+                    lambda_k_tplus,
+                    lambda_m_1_t,
+                    lambda_m_tplus,
+                    lambda_tau_1_t,
+                ),
+            ),
+            ((self.ell_3), (lambda_E_t, E_t)),
+            ((self.ell_4), (lambda_t_BAU, E_t, k_t, t)),
+            ((self.ell_5_7), (lambda_m_t, lambda_m_tplus, lambda_tau_1_tplus)),
+            ((self.ell_8_9), (lambda_tau_t, lambda_tau_tplus, lambda_k_tplus)),
+            ((self.ell_10), (v_t, v_tplus, x_t, E_t, k_t, tau_1_t, t)),
+        ]
 
-        total_loss = loss1 + loss2_4 + loss5_6 + loss7 + loss8 + loss9 + loss10
-        total_loss_float32 = tf.cast(total_loss, dtype=tf.float32)
+        total_loss = tf.constant(0.0, dtype=tf.float32)
+        for func, args in loss_functions:
+            total_loss += tf.square(func(*args))
 
-        return total_loss_float32
+        return total_loss
