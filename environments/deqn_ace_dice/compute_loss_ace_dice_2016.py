@@ -6,6 +6,7 @@ from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
     Equations_of_motion_Ace_Dice_2016,
 )
 from utils.debug import assert_valid
+from computation_utils import custom_sigmoid
 
 
 class Computeloss_Ace_Dice_2016:
@@ -281,6 +282,10 @@ class Computeloss_Ace_Dice_2016:
         tau_t = s_t[4:6]  # Indexes look wierd, but are correct
         tau_1_t = tau_t[0]
         t = tf.cast(s_t[6], tf.int32)
+
+        # Adjustment of E_t:
+        E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
+        E_t = custom_sigmoid(E_t, E_t_BAU)
 
         # TODO: This is an abomination. Need to find time to make this prettier.
         loss_functions = [

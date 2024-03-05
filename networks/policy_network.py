@@ -63,6 +63,23 @@ class Policy_Network(tf.keras.Model):
 
     @staticmethod
     def safe_sigmoid(x, epsilon=1e-6):
+        """
+        Applies a modified sigmoid activation function to the input tensor `x` that ensures the output is strictly within the range (epsilon, 1-epsilon). This modification is designed to prevent the output from reaching the exact values of 0 and 1, thus maintaining numerical stability, especially for operations that are sensitive to these boundary values, such as logarithms.
+
+        The function works by slightly compressing the sigmoid's output range using the `epsilon` parameter. The output is scaled and translated so that it lies within the specified bounds, ensuring differentiability and avoiding issues with infinite or undefined gradients.
+
+        Parameters:
+            x (tf.Tensor): The input tensor for which to compute the modified sigmoid activation.
+            epsilon (float, optional): A small constant used to define the lower and upper bounds of the sigmoid's output, preventing it from reaching 0 or 1. Defaults to 1e-6.
+
+        Returns:
+            tf.Tensor: The output tensor, with each element transformed by the modified sigmoid function to lie strictly within (epsilon, 1-epsilon).
+
+        Example:
+            >>> x = tf.constant([-10.0, 0.0, 10.0])
+            >>> activated_x = safe_sigmoid(x)
+            >>> print(activated_x.numpy())
+        """
         return epsilon + (1 - 2 * epsilon) * tf.sigmoid(x)
 
     def apply_actionspecific_activations(self, unprocessed_output) -> Any:
