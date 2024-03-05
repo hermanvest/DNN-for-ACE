@@ -42,107 +42,74 @@ class Computeloss_Ace_Dice_2016:
 
     ################ INDIVIDUAL LOSS FUNCTIONS ################
     # @tf.function add after debug
-    def ell_1(self, lambda_k_t: tf.Tensor, lambda_k_tplus: tf.Tensor) -> tf.Tensor:
-        """Loss function based on FOC for k_{t+1}.
+    def ell_1(
+        self, x_t: tf.Tensor, lambda_k_t: tf.Tensor, lambda_k_tplus: tf.Tensor
+    ) -> tf.Tensor:
+        """Loss function based on FOC for x_t. The function assumes that appropriate bounds on x_t are applied.
 
         Args:
+            x_t (tf.Tensor): consumption rate in time t
             lambda_k_t (tf.Tensor): shadow value of capital in t
-            lambda_k_t (tf.Tensor): shadow value of capital in t+1
+            lambda_k_tplus (tf.Tensor): shadow value of capital in t+1
 
         Returns:
             loss (tf.Tensor)
         """
-        return self.beta * lambda_k_tplus * self.kappa - lambda_k_t
+        parenthesis = lambda_k_t + self.beta * lambda_k_tplus * self.kappa
 
-    # @tf.function add after debug
-    def ell_2_4(
+        return (1 / x_t) - (1 / (1 - x_t)) * parenthesis
+
+    def ell_2(
         self,
-        lambda_m_t: tf.Tensor,
-        lambda_m_tplus: tf.Tensor,
-        lambda_tau_1_tplus: tf.Tensor,
-    ) -> tf.Tensor:
-        """Loss function based on FOC for M_{t+1}.
-
-        Args:
-            lambda_m_t (tf.Tensor): vector of langrange multipliers for the carbon stocks at t
-            lambda_m_tplus (tf.Tensor): vector of langrange multipliers for the carbon stocks at t+1
-            lambda_tau_1_tplus (tf.Tensor): lagrange multiplier for transformed temperature 1 at time t+1
-
-        Returns:
-            loss (tf.Tensor)
-        """
-        # Ensuring that the lambda vector is of the correct shape
-        lambda_m_t_reshaped = tf.reshape(lambda_m_t, (3, 1))
-        lambda_m_tplus_reshaped = tf.reshape(lambda_m_tplus, (3, 1))
-
-        transitions = tf.matmul(self.Phi, lambda_m_tplus_reshaped)
-
-        e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
-        e_1 = tf.reshape(e_1, shape=[3, 1])
-
-        forc = lambda_tau_1_tplus * self.sigma_forc * (1 / self.M_pre)
-
-        loss = self.beta * (transitions + e_1 * forc) - lambda_m_t_reshaped
-
-        return tf.reduce_sum(loss)
-
-    # @tf.function add after debug
-    def ell_5_6(
-        self, lambda_tau_t: tf.Tensor, lambda_tau_tplus: tf.Tensor
-    ) -> tf.Tensor:
-        """Loss function based on FOC for tau_{t+1}.
-
-        Args:
-            lambda_tau_t (tf.Tensor): vector of lagrange multipliers for transformed temperatures at time t
-            lambda_tau_tplus (tf.Tensor): vector of lagrange multipliers for transformed temperatures at time t+1
-
-        Returns:
-            loss (tf.Tensor)
-        """
-        # Ensuring that lambda_tau is of correct shape
-        lambda_tau_t_reshaped = tf.reshape(lambda_tau_t, (2, 1))
-        lambda_tau_tplus_reshaped = tf.reshape(lambda_tau_tplus, (2, 1))
-
-        sigma_transposed = tf.transpose(self.sigma_transition)
-        transitions = tf.matmul(sigma_transposed, lambda_tau_tplus_reshaped)
-
-        loss = self.beta * transitions - lambda_tau_t_reshaped
-        return tf.reduce_sum(loss)
-
-    # @tf.function add after debug
-    def ell_7(
-        self,
-        k_tplus: tf.Tensor,
-        x_t: tf.Tensor,
         E_t: tf.Tensor,
         k_t: tf.Tensor,
-        tau_1_t: tf.Tensor,
-        t: tf.Tensor,
+        t: int,
+        lambda_k_t: tf.Tensor,
+        lambda_k_tplus: tf.Tensor,
+        lambda_M_1_t: tf.Tensor,
+        lambda_M_tplus_vector: tf.Tensor,
+        lambda_tau_1_t: tf.Tensor,
     ) -> tf.Tensor:
-        """Loss function based on lambda{k,t} - budget constraint.
+        """Loss function based on FOC for E_t. The funciton assumes that appropriate bounds on E_t are applied.
 
         Args:
-            k_tplus (tf.Tensor): log capital in the next time period
-            x_t (tf.Tensor): consumption rate
-            E_t (tf.Tensor): emissions at time t
-            k_t (tf.Tensor): log capital at time t
-            tau_1_t (tf.Tensor): transformed temperature 1
-            t (tf.Tensor): timestep
+            E_t (tf.Tensor): emissions level at time t
+            k_t (tf.Tensor): capital stock at time t
+            t (int): time period
+            lambda_k_t (tf.Tensor): Multiplier for capital stock at time t
+            lambda_k_tplus (tf.Tensor): Multiplier for capital stock at time t+1
+            lambda_M_1_t (tf.Tensor): Multiplier for environmental variable M at time t
+            lambda_M_tplus_vector (tf.Tensor): Vector of multipliers for environmental variable M at time t+1
+            lambda_tau_1_t (tf.Tensor): Multiplier for tau at time t
 
         Returns:
-            loss (tf.Tensor)
+            tf.Tensor: loss
         """
-        production = self.equations_of_motion.log_Y_t(k_t, E_t, t)
-        damages = -self.xi_0 * tau_1_t + self.xi_0
-        consumption = tf.math.log(1 - x_t)
-        investment_multiplier = tf.math.log(1 + self.g_k) - tf.math.log(
-            self.delta_k + self.g_k
+        theta_1_t = self.equations_of_motion.theta_1[t]
+        E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
+        mu_t = 1 - E_t / E_t_BAU
+
+        # Calculaing dlogF/dE_t
+        numerator = theta_1_t * self.theta_2 * tf.pow(mu_t, self.theta_2 - 1)
+        denominator = E_t_BAU * (1 - theta_1_t * tf.pow(mu_t, self.theta_2))
+        d_logF_d_E_t = numerator / denominator
+
+        # Calculating dV_t+1/dE_t
+        dm_tplus_part = (
+            tf.tensordot(
+                lambda_M_tplus_vector, self.Phi[:, 0]
+            )  # Dotprod same as multiplying 1x3 with 3x1
+            + (lambda_tau_1_t * self.sigma_forc) / self.M_pre
+        )
+        dk_tplus_part = lambda_k_tplus * self.kappa * d_logF_d_E_t
+        d_V_tplus_d_E_t = dm_tplus_part + dk_tplus_part
+
+        return (
+            d_logF_d_E_t * (1 + lambda_k_t) + lambda_M_1_t + self.beta * d_V_tplus_d_E_t
         )
 
-        return production + damages + consumption + investment_multiplier - k_tplus
-
     # @tf.function add after debug
-    def ell_8(self, lambda_E_t: tf.Tensor, E_t: tf.Tensor) -> tf.Tensor:
+    def ell_3(self, lambda_E_t: tf.Tensor, E_t: tf.Tensor) -> tf.Tensor:
         """Loss function based on Fischer-Burmeister function for E_t \geq 0.
 
         Args:
@@ -156,7 +123,7 @@ class Computeloss_Ace_Dice_2016:
         return fb
 
     # @tf.function add after debug
-    def ell_9(
+    def ell_4(
         self, lambda_t_BAU: tf.Tensor, E_t: tf.Tensor, k_t: tf.Tensor, t: tf.Tensor
     ) -> tf.Tensor:
         """Loss function based on Fischer-Burmeister function for E_t \leq E_t_BAU.
@@ -175,20 +142,85 @@ class Computeloss_Ace_Dice_2016:
         return self.fischer_burmeister_function(lambda_t_BAU, emissions_diff)
 
     # @tf.function add after debug
+    def ell_5_7(
+        self,
+        lambda_m_t: tf.Tensor,
+        lambda_m_tplus: tf.Tensor,
+        lambda_tau_1_tplus: tf.Tensor,
+    ) -> tf.Tensor:
+        """Loss function based on FOC for M_{t+1}.
+
+        Args:
+            lambda_m_t (tf.Tensor): vector of langrange multipliers for the carbon stocks at t
+            lambda_m_tplus (tf.Tensor): vector of langrange multipliers for the carbon stocks at t+1
+            lambda_tau_1_tplus (tf.Tensor): lagrange multiplier for transformed temperature 1 at time t+1
+
+        Returns:
+            loss (tf.Tensor)
+        """
+        # Ensuring that the lambda vector is of the correct shape
+        lambda_m_t_reshaped = tf.reshape(lambda_m_t, (3, 1))
+        lambda_m_tplus_reshaped = tf.reshape(lambda_m_tplus, (3, 1))
+        phi_transposed = tf.transpose(self.Phi)
+        transitions = tf.matmul(phi_transposed, lambda_m_tplus_reshaped)
+
+        e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
+        e_1 = tf.reshape(e_1, shape=[3, 1])
+        forc = lambda_tau_1_tplus * self.sigma_forc * (1 / self.M_pre)
+
+        loss = self.beta * (transitions + e_1 * forc) - lambda_m_t_reshaped
+
+        return tf.reduce_sum(loss)
+
+    # @tf.function add after debug
+    def ell_8_9(
+        self,
+        lambda_tau_t: tf.Tensor,
+        lambda_tau_tplus: tf.Tensor,
+        lambda_k_tplus: tf.Tensor,
+    ) -> tf.Tensor:
+        """Loss function based on FOC for tau_{t+1}.
+
+        Args:
+            lambda_tau_t (tf.Tensor): vector of lagrange multipliers for transformed temperatures at time t
+            lambda_tau_tplus (tf.Tensor): vector of lagrange multipliers for transformed temperatures at time t+1
+            lambda_k_tplus: (tf.Tensor): lagrange multiplier for capital equation of motion in t+1
+
+        Returns:
+            loss (tf.Tensor)
+        """
+        # Ensuring that lambda_tau is of correct shape
+        lambda_tau_t_reshaped = tf.reshape(lambda_tau_t, (2, 1))
+        lambda_tau_tplus_reshaped = tf.reshape(lambda_tau_tplus, (2, 1))
+
+        # Calculating transitions
+        sigma_transposed = tf.transpose(self.sigma_transition)
+        transitions = tf.matmul(sigma_transposed, lambda_tau_tplus_reshaped)
+
+        # Calculating Forcing
+        e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
+        e_1 = tf.reshape(e_1, shape=[3, 1])
+        forc = e_1 * self.xi_0 * (1 + lambda_k_tplus)
+
+        loss = self.beta * (transitions - forc) - lambda_tau_t_reshaped
+        return tf.reduce_sum(loss)
+
+    # @tf.function add after debug
     def ell_10(
         self,
-        value_func_t: tf.Tensor,
-        value_func_tplus: tf.Tensor,
+        v_t: tf.Tensor,
+        v_tplus: tf.Tensor,
         x_t: tf.Tensor,
         E_t: tf.Tensor,
         k_t: tf.Tensor,
         tau_1_t: tf.Tensor,
         t: tf.Tensor,
     ) -> tf.Tensor:
-        """Loss function based on Bellman Equation.
+        """Loss function based on Bellman Equation. The function assumes that appropriate bounds on x_t are applied.
 
         Args:
-            value_func_t (tf.Tensor): value function of state at time t
+            v_t (tf.Tensor): value function of state at time t
+            v_tplus (tf.Tensor): value function of state at time t+1
             x_t (tf.Tensor): consumption rate
             E_t (tf.Tensor): emissions at time t
             k_t (tf.Tensor): log capital at time t
@@ -198,88 +230,10 @@ class Computeloss_Ace_Dice_2016:
         Returns:
             loss (tf.Tensor)
         """
-        x_t_adj = tf.maximum(x_t, 1e-7)  # For avoiding log(0) below
-
         production = self.equations_of_motion.log_Y_t(k_t, E_t, t)
         damages = -self.xi_0 * tau_1_t + self.xi_0
 
-        return (
-            tf.math.log(x_t_adj)
-            + production
-            + damages
-            + self.beta * value_func_tplus
-            - value_func_t
-        )
-
-    # @tf.function add after debug
-    def ell_11(self, x_t: tf.Tensor, lambda_k_t: tf.Tensor) -> tf.Tensor:
-        """Loss function based on foc for x_t
-
-        Args:
-        x_t (tf.Tensor): Current period's consumption rate.
-        lambda_k_t (tf.Tensor): Lagrange multiplier for the budget constraint on capital accumulation.
-
-        Returns:
-            loss (tf.Tensor)
-        """
-        # NOTE: Problem if x_t too close to 1 or 0.
-        x_t_adj = tf.raw_ops.ClipByValue(
-            x_t, clip_value_min=1e-7, clip_value_max=1 - 1e-7, name=None
-        )
-        log_x_derivative = 1 / x_t_adj
-        marginal_value_of_consumption = -self.beta * (
-            (lambda_k_t * self.kappa) / (1 - x_t_adj)
-        )
-        k_tplus_wrt_x = -lambda_k_t / (1 - x_t_adj)
-
-        return log_x_derivative + marginal_value_of_consumption + k_tplus_wrt_x
-
-    # @tf.function add after debug
-    def ell_12(
-        self,
-        E_t: tf.Tensor,
-        k_t: tf.Tensor,
-        lambda_m_t: tf.Tensor,
-        lambda_tau_1_t: tf.Tensor,
-        lambda_k_t: tf.Tensor,
-        t: tf.Tensor,
-    ) -> tf.Tensor:
-        """
-        Calculates a component of the loss function related to the first-order condition (FOC)
-        for emissions at time t.
-
-        Args:
-            E_t (tf.Tensor): Emissions at time t.
-            k_t (tf.Tensor): Log capital stock at time t.
-            lambda_m_t (tf.Tensor): Lagrange multipliers related to the carbon stock.
-            lambda_tau_1_t (tf.Tensor): Lagrange multiplier related to the transformed tempreatures.
-            lambda_k_t (tf.Tensor): Lagrange multiplier for the budget constraint on capital accumulation.
-            t (tf.Tensor): Tensor representing the current time period index.
-
-        Returns:
-            tf.Tensor: Loss
-        """
-
-        # Get constants from equations of motion
-        theta_1_t = self.equations_of_motion.theta_1[t]
-        E_t_BAU = self.equations_of_motion.E_t_BAU(t, k_t)
-        E_t = tf.minimum(E_t, E_t_BAU)
-
-        # Calculating dlogF/dE_t
-        mu_t = 1 - E_t / E_t_BAU
-        numerator = theta_1_t * self.theta_2 * tf.pow(mu_t, self.theta_2 - 1)
-        denominator = E_t_BAU * (1 - theta_1_t * tf.pow(mu_t, self.theta_2))
-        dlogF_dEt = numerator / denominator
-
-        # Calculating dV_tplus/dE_t
-        phi_col_1 = self.Phi[:, 0]
-        d_V_tplus_dE_t = self.beta * (
-            tf.tensordot(phi_col_1, lambda_m_t, axes=1)
-            + lambda_tau_1_t * self.sigma_forc * (1 / self.M_pre)
-        )
-
-        ell_11 = dlogF_dEt + d_V_tplus_dE_t + lambda_k_t * dlogF_dEt + lambda_m_t[0]
-        return ell_11
+        return tf.math.log(x_t) + production + damages + self.beta * v_tplus - v_t
 
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     # @tf.function add after debug

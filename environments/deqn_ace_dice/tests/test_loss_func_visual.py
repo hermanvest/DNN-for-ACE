@@ -45,71 +45,53 @@ def test_ell1_calculation():
     calc = get_loss_class()
 
     print("Creating constants...")
+    x_t = tf.constant(0.5, dtype=tf.float32)
     lambda_k_t = tf.constant(1.0, dtype=tf.float32)
     lambda_k_tplus = tf.constant(1.0, dtype=tf.float32)
 
     print("Calculating ell1...")
-    result = calc.ell_1(lambda_k_t, lambda_k_tplus)
+    result = calc.ell_1(x_t, lambda_k_t, lambda_k_tplus)
     print(f"Result: {result}")
     print("================== TERMINATES: test_ell1_calculation() ==================")
 
 
-def test_ell2_4_calculation():
-    print("\n================== RUNNING: test_ell2_4_calculation() ==================")
+def test_ell2_calculation():
+    print("\n================== RUNNING: test_ell2_calculation() ==================")
     calc = get_loss_class()
 
     print("Creating constants...")
-    lambda_m_t = tf.ones([3], dtype=tf.float32)
-    lambda_m_tplus = tf.ones([3], dtype=tf.float32)
-    lambda_tau_1_t = tf.constant(1.0, dtype=tf.float32)
-
-    print("Calculating ell2_4...")
-    result = calc.ell_2_4(lambda_m_t, lambda_m_tplus, lambda_tau_1_t)
-    print(f"Result: {result}")
-    print("================== TERMINATES: test_ell2_4_calculation() ==================")
-
-
-def test_ell5_6_calculation():
-    print("\n================== RUNNING: test_ell5_6_calculation() ==================")
-    calc = get_loss_class()
-    lambda_tau_t_vector = tf.ones([2], dtype=tf.float32)
-    lambda_tau_tplus_vector = tf.ones([2], dtype=tf.float32)
-
-    result = calc.ell_5_6(lambda_tau_t_vector, lambda_tau_t_vector)
-    print(f"Result: {result}")
-    print("================== TERMINATES: test_ell5_6_calculation() ==================")
-
-
-def test_ell7_calculation():
-    print("\n================== RUNNING: test_ell7_calculation() ==================")
-    calc = get_loss_class()
     vars = {
-        "k_tplus": tf.constant(1.0, dtype=tf.float32),
-        "x_t": tf.constant(0.6, dtype=tf.float32),
-        "E_t": tf.constant(1.0, dtype=tf.float32),
+        "E_t": tf.constant(0.5, dtype=tf.float32),
         "k_t": tf.constant(1.0, dtype=tf.float32),
-        "tau_1_t": tf.constant(1.0, dtype=tf.float32),
         "t": 1,
+        "lambda_k_t": tf.constant(1.0, dtype=tf.float32),
+        "lambda_k_tplus": tf.constant(1.0, dtype=tf.float32),
+        "lambda_k_tplus": tf.constant(1.0, dtype=tf.float32),
+        "lambda_M_1_t": tf.constant(1.0, dtype=tf.float32),
+        "lambda_M_tplus_vector": tf.ones([3], dtype=tf.float32),
+        "lambda_tau_1_t": tf.constant(1.0, dtype=tf.float32),
     }
-    result = calc.ell_7(**vars)
+
+    print("Calculating ell2...")
+    result = calc.ell_2(**vars)
     print(f"Result: {result}")
-    print("================== TERMINATES: test_ell7_calculation() ==================")
+    print("================== TERMINATES: test_ell2_calculation() ==================")
 
 
-def test_ell8_calculation():
-    print("\n================== RUNNING: test_ell8_calculation() ==================")
+def test_ell3_calculation():
+    print("\n================== RUNNING: test_ell3_calculation() ==================")
     calc = get_loss_class()
     vars = {
         "lambda_E_t": tf.constant(1.0, dtype=tf.float32),
         "E_t": tf.constant(1.0, dtype=tf.float32),
     }
-    result = calc.ell_8(**vars)
+    result = calc.ell_3(**vars)
     print(f"Result: {result}")
-    print("================== TERMINATES: test_ell8_calculation() ==================")
+    print("================== TERMINATES: test_ell3_calculation() ==================")
 
 
-def test_ell9_calculation():
-    print("\n================== RUNNING: test_ell9_calculation() ==================")
+def test_ell4_calculation():
+    print("\n================== RUNNING: test_ell4_calculation() ==================")
     calc = get_loss_class()
     vars = {
         "lambda_t_BAU": tf.constant(1.0, dtype=tf.float32),
@@ -117,37 +99,61 @@ def test_ell9_calculation():
         "k_t": tf.constant(1.0, dtype=tf.float32),
         "t": 1,
     }
-    result = calc.ell_9(**vars)
+    result = calc.ell_4(**vars)
     print(f"Result: {result}")
-    print("================== TERMINATES: test_ell9_calculation() ==================")
+    print("================== TERMINATES: test_ell4_calculation() ==================")
 
 
-def test_ell11_calculation():
-    print("\n================== RUNNING: test_ell11_calculation() ==================")
+def test_ell5_7_calculation():
+    print("\n================== RUNNING: test_ell5_7_calculation() ==================")
     calc = get_loss_class()
-    vars = {
-        "lambda_k_t": tf.constant(1.0, dtype=tf.float32),
-        "x_t": tf.constant(0.4, dtype=tf.float32),
-    }
-    result = calc.ell_11(**vars)
-    print(f"Result: {result}")
-    print("================== TERMINATES: test_ell11_calculation() ==================")
 
-
-def test_ell12_calculation():
-    print("\n================== RUNNING: test_ell12_calculation() ==================")
-    calc = get_loss_class()
+    print("Creating constants...")
     vars = {
-        "E_t": tf.constant(1.0, dtype=tf.float32),
-        "k_t": tf.constant(1.0, dtype=tf.float32),
-        "lambda_m_t": tf.constant([1.0, 1.0, 1.0], dtype=tf.float32),
+        "lambda_m_t": tf.ones([3], dtype=tf.float32),
+        "lambda_m_tplus": tf.ones([3], dtype=tf.float32),
         "lambda_tau_1_t": tf.constant(1.0, dtype=tf.float32),
-        "lambda_k_t": tf.constant(1.0, dtype=tf.float32),
-        "t": 1,
     }
-    result = calc.ell_12(**vars)
+
+    print("Calculating ell5_7...")
+    result = calc.ell_5_7(**vars)
     print(f"Result: {result}")
-    print("================== TERMINATES: test_ell12_calculation() ==================")
+    print("================== TERMINATES: test_ell5_7_calculation() ==================")
+
+
+def test_ell8_9_calculation():
+    print("\n================== RUNNING: test_ell8_9_calculation() ==================")
+    calc = get_loss_class()
+
+    vars = {
+        "lambda_tau_t_vector": tf.ones([2], dtype=tf.float32),
+        "lambda_tau_tplus_vector": tf.ones([2], dtype=tf.float32),
+        "lambda_k_tplus": tf.constant(1.0, dtype=tf.float32),
+    }
+
+    result = calc.ell_8_9(**vars)
+    print(f"Result: {result}")
+    print("================== TERMINATES: test_ell8_9_calculation() ==================")
+
+
+def test_ell10_calculation():
+    print("\n================== RUNNING: test_ell10_calculation() ==================")
+    calc = get_loss_class()
+
+    vars = {
+        "x_t": tf.constant(0.5, dtype=tf.float32),
+        "k_t": tf.constant(0.5, dtype=tf.float32),
+        "E_t": tf.constant(0.5, dtype=tf.float32),
+        "V_t": tf.constant(0.5, dtype=tf.float32),
+        "V_tplus": tf.constant(0.5, dtype=tf.float32),
+        "lambda_tau_t_vector": tf.ones([2], dtype=tf.float32),
+        "lambda_tau_tplus_vector": tf.ones([2], dtype=tf.float32),
+        "tau_1_t": tf.constant(0.5, dtype=tf.float32),
+    }
+
+    result = calc.ell_10(**vars)
+    print(f"Result: {result}")
+    print("================== TERMINATES: test_ell10_calculation() ==================")
 
 
 ##################### INTEGRATION TESTS #####################
@@ -221,13 +227,12 @@ def main():
     print("##################     UNIT TESTS    ##################")
     print("#######################################################\n\n")
     test_ell1_calculation()
-    test_ell2_4_calculation()
-    test_ell5_6_calculation()
-    test_ell7_calculation()
-    test_ell8_calculation()
-    test_ell9_calculation()
-    test_ell11_calculation()
-    test_ell12_calculation()
+    test_ell2_calculation()
+    test_ell3_calculation()
+    test_ell4_calculation()
+    test_ell5_7_calculation()
+    test_ell8_9_calculation()
+    test_ell10_calculation()
 
     print("\n\n#######################################################")
     print("################## INTEGRATION TESTS ##################")
