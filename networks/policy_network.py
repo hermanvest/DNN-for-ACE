@@ -3,6 +3,7 @@ from tensorflow.keras.layers import Dense
 
 from typing import Any, Dict
 
+
 class Policy_Network(tf.keras.Model):
     """
     __summary
@@ -60,7 +61,10 @@ class Policy_Network(tf.keras.Model):
             ),
         )
 
-    
+    @staticmethod
+    def safe_sigmoid(x, epsilon=1e-6):
+        return epsilon + (1 - 2 * epsilon) * tf.sigmoid(x)
+
     def apply_actionspecific_activations(self, unprocessed_output) -> Any:
         # Tensorflow calls this function once for each bath
         # Therefore unprocessed output will always be shape (None, num_actions)
@@ -72,7 +76,11 @@ class Policy_Network(tf.keras.Model):
             activation_name = action_information.get(
                 "activation", "linear"
             )  # Default to linear
-            activation_func = getattr(tf.keras.activations, activation_name)
+
+            if activation_name == "sigmoid":
+                activation_func = self.safe_sigmoid
+            else:
+                activation_func = getattr(tf.keras.activations, activation_name)
 
             # Apply the activation function to the corresponding slice of output
             processed_output = activation_func(unprocessed_output[:, a_i : a_i + 1])
