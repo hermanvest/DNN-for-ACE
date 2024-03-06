@@ -6,7 +6,7 @@ from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
     Equations_of_motion_Ace_Dice_2016,
 )
 from utils.debug import assert_valid
-from computation_utils import custom_sigmoid
+from environments.deqn_ace_dice.computation_utils import custom_sigmoid
 
 
 class Computeloss_Ace_Dice_2016:

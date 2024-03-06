@@ -3,6 +3,7 @@ import tensorflow as tf
 
 from typing import Any, Dict, List
 from utils.debug import assert_valid
+from environments.deqn_ace_dice.computation_utils import custom_sigmoid
 
 
 class Equations_of_motion_Ace_Dice_2016:
@@ -180,7 +181,7 @@ class Equations_of_motion_Ace_Dice_2016:
         return self.sigma[t] * self.y_gross(t, k_t)
 
     def log_Y_t(self, k_t: tf.Tensor, E_t: tf.Tensor, t: int) -> tf.Tensor:
-        """Computes log output with abatement costs for time t.
+        """Computes log output with abatement costs for time t. Note that this function scales E_t to be in the range (epsilon, E_t_BAU)
 
         Args:
             k_t (tf.Tensor): log capital for time step t
@@ -194,7 +195,7 @@ class Equations_of_motion_Ace_Dice_2016:
         """
 
         E_t_BAU = self.E_t_BAU(t, k_t)
-        E_t = tf.minimum(E_t, E_t_BAU)
+        E_t = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
 
         log_Y_t_gross = tf.math.log(self.y_gross(t, k_t))
         mu_t = 1 - E_t / E_t_BAU
@@ -208,7 +209,7 @@ class Equations_of_motion_Ace_Dice_2016:
     def k_tplus(
         self, log_Y_t: tf.Tensor, tau_1_t: tf.Tensor, x_t: tf.Tensor
     ) -> tf.Tensor:
-        """
+        """Computes equation of motion for capital. Assumes appropriate bounds on x_t \in (0, 1)
         Args:
             log Y_t (tf.Tensor): Log of production function
             tau_1_t (tf.Tensor): transformed temperatures in layer 1
@@ -229,7 +230,7 @@ class Equations_of_motion_Ace_Dice_2016:
     def m_1plus(
         self, m_t: tf.Tensor, E_t: tf.Tensor, k_t: tf.Tensor, t: int
     ) -> tf.Tensor:
-        """
+        """Computes carbon reservoir for the next period using the respective equation of motion. Note that this function scales E_t to be in the range (epsilon, E_t_BAU)
         Args:
             m_t (tf.Tensor): The current vector of carbon stocks M_t
             E_t (tf.Tensor): All emissions at current timestep, including exogenous emissions
@@ -241,7 +242,7 @@ class Equations_of_motion_Ace_Dice_2016:
         phi_dot_m = tf.tensordot(phi_row_1, m_t, axes=1)
 
         E_t_BAU = self.E_t_BAU(t, k_t)
-        E_t = tf.minimum(E_t, E_t_BAU)
+        E_t = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
 
         return phi_dot_m + E_t
 
@@ -317,7 +318,6 @@ class Equations_of_motion_Ace_Dice_2016:
         # state- and action values should be in the same order as in the config
         # 1. get x_t and E_t
         x_t = a_t[0]
-        x_t = tf.clip_by_value(x_t, clip_value_min=1e-7, clip_value_max=1 - 1e-7)
         E_t = a_t[1]
 
         # 2. get all the state values
