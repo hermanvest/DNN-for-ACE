@@ -20,5 +20,5 @@ def assert_valid(variable: tf.Tensor, explanation_of_variable: str):
             # For tensors, proceed to find indices
             nan_indices = tf.where(nan_mask)
             raise ValueError(
-                f"Nan encountered in {explanation_of_variable} at indices: {nan_indices.numpy().flatten()}"
+                f"Nan encountered in {explanation_of_variable}: {variable}\nat indices: {nan_indices.numpy().flatten()}"
             )

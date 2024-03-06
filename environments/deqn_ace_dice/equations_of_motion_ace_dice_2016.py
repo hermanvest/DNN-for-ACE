@@ -312,8 +312,8 @@ class Equations_of_motion_Ace_Dice_2016:
         Raises:
             TypeError: If either s_t or a_t is not of dtype tf.float32.
         """
-        assert_valid(s_t, "s_t")
         assert_valid(a_t, "a_t")
+        assert_valid(s_t, "s_t")
 
         # state- and action values should be in the same order as in the config
         # 1. get x_t and E_t

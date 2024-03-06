@@ -17,6 +17,11 @@ yaml_file_path = (
 )
 
 
+######################## Uitlity functions ########################
+def plot_trajectory():
+    pass
+
+
 def setUp() -> Ace_dice_env:
     config = load_config(yaml_file_path)
     env = Ace_dice_env(config)
@@ -54,6 +59,39 @@ def test_step_in_environment_from_state():
     )
 
 
+def test_environment_dynamics():
+    print(
+        "\n================== RUNNING: test_environment_dynamics() =================="
+    )
+    env = setUp()
+    s_t = env.reset()  # shape [batch, statevariables]
+    states = []  # shape [timestep, statevariables]
+
+    for t in range(10):
+        # Getting a resonable value for E_t
+        k_t = s_t[0, 0]
+        E_t = 100000  # To get it close to E_t_BAU
+        x_t = 0.75
+        print(f"k_t: {k_t}, E_t: {E_t}")
+
+        # Creating the actions batch, as I expect it to look
+        a_t = [x_t, E_t, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # Only first two are used
+        a_t = tf.convert_to_tensor(a_t)
+
+        action_batch = []
+        action_batch.append(a_t)
+        action_batch = tf.stack(action_batch)
+
+        s_tplus = env.step(s_t, action_batch)
+        states.append(s_t)
+        s_t = s_tplus
+
+    print(states)
+    print(
+        "================== TERMINATES: test_environment_dynamics() =================="
+    )
+
+
 def main():
     print("################## IN MAIN FUNCTION ##################")
 
@@ -63,6 +101,12 @@ def main():
 
     test_reset_environment()
     test_step_in_environment_from_state()
+
+    print("\n\n#######################################################")
+    print("################## INTEGRATION TESTS ##################")
+    print("#######################################################\n\n")
+
+    test_environment_dynamics()
 
     print("################## END TESTS ##################")
 

@@ -181,15 +181,20 @@ class Algorithm_DEQN:
             total_epoch_loss += loss
             num_batches += 1.0
 
-            if any([tf.reduce_any(tf.math.is_nan(grad)) for grad in gradients]):
-                print("NaN gradient encountered for loss")
-
             ###### Logging          ######
             global_norm = tf.linalg.global_norm(gradients)
+            max_grad = max(
+                [tf.reduce_max(tf.abs(grad)) for grad in gradients if grad is not None]
+            )
             with self.writer.as_default():
                 tf.summary.scalar(
                     "Gradient Norm",
                     global_norm,
+                    step=step_index * len(batches) + batch_index,
+                )
+                tf.summary.scalar(
+                    "Max Gradient",
+                    max_grad,
                     step=step_index * len(batches) + batch_index,
                 )
                 self.writer.flush()
@@ -250,7 +255,6 @@ class Algorithm_DEQN:
 
     def main_loop(self) -> None:
         training_start = tf.timestamp()
-        self.batch_size = self.choose_batch_size(True)
 
         for iteration_i in range(self.n_iterations):
             print(f"\nStarting iteration {iteration_i+1}/{self.n_iterations}")
@@ -258,9 +262,6 @@ class Algorithm_DEQN:
             ###### Algorithm steps  ######
             episode = self.generate_episodes()
             iteration_loss = self.train_on_episodes(episode, iteration_i)
-
-            # self.batch_size = self.choose_batch_size(False, iteration_loss)
-            # self.choose_episode_length(iteration_loss)
 
             ###### Logging          ######
             print(

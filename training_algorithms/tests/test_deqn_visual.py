@@ -53,7 +53,7 @@ def setUp() -> Algorithm_DEQN:
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
-        learning_rate=0.001, clipvalue=1.0
+        learning_rate=1e-5, clipvalue=1.0
     )
 
     algorithm = Algorithm_DEQN(**algorithm_config)
@@ -69,6 +69,8 @@ def test_episode_generation():
 
     print("Printing the episode")
     print(episodes[:5].numpy())
+    print("\nPrinting the actions")
+    print(algorithm.agent.get_actions(episodes[:5]).numpy())
 
     print("================== TERMINATES: test_episode_generation() ==================")
 
@@ -81,6 +83,7 @@ def test_epoch_and_episode():
     print(f"Finished generating an episode with shape: {episodes.numpy().shape}")
 
     # Creating batches:
+    step_index = 1
     batch_size = 12
     flattened_episodes = tf.reshape(episodes, [-1, episodes.shape[-1]])
     shuffled_episodes = tf.random.shuffle(flattened_episodes)
@@ -88,7 +91,7 @@ def test_epoch_and_episode():
     print(f"Shuffled data with {sum(1 for _ in batches)} batches")
 
     print("\nRunning an Epoch on the batches...")
-    epoch_average_mse = algorithm.epoch(batches)
+    epoch_average_mse = algorithm.epoch(batches, step_index)
     print(f"Average MSE over the epoch was: {epoch_average_mse}")
 
     print("================== TERMINATES: test_epoch_and_episode() ==================")
@@ -103,7 +106,8 @@ def test_train_on_episodes():
     print(f"Finished generating an episode with shape: {episodes.numpy().shape}")
 
     print("training on episodes...")
-    algorithm.train_on_episodes(episodes)
+    iteration_number = 1
+    algorithm.train_on_episodes(episodes, iteration_number)
 
     print("================== TERMINATES: test_epoch_and_episode() ==================")
 

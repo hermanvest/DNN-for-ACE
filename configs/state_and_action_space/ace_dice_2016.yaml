@@ -1,5 +1,5 @@
 general:
-  t_max: 200
+  t_max: 10
   num_batches: 1 # Number of simultaneously simulated batches
 
 parameters:
