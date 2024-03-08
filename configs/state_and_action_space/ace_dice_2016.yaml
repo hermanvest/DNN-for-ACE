@@ -1,31 +1,29 @@
 general:
-  t_max: 10
-  num_batches: 1 # Number of simultaneously simulated batches
+  t_max: 100
+  num_batches: 1                    # Number of simultaneously simulated batches
 
 parameters:
   production_specific:
     # ACE specific parameters
     prtp: 0.013896                  # Pure rate of social time preference, Global
-    xi_0: 0.2219
-    #xi_1: 0.25                     # Baked into the tau. probably not needed.
-    kappa: 0.3
-    delta_k: 0.44
-    g_k: 0.29                       # Assumed to be the same as g_kt
+    kappa: 0.3                      # Capital share of output
+    delta_k: 0.44                   # Capital depreciation factor
+    g_k: 0.29                       # Approx growth rate of capital (Assuming g_kt=g_k)
 
-    # DICE Production specific parameters
+    # DICE Production specific parameters 2016
     timestep: 5
     
-    ## For carbon intensity sigma_t
-    g_0_sigma: -0.0152
-    delta_sigma: 0.001
-    sigma_0: 0.00009556
-    delta_t: 5
+    ## For CO2-equivalent-emissions output ratio sigma_t
+    g_0_sigma: -0.0152              # Initial growth of sigma (pr yr)
+    delta_sigma: 0.001              # Decline rate of decarbonization (per period, so 5yrs?)
+    E_0: 35.85                      # Industrial emissions 2015 (GtCO2 pr yr)
+    Y_0: 105.5                      # Initial world gross output 2015 (trill 2010 usd)
+    mu_0: 0.03                      # Initial emissions control rate for base case 2015
     
     ## For abatement costs theta_{1,t}
-    p_back: 0.55
-    g_back: 0.005
-    theta_2: 2.6
-    c2co2: 3.666
+    p_back: 550                     # Cost of backstop 2010$ per tCO2 2015
+    g_back: 0.25                    # Initial cost decline backstop cost per period
+    theta_2: 2.6                    # Exponent of control cost function
     
     ## For initializing labor (N_t)
     pop0: 7403                      # Initial world population 2015 (millions)
@@ -38,9 +36,11 @@ parameters:
     a0: 5.115                       # Initial level of total factor productivity
 
   climate_specific:
+    xi_0: 0.2219
+    #xi_1: 0.25                     # Baked into the tau. probably not needed.
     sigma_forc: 0.5198
     M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE
-    # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE?
+    # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
     
     Phi:
       - [0.8240, 0.0767, 0]
@@ -54,13 +54,13 @@ parameters:
 # STATE VARIABLES
 state_variables:
   - name: k_t
-    init_val: 2.4698                # Log initial capital stock calibrated (1012 2019 USD) from dice
+    init_val: 223                   # Initial capital value 2015 (trill 2010 usd)
   - name: M_1_t
-    init_val: 862.86                # 2015 Carbon stock Atmosphere
+    init_val: 862.86                # 2015 Carbon stock Atmosphere GtCO2
   - name: M_2_t
-    init_val: 1541.11               # 2015 Carbon stock Upper ocean
+    init_val: 1541.11               # 2015 Carbon stock Upper ocean GtCO2
   - name: M_3_t
-    init_val: 10010.44              # 2015 Carbon stock Lower ocean
+    init_val: 10010.44              # 2015 Carbon stock Lower ocean GtCO2
   - name: tau_1_t
     init_val: 1.256727218547292     # Row 1, column 5 in initial temperatures, ace code
   - name: tau_2_t

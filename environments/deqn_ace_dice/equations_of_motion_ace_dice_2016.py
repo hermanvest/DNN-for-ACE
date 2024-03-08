@@ -96,13 +96,13 @@ class Equations_of_motion_Ace_Dice_2016:
 
     def create_sigma(self, t_max: int) -> tf.Tensor:
         """
-        Computes and returns the carbon intensity sigma_t
+        Computes and returns the CO2-equivalent-emissions output ratio
 
         Args:
             t (int): time
 
         Returns:
-            tf.Tensor: carbon intensity sigma_t
+            tf.Tensor: CO2-equivalent-emissions output ratio sigma_t
 
         Relevant GAMS code:
             tstep    Years per Period                                     /5       /
@@ -111,17 +111,19 @@ class Equations_of_motion_Ace_Dice_2016:
             gsig("1")=gsigma1; loop(t,gsig(t+1)=gsig(t)*((1+dsig)**tstep) ;);
             sigma("1")=sig0;   loop(t,sigma(t+1)=(sigma(t)*exp(gsig(t)*tstep)););
         """
-        # Initialize gsig and sigma as numpy arrays filled with zeros
-        gsig = np.zeros(t_max)
+        # Initialize growth_sigma and sigma as numpy arrays filled with zeros
+        growth_sigma = np.zeros(t_max)
         sigma = np.zeros(t_max)
 
         # Set initial values
-        gsig[0] = self.g_0_sigma
-        sigma[0] = self.sigma_0
+        growth_sigma[0] = self.g_0_sigma
+        sigma[0] = self.E_0 / (self.Y_0 * (1 - self.mu_0))
 
         for t in range(1, t_max):
-            gsig[t] = gsig[t - 1] * np.power((1 + self.delta_sigma), self.delta_t)
-            sigma[t] = sigma[t - 1] * np.exp(gsig[t - 1] * self.delta_t)
+            growth_sigma[t] = growth_sigma[t - 1] * np.power(
+                (1 + self.delta_sigma), self.timestep
+            )
+            sigma[t] = sigma[t - 1] * np.exp(growth_sigma[t - 1] * self.timestep)
 
         sigma_tensor = tf.convert_to_tensor(sigma, dtype=tf.float32)
         return sigma_tensor
@@ -159,16 +161,16 @@ class Equations_of_motion_Ace_Dice_2016:
             k_t (tf.Tensor): log capital in period t
 
         Returns:
-            Y_t gross (tf.Tensor): Gross output in trillion USD
+            Y_t_gross (tf.Tensor): Gross output in trillion USD
 
         Relevant equation:
-            Y_t = A_t (N_t^{1-kappa} / 1000) K_t^{kappa}
+            Y_t_gross = A_t (N_t^{1-kappa} / 1000) K_t^{kappa}
         """
-
         A_t = self.A_t[t]
         N_t = self.N_t[t]
+        K_t = tf.math.exp(k_t)  # Need to convert k_t to K_t
         labor_contrib = tf.pow(N_t, (1 - self.kappa)) / 1000
-        capital_contrib = tf.pow(k_t, self.kappa)
+        capital_contrib = tf.pow(K_t, self.kappa)
 
         return A_t * labor_contrib * capital_contrib
 

@@ -6,7 +6,9 @@ from environments.abstract_environment import Abstract_Environment
 from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
     Equations_of_motion_Ace_Dice_2016,
 )
-from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import Computeloss_Ace_Dice_2016
+from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import (
+    Computeloss_Ace_Dice_2016,
+)
 
 
 class Ace_dice_env(Abstract_Environment):
@@ -95,7 +97,10 @@ class Ace_dice_env(Abstract_Environment):
         for batch in range(self.num_batches):
             state = []
             for init_val in self.state_config:
-                state.append(tf.constant(init_val.get("init_val"), dtype=tf.float32))
+                val = tf.constant(init_val.get("init_val"), dtype=tf.float32)
+                if init_val.get("name") == "k_t":
+                    val = tf.math.log(val)
+                state.append(val)
             state_tensor = tf.convert_to_tensor(state)
             batches.append(state_tensor)
 
