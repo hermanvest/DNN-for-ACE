@@ -252,7 +252,7 @@ class Equations_of_motion_Ace_Dice_2016:
 
         return log_Y_t + damages + log_one_x_t + depreciation_factor
 
-    def m_plus(
+    def m_tplus(
         self, m_t: tf.Tensor, E_t: tf.Tensor, k_t: tf.Tensor, t: int
     ) -> tf.Tensor:
         """Computes carbon reservoirs for the next period using the equation of motion. Note that this function scales E_t to be in the range (epsilon, E_t_BAU)
@@ -274,9 +274,11 @@ class Equations_of_motion_Ace_Dice_2016:
         e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
         e_1 = tf.reshape(e_1, shape=[3, 1])
 
-        return phi_mult_m + e_1 * E_t_adj
+        result = phi_mult_m + e_1 * E_t_adj
 
-    def tau_1plus(
+        return tf.reshape(result, [-1])
+
+    def tau_tplus(
         self, tau_t: tf.Tensor, m_1_t: tf.Tensor, G_t: tf.Tensor = 0.0
     ) -> tf.Tensor:
         """
@@ -285,26 +287,19 @@ class Equations_of_motion_Ace_Dice_2016:
         - Current atmospheric carbon stock M_{1,t}
         - Exogenous non-CO2 ghg G_t
 
-        Returns: tau_{1,t+1}
+        Returns:
+            tau_{t+1} (tf.Tensor): next periods vector of transformed temperatures
         """
-        sigma_transition_row_1 = self.sigma_transition[0, :]
+        tau_t_reshaped = tf.reshape(tau_t, (2, 1))
 
-        temp_transitions = tf.tensordot(sigma_transition_row_1, tau_t, axes=1)
+        tau_transition = tf.matmul(self.sigma_transition, tau_t_reshaped)
         forcing = self.sigma_forc * ((m_1_t + G_t) / self.M_pre)
 
-        return temp_transitions + forcing
+        e_1 = tf.constant([1, 0], dtype=tf.float32)
+        e_1 = tf.reshape(e_1, shape=[2, 1])
 
-    def tau_2plus(self, tau_t: tf.Tensor) -> tf.Tensor:
-        """
-        Args:
-        - Transition matrix for temperatures
-        - The current vector of transformed temperatures tau
-        - Sigma^forc
-
-        Returns: tau_{2,t+1}
-        """
-        sigma_transition_row_2 = self.sigma_transition[1, :]
-        return tf.tensordot(sigma_transition_row_2, tau_t, axes=1)
+        result = tau_transition + e_1 * forcing
+        return tf.reshape(result, [-1])
 
     def update_state(self, s_t: tf.Tensor, a_t: tf.Tensor) -> tf.Tensor:
         """Updates the state based on current state and action tensors.
@@ -340,22 +335,15 @@ class Equations_of_motion_Ace_Dice_2016:
 
         log_Y_t = self.log_Y_t(k_t, E_t, t)
         k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t)
-        m_plus = tf.reshape(self.m_plus(m_vector, E_t, k_t, t), [-1])  # Now shape = [3]
-        # m_1plus = self.m_1plus(m_vector, E_t, k_t, t)
-        # m_2plus = self.m_2plus(m_vector)
-        # m_3plus = self.m_3plus(m_vector)
-        tau_1plus = self.tau_1plus(tau_vector, m_vector[0], G_t)
-        tau_2plus = self.tau_2plus(tau_vector)
+        m_plus = self.m_tplus(m_vector, E_t, k_t, t)
+        tau_tplus = self.tau_tplus(tau_vector, m_vector[0], G_t)
 
         # 4. return state values for next state
-        # s_t_plus = [k_tplus, m_1plus, m_2plus, m_3plus, tau_1plus, tau_2plus, t_plus]
-        # s_t_plus_tensor = tf.convert_to_tensor(s_t_plus, dtype=tf.float32)
         s_t_plus_tensor = tf.concat(
             [
                 tf.reshape(k_tplus, [1]),
                 m_plus,
-                tf.reshape(tau_1plus, [1]),
-                tf.reshape(tau_2plus, [1]),
+                tau_tplus,
                 tf.reshape(t_plus, [1]),
             ],
             axis=0,
