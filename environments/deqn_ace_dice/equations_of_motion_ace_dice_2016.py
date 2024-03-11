@@ -27,12 +27,39 @@ class Equations_of_motion_Ace_Dice_2016:
 
         self.states = states
         self.actions = actions
+        self.sigma_transition = self.create_sigma_transitions()
         self.N_t = self.create_N_t(t_max)
         self.A_t = self.create_A_t(t_max)
         self.sigma = self.create_sigma(t_max)
         self.theta_1 = self.create_theta_1(t_max)
 
     ################ HELPER FUNCITONS ################
+    def create_sigma_transitions(self) -> tf.Tensor:
+        """Used for initializing the transition matrix for temperatures. Assumes that values sigma_up_1, sigma_up_2, and sigma_down_1 are already initialized.
+
+        Returns:
+            tf.Tensor: transition matrix for temperatures
+        """
+        # Ensure that constants are also tensors for consistent operations
+        one_tensor = tf.constant(1.0, dtype=tf.float32)
+
+        # Calculate the retention rates explicitly using TensorFlow operations
+        upper_layer_retention = tf.subtract(
+            tf.subtract(one_tensor, self.sigma_up_1), self.sigma_down_1
+        )
+        lower_layer_retention = tf.subtract(one_tensor, self.sigma_up_2)
+
+        # Construct the transition matrix explicitly
+        # Using tf.stack to ensure proper tensor structure
+        transition_matrix = tf.stack(
+            [
+                tf.stack([upper_layer_retention, self.sigma_down_1]),
+                tf.stack([self.sigma_up_2, lower_layer_retention]),
+            ]
+        )
+
+        return transition_matrix
+
     def create_N_t(self, t_max: int) -> tf.Tensor:
         """_summary_
 

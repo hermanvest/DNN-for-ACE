@@ -38,7 +38,7 @@ parameters:
   climate_specific:
     xi_0: 0.2219
     #xi_1: 0.25                     # Baked into the tau. probably not needed.
-    sigma_forc: 0.5198
+    sigma_forc: 0.519796017680083
     M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE
     # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
     
@@ -47,9 +47,9 @@ parameters:
       - [0.1760, 0.9183, 0.0007]
       - [0, 0.0050, 0.9993]
 
-    sigma_transition:
-      - [0.166726698937639, 0.313477283382278]
-      - [0.0229478090365842, 0.977052190963416]
+    sigma_down_1: 0.313477283382278 # Temp transition from upper layer to lower layer
+    sigma_up_1: 0.519796017680083   # Temp transition from upper layer to space
+    sigma_up_2: 0.0229478090365842  # Temp transition from lower layer to upper layer
 
 # STATE VARIABLES
 state_variables:

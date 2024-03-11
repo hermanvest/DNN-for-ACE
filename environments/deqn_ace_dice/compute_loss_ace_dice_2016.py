@@ -18,15 +18,15 @@ class Computeloss_Ace_Dice_2016:
         # Variable initialization based on the config files parameters
         for _, section_value in parameters_config.items():
             for variable_name, variable_value in section_value.items():
-                setattr(self, variable_name, variable_value)
+                tensor_value = tf.constant(variable_value, dtype=tf.float32)
+                setattr(self, variable_name, tensor_value)
 
         self.beta = tf.constant(
             (1 / (1 + self.prtp)) ** self.timestep, dtype=tf.float32
         )
-
-        self.Phi = tf.constant(self.Phi, dtype=tf.float32)
-        self.sigma_transition = tf.constant(self.sigma_transition, dtype=tf.float32)
         self.equations_of_motion = equations_of_motion
+        # Should place the create_sigma_transitions in a utility file.
+        self.sigma_transition = self.equations_of_motion.create_sigma_transitions()
 
     ################ HELPER FUNCITONS ################
     # @tf.function add after debug
