@@ -48,7 +48,7 @@ def test_y_gross():
     t = 1
 
     print("Calculating y_gross...")
-    y_t_gross = eq.y_gross(t, k_t)
+    y_t_gross = eq.Y_gross(t, k_t)
 
     print(f"The value of y_gross is: {y_t_gross}")
     print("============ End of test_y_gross ============\n\n")

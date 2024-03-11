@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
 from utils.config_loader import load_config
+from environments.deqn_ace_dice.computation_utils import custom_sigmoid
+from typing import List, Optional
 
 # Define the path to the current script
 current_script_path = Path(__file__).parent
@@ -20,8 +22,65 @@ yaml_file_path = (
 
 
 ######################## Uitlity functions ########################
-def plot_trajectory():
-    pass
+def plot_var(
+    title: str,
+    xlab: str,
+    ylab: str,
+    var_name: str,
+    plot_directory: str,
+    time_steps: List,
+    state_variable_values: List,
+    extra_var_name: Optional[str] = None,
+    extra_variable_values: Optional[List] = None,
+) -> None:
+    """Saves plot from given arguments including an optional extra variable
+
+    Args:
+        title (str): Title of the plot.
+        xlab (str): Label for the X-axis.
+        ylab (str): Label for the Y-axis.
+        var_name (str): Name of the primary variable to be plotted.
+        plot_directory (str): Directory path to save the plot.
+        time_steps (List): Time steps for the variables.
+        state_variable_values (List): Values of the primary state variable over time.
+        extra_var_name (Optional[str]): Name of the extra variable to be plotted, optional.
+        extra_variable_values (Optional[List]): Values of the extra variable over time, optional.
+    """
+    plt.figure(figsize=(10, 5))
+    plt.plot(time_steps, state_variable_values, marker="o")
+    if extra_variable_values is not None:
+        plt.plot(time_steps, extra_variable_values, marker="x", label=extra_var_name)
+    plt.title(title)
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
+    plt.grid(True)
+
+    # File name for the plot
+    plot_filename = f"{var_name}.png"
+
+    # Full path to save the plot
+    plot_path = os.path.join(plot_directory, plot_filename)
+    plt.savefig(plot_path)
+    plt.close()  # Close the figure to free memory
+
+
+def get_trajectory(x_t: float, E_t: float, env: Ace_dice_env, t_max: int) -> List:
+    s_t = env.reset()  # shape [batch, statevariables]
+    states = []  # shape [timestep, statevariables]
+
+    for t in range(t_max):
+        # Creating the actions batch, as I expect it to look
+        a_t = [x_t, E_t, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # Only first two are used
+        a_t = tf.convert_to_tensor(a_t)
+
+        action_batch = []
+        action_batch.append(a_t)
+        action_batch = tf.stack(action_batch)
+
+        s_tplus = env.step(s_t, action_batch)
+        states.append(s_t)
+        s_t = s_tplus
+    return states
 
 
 def setUp() -> Ace_dice_env:
@@ -30,7 +89,7 @@ def setUp() -> Ace_dice_env:
     return env
 
 
-def test_reset_environment():
+def test_reset_environment() -> None:
     print("\n================== RUNNING: test_reset_environment() ==================")
     env = setUp()
     initial_states = env.reset()
@@ -38,7 +97,7 @@ def test_reset_environment():
     print("================== TERMINATES: test_reset_environment() ==================")
 
 
-def test_step_in_environment_from_state():
+def test_step_in_environment_from_state() -> None:
     print(
         "\n================== RUNNING: test_step_in_environment_from_state() =================="
     )
@@ -61,11 +120,11 @@ def test_step_in_environment_from_state():
     )
 
 
-def test_constants():
-    print("\n================== RUNNING: test_constants() ==================")
+def test_exo_vars() -> None:
+    print("\n================== RUNNING: test_exo_vars() ==================")
     env = setUp()
 
-    print("Extracting constants...")
+    print("Extracting exo_vars...")
     tfp = env.equations_of_motion.A_t.numpy()
     labor = env.equations_of_motion.N_t.numpy()
     sigma = env.equations_of_motion.sigma.numpy()
@@ -92,12 +151,12 @@ def test_constants():
     plt.tight_layout()
 
     # Directory where you want to save the plot
-    plot_directory = "plots/constants"
+    plot_directory = "plots/exo_vars"
     if not os.path.exists(plot_directory):
         os.makedirs(plot_directory)
 
     # File name for the plot
-    plot_filename = "constants_plot.png"
+    plot_filename = "exo_vars_plot.png"
 
     # Full path to save the plot
     plot_path = os.path.join(plot_directory, plot_filename)
@@ -105,63 +164,56 @@ def test_constants():
     # Save the plot
     plt.savefig(plot_path)
 
-    print("================== TERMINATES: test_constants() ==================")
+    print("================== TERMINATES: test_exo_vars() ==================")
 
 
-def test_environment_dynamics():
+def test_environment_dynamics() -> None:
     print(
         "\n================== RUNNING: test_environment_dynamics() =================="
     )
     env = setUp()
-    s_t = env.reset()  # shape [batch, statevariables]
-    states = []  # shape [timestep, statevariables]
-
-    for t in range(10):
-        # Getting a resonable value for E_t
-        E_t = 0  # Now, emissions are half of E_t_BAU
-        x_t = 0.75
-
-        # Creating the actions batch, as I expect it to look
-        a_t = [x_t, E_t, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # Only first two are used
-        a_t = tf.convert_to_tensor(a_t)
-
-        action_batch = []
-        action_batch.append(a_t)
-        action_batch = tf.stack(action_batch)
-
-        s_tplus = env.step(s_t, action_batch)
-        states.append(s_t)
-        s_t = s_tplus
+    t_max = 30
+    x_t, E_t = (0.75, 2.0)
+    states = get_trajectory(x_t=x_t, E_t=E_t, env=env, t_max=t_max)
 
     # Plot and save each state variable
     state_names = [item["name"] for item in env.equations_of_motion.states]
-
     # Save the plot to a file
-    plot_directory = "plots/state_variables"
+    plot_directory = "plots/sim_vectorized"
     if not os.path.exists(plot_directory):
         os.makedirs(plot_directory)
+    time_steps = list(range(t_max))
     for i, name in enumerate(state_names):
         # Extract the ith state variable from each tensor in the states list
         state_variable_values = [state.numpy()[0, i] for state in states]
+        plot_var(
+            name,
+            "Period",
+            f"Value of {name}",
+            name,
+            plot_directory,
+            time_steps,
+            state_variable_values,
+        )
 
-        # The time steps corresponding to each state
-        time_steps = list(range(len(state_variable_values)))
-
-        # Plotting
-        plt.figure(figsize=(10, 5))
-        plt.plot(time_steps, state_variable_values, marker="o")
-        plt.title(f"{name}")
-        plt.xlabel("Period")
-        plt.ylabel(f"Value of {name}")
-        plt.grid(True)
-
-        # File name for the plot
-        plot_filename = f"{name}.png"
-
-        # Full path to save the plot
-        plot_path = os.path.join(plot_directory, plot_filename)
-        plt.savefig(plot_path)
-        plt.close()  # Close the figure to free memory
+    # Plotting E_t
+    capital_path = [state.numpy()[0, 0] for state in states]
+    E_t_BAUs = [
+        env.equations_of_motion.E_t_BAU(time_steps[i], capital_path[i])
+        for i in range(t_max)
+    ]
+    E_ts = [custom_sigmoid(E_t, E_t_BAUs[i]) for i in range(t_max)]
+    plot_var(
+        "E_t",
+        "Period",
+        "Value of E_T",
+        "E_t",
+        plot_directory,
+        time_steps,
+        E_ts,
+        "E_t_BAU",
+        E_t_BAUs,
+    )
 
     print(
         "================== TERMINATES: test_environment_dynamics() =================="
@@ -182,7 +234,7 @@ def main():
     print("################## INTEGRATION TESTS ##################")
     print("#######################################################\n\n")
 
-    test_constants()
+    test_exo_vars()
     test_environment_dynamics()
 
     print("################## END TESTS ##################")
