@@ -47,13 +47,14 @@ def plot_var(
         extra_variable_values (Optional[List]): Values of the extra variable over time, optional.
     """
     plt.figure(figsize=(10, 5))
-    plt.plot(time_steps, state_variable_values, marker="o")
+    plt.plot(time_steps, state_variable_values, marker="o", label=var_name)
     if extra_variable_values is not None:
         plt.plot(time_steps, extra_variable_values, marker="x", label=extra_var_name)
     plt.title(title)
     plt.xlabel(xlab)
     plt.ylabel(ylab)
     plt.grid(True)
+    plt.legend()
 
     # File name for the plot
     plot_filename = f"{var_name}.png"
@@ -173,7 +174,7 @@ def test_environment_dynamics() -> None:
     )
     env = setUp()
     t_max = 30
-    x_t, E_t = (0.75, 2.0)
+    x_t, E_t = (0.70, 30.0)
     states = get_trajectory(x_t=x_t, E_t=E_t, env=env, t_max=t_max)
 
     # Plot and save each state variable
@@ -213,6 +214,21 @@ def test_environment_dynamics() -> None:
         E_ts,
         "E_t_BAU",
         E_t_BAUs,
+    )
+
+    # Plotting output Y_t
+    Y_gross_simulated = [
+        env.equations_of_motion.Y_gross(time_steps[i], capital_path[i])
+        for i in range(t_max)
+    ]
+    plot_var(
+        "Y_gross",
+        "Period",
+        "Value of Y_gross",
+        "Y_gross",
+        plot_directory,
+        time_steps,
+        Y_gross_simulated,
     )
 
     print(
