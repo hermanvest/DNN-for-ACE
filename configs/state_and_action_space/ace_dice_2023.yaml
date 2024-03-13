@@ -1,3 +1,5 @@
+eom_version: "Eom_Ace_Dice_2023"
+
 general:
   t_max: 30
   num_batches: 1                    # Number of simultaneously simulated batches

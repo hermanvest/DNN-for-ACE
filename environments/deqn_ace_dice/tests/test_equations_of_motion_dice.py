@@ -3,7 +3,9 @@ import pytest
 import numpy as np
 from pathlib import Path
 
-from environments.deqn_ace_dice.eom_ace_dice_2016 import Eom_Ace_Dice_2016
+from environments.deqn_ace_dice.equations_of_motion.eom_ace_dice_2016 import (
+    Eom_Ace_Dice_2016,
+)
 from utils.config_loader import load_config
 
 current_script_path = Path(__file__).parent

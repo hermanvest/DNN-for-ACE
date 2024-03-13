@@ -3,20 +3,21 @@ import numpy as np
 
 from typing import Any, Dict
 from environments.abstract_environment import Abstract_Environment
-from environments.deqn_ace_dice.eom_ace_dice_2016 import (
+from environments.deqn_ace_dice.equations_of_motion.eom_ace_dice_2016 import (
     Eom_Ace_Dice_2016,
 )
+from environments.deqn_ace_dice.equations_of_motion.eom_ace_dice_2023 import (
+    Eom_Ace_Dice_2023,
+)
 from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import (
-    Computeloss_Ace_Dice_2016,
+    Loss_Ace_Dice,
 )
 
 
 class Env_ACE_DICE(Abstract_Environment):
-    def __init__(
-        self,
-        config: Dict[str, Any],
-    ) -> None:
+    def __init__(self, config: Dict[str, Any]) -> None:
         # Extracting the specific configurations
+        eom_version = config["eom_version"]
         general_config = config["general"]
         states_config = config["state_variables"]
         actions_config = config["action_variables"]
@@ -25,12 +26,24 @@ class Env_ACE_DICE(Abstract_Environment):
         self.num_batches = general_config["num_batches"]
         self.state_config = states_config
 
-        self.equations_of_motion = Eom_Ace_Dice_2016(
-            general_config["t_max"], states_config, actions_config, parameters_config
-        )
-        self.loss = Computeloss_Ace_Dice_2016(
-            parameters_config, self.equations_of_motion
-        )
+        if eom_version == "Eom_Ace_Dice_2016":
+            self.equations_of_motion = Eom_Ace_Dice_2016(
+                general_config["t_max"],
+                states_config,
+                actions_config,
+                parameters_config,
+            )
+        elif eom_version == "Eom_Ace_Dice_2023":
+            self.equations_of_motion = Eom_Ace_Dice_2023(
+                general_config["t_max"],
+                states_config,
+                actions_config,
+                parameters_config,
+            )
+        else:
+            raise ValueError(f"Unknown EOM version: {eom_version}")
+
+        self.loss = Loss_Ace_Dice(parameters_config, self.equations_of_motion)
 
     def step(self, batch_s_t: tf.Tensor, batch_a_t: tf.Tensor) -> tf.Tensor:
         """

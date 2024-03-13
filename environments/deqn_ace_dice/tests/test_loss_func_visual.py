@@ -2,11 +2,11 @@ import numpy as np
 import tensorflow as tf
 from pathlib import Path
 
-from environments.deqn_ace_dice.eom_ace_dice_2016 import (
+from environments.deqn_ace_dice.equations_of_motion.eom_ace_dice_2016 import (
     Eom_Ace_Dice_2016,
 )
 from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import (
-    Computeloss_Ace_Dice_2016,
+    Loss_Ace_Dice,
 )
 
 from utils.config_loader import load_config
@@ -42,10 +42,10 @@ def get_equations() -> Eom_Ace_Dice_2016:
     return Eom_Ace_Dice_2016(t_max, states, actions, parameters)
 
 
-def get_loss_class() -> Computeloss_Ace_Dice_2016:
+def get_loss_class() -> Loss_Ace_Dice:
     configs = load_config(yaml_file_path)
     parameters = configs["parameters"]
-    return Computeloss_Ace_Dice_2016(parameters, get_equations())
+    return Loss_Ace_Dice(parameters, get_equations())
 
 
 #####################  CALCULATION TESTS #####################

@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from typing import Any, Dict, List
-from environments.deqn_ace_dice.eom_base import Eom_Base
+from environments.deqn_ace_dice.equations_of_motion.eom_base import Eom_Base
 
 
 class Eom_Ace_Dice_2016(Eom_Base):
