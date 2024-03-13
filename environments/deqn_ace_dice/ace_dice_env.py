@@ -3,8 +3,8 @@ import numpy as np
 
 from typing import Any, Dict
 from environments.abstract_environment import Abstract_Environment
-from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
-    Equations_of_motion_Ace_Dice_2016,
+from environments.deqn_ace_dice.eom_ace_dice_2016 import (
+    Eom_Ace_Dice_2016,
 )
 from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import (
     Computeloss_Ace_Dice_2016,
@@ -25,7 +25,7 @@ class Ace_dice_env(Abstract_Environment):
         self.num_batches = general_config["num_batches"]
         self.state_config = states_config
 
-        self.equations_of_motion = Equations_of_motion_Ace_Dice_2016(
+        self.equations_of_motion = Eom_Ace_Dice_2016(
             general_config["t_max"], states_config, actions_config, parameters_config
         )
         self.loss = Computeloss_Ace_Dice_2016(

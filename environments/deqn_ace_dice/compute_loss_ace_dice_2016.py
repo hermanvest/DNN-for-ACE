@@ -2,8 +2,8 @@ import tensorflow as tf
 import numpy as np
 
 from typing import Tuple, Dict, Any
-from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
-    Equations_of_motion_Ace_Dice_2016,
+from environments.deqn_ace_dice.eom_ace_dice_2016 import (
+    Eom_Ace_Dice_2016,
 )
 from utils.debug import assert_valid
 from environments.deqn_ace_dice.computation_utils import custom_sigmoid
@@ -13,7 +13,7 @@ class Computeloss_Ace_Dice_2016:
     def __init__(
         self,
         parameters_config: Dict[str, Any],
-        equations_of_motion: Equations_of_motion_Ace_Dice_2016,
+        equations_of_motion: Eom_Ace_Dice_2016,
     ) -> None:
         # Variable initialization based on the config files parameters
         for _, section_value in parameters_config.items():

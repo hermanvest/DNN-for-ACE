@@ -2,8 +2,8 @@ import numpy as np
 import tensorflow as tf
 from pathlib import Path
 
-from environments.deqn_ace_dice.equations_of_motion_ace_dice_2016 import (
-    Equations_of_motion_Ace_Dice_2016,
+from environments.deqn_ace_dice.eom_ace_dice_2016 import (
+    Eom_Ace_Dice_2016,
 )
 from utils.config_loader import load_config
 
@@ -21,12 +21,12 @@ yaml_file_path = (
 t_max = 10
 
 
-def get_equations() -> Equations_of_motion_Ace_Dice_2016:
+def get_equations() -> Eom_Ace_Dice_2016:
     configs = load_config(yaml_file_path)
     states = configs["state_variables"]
     actions = configs["action_variables"]
     parameters = configs["parameters"]
-    return Equations_of_motion_Ace_Dice_2016(t_max, states, actions, parameters)
+    return Eom_Ace_Dice_2016(t_max, states, actions, parameters)
 
 
 def test_constant_creations():
