@@ -2,15 +2,11 @@ import numpy as np
 import tensorflow as tf
 
 from typing import Any, Dict, List
-from utils.debug import assert_valid
-from environments.deqn_ace_dice.computation_utils import custom_sigmoid
 from environments.deqn_ace_dice.eom_base import Eom_Base
 
 
 class Eom_Ace_Dice_2016(Eom_Base):
-    """
-    Docstring
-    """
+    """Sublass extending the base class for the equations of motion for ACE with the DICE produciton function. This class initializes all constants from a configuration file and does the specific initializations for labor, tfp, carbon intensity of produciton and abatement costs."""
 
     def __init__(
         self, t_max: int, states: List, actions: List, parameters_config: Dict[str, Any]
@@ -22,13 +18,8 @@ class Eom_Ace_Dice_2016(Eom_Base):
                 tensor_value = tf.constant(variable_value, dtype=tf.float32)
                 setattr(self, variable_name, tensor_value)
 
-        self.beta = tf.constant(
-            (1 / (1 + self.prtp)) ** self.timestep, dtype=tf.float32
-        )
-
         self.states = states
         self.actions = actions
-        self.sigma_transition = self.create_sigma_transitions()
         self.N_t = self.create_N_t(t_max)
         self.A_t = self.create_A_t(t_max)
         self.sigma = self.create_sigma(t_max)
@@ -37,32 +28,6 @@ class Eom_Ace_Dice_2016(Eom_Base):
         super().__init__()
 
     ################ INITIALIZAITON FUNCTIONS ################
-    def create_sigma_transitions(self) -> tf.Tensor:
-        """Used for initializing the transition matrix for temperatures. Assumes that values sigma_up_1, sigma_up_2, and sigma_down_1 are already initialized.
-
-        Returns:
-            tf.Tensor: transition matrix for temperatures
-        """
-        # Ensure that constants are also tensors for consistent operations
-        one_tensor = tf.constant(1.0, dtype=tf.float32)
-
-        # Calculate the retention rates explicitly using TensorFlow operations
-        upper_layer_retention = tf.subtract(
-            tf.subtract(one_tensor, self.sigma_up_1), self.sigma_down_1
-        )
-        lower_layer_retention = tf.subtract(one_tensor, self.sigma_up_2)
-
-        # Construct the transition matrix explicitly
-        # Using tf.stack to ensure proper tensor structure
-        transition_matrix = tf.stack(
-            [
-                tf.stack([upper_layer_retention, self.sigma_down_1]),
-                tf.stack([self.sigma_up_2, lower_layer_retention]),
-            ]
-        )
-
-        return transition_matrix
-
     def create_N_t(self, t_max: int) -> tf.Tensor:
         """_summary_
 

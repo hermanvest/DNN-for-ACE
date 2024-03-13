@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 
 from pathlib import Path
-from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 from utils.config_loader import load_config
 from environments.deqn_ace_dice.computation_utils import custom_sigmoid
 from typing import List, Optional
@@ -65,7 +65,7 @@ def plot_var(
     plt.close()  # Close the figure to free memory
 
 
-def get_trajectory(x_t: float, E_t: float, env: Ace_dice_env, t_max: int) -> List:
+def get_trajectory(x_t: float, E_t: float, env: Env_ACE_DICE, t_max: int) -> List:
     s_t = env.reset()  # shape [batch, statevariables]
     states = []  # shape [timestep, statevariables]
 
@@ -84,9 +84,9 @@ def get_trajectory(x_t: float, E_t: float, env: Ace_dice_env, t_max: int) -> Lis
     return states
 
 
-def setUp() -> Ace_dice_env:
+def setUp() -> Env_ACE_DICE:
     config = load_config(yaml_file_path)
-    env = Ace_dice_env(config)
+    env = Env_ACE_DICE(config)
     return env
 
 

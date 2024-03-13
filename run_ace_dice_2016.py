@@ -1,7 +1,7 @@
 # Imports
 import tensorflow as tf
 
-from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
@@ -20,7 +20,7 @@ def main():
     algorithm_config = load_config(algorithm_config_path)
 
     # Initialization of the environment
-    environment = Ace_dice_env(env_config)
+    environment = Env_ACE_DICE(env_config)
 
     # Initialization of the agent
     network_config["config_env"] = env_config

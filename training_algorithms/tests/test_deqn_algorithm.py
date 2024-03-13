@@ -4,7 +4,7 @@ import numpy as np
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
 from agents.deqn_agent import DEQN_agent
 from networks.policy_network import Policy_Network
-from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 
 from pathlib import Path
 from utils.config_loader import load_config
@@ -43,6 +43,6 @@ network_config["config_env"] = env_config
 def setUp():
     network = Policy_Network(network_config)
     agent = DEQN_agent(network)
-    environment = Ace_dice_env(env_config)
+    environment = Env_ACE_DICE(env_config)
 
     return Algorithm_DEQN(agent=agent, env=environment)

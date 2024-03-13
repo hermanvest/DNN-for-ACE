@@ -1,0 +1,97 @@
+general:
+  t_max: 30
+  num_batches: 1                    # Number of simultaneously simulated batches
+
+parameters:
+  production_specific:
+    # ACE specific parameters
+    prtp: 0.013896                  # Pure rate of social time preference, Global
+    kappa: 0.3                      # Capital share of output
+    delta_k: 0.45964994             # Capital depreciation factor
+    g_k: 0.013838958                # Approx growth rate of capital (Assuming g_kt=g_k)
+
+    # DICE Production specific parameters 2016
+    timestep: 5
+    
+    ## For CO2-equivalent-emissions output ratio sigma_t and abatement costs theta_1
+    emissrat2020: 1.40              # Ratio of CO2e to industrial CO2 2020
+    emissrat2100: 1.21              # Ratio of CO2e to industrial CO2 2020
+    pback2050: 515.0                # Cost of backstop 2019$ per tCO2 2050
+    gsigma1: -0.015                 # Initial growth of sigma (per year)
+    delgsig: 0.96                   # Decline rate of gsigma per period
+    asymgsig: -0.005                # Asymptotic gsigma
+    E_1: 37.56                      # Industrial emissions 2020 (GtCO2 per year)
+    Y_1: 135.7                      # Initial world output 2020 (trill 2019 USD)
+    mu_1: 0.05                      # Emissions control rate historical 2020
+    theta_2: 2.6                    # Exponent of control cost function
+    
+    ## For initializing labor (N_t)
+    pop0: 7752.9                    # Initial world population 2020 (millions)
+    popadj: 0.145                   # Growth rate to calibrate to 2050 pop projection
+    popasym: 10825.0                # Asymptotic population (millions)
+    
+    ## For initializing total factor productivity
+    dela: 0.0015                    # Decline rate of TFP per 5 years
+    ga0: 0.066                      # Initial growth rate for TFP per 5 years
+    a0: 5.84                        # Initial level of total factor productivity
+
+  climate_specific:
+    xi_0: 0.2219
+    #xi_1: 0.25                     # Baked into the tau. probably not needed.
+    sigma_forc: 0.519796017680083
+    M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE
+    # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
+    
+    Phi:
+      - [0.8240, 0.0767, 0]
+      - [0.1760, 0.9183, 0.0007]
+      - [0, 0.0050, 0.9993]
+
+    sigma_down_1: 0.313477283382278 # Temp transition from upper layer to lower layer
+    sigma_up_1: 0.519796017680083   # Temp transition from upper layer to space
+    sigma_up_2: 0.0229478090365842  # Temp transition from lower layer to upper layer
+
+# STATE VARIABLES
+state_variables:
+  - name: k_t
+    init_val: 223                   # Initial capital value 2015 (trill 2010 usd)
+  - name: M_1_t
+    init_val: 862.86                # 2015 Carbon stock Atmosphere GtCO2
+  - name: M_2_t
+    init_val: 1541.11               # 2015 Carbon stock Upper ocean GtCO2
+  - name: M_3_t
+    init_val: 10010.44              # 2015 Carbon stock Lower ocean GtCO2
+  - name: tau_1_t
+    init_val: 1.256727218547292     # Row 1, column 5 in initial temperatures, ace code
+  - name: tau_2_t
+    init_val: 1.185465055669960     # Row 2, column 5 in initial temperatures, ace code
+  - name: t
+    init_val: 0
+
+# ACTIONS VARIABLES AND ACTIVATION FUNCTIONS
+action_variables:
+  # Controls
+  - name: x_t
+    activation: sigmoid
+  - name: E_t
+    activation: softplus
+  # Value function prediction
+  - name: V_t
+    activation: softplus
+  # Lagrange multipliers
+  - name: lambda_k_t
+    activation: linear
+  - name: lambda_m_1
+    activation: linear
+  - name: lambda_m_2
+    activation: linear
+  - name: lambda_m_3
+    activation: linear
+  - name: lambda_tau_1
+    activation: linear
+  - name: lambda_tau_2
+    activation: linear
+  - name: lambda_t_BAU
+    activation: softplus
+  - name: lambda_E_t
+    activation: softplus

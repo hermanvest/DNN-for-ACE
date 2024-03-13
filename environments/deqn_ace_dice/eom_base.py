@@ -7,8 +7,40 @@ from environments.deqn_ace_dice.computation_utils import custom_sigmoid
 
 
 class Eom_Base:
+    """Base class for the equations of motion for ACE with the DICE production function for any version of DICE.
+
+    NOTE: This class assumes that initializations of constants are being made in the sublasses that extend this superclass.
+    """
+
     def __init__(self) -> None:
-        pass
+        self.sigma_transition = self.create_sigma_transitions()
+
+    ################ INITIALIZAITON FUNCTIONS ################
+    def create_sigma_transitions(self) -> tf.Tensor:
+        """Used for initializing the transition matrix for temperatures. Assumes that values sigma_up_1, sigma_up_2, and sigma_down_1 are already initialized.
+
+        Returns:
+            tf.Tensor: transition matrix for temperatures
+        """
+        # Ensure that constants are also tensors for consistent operations
+        one_tensor = tf.constant(1.0, dtype=tf.float32)
+
+        # Calculate the retention rates explicitly using TensorFlow operations
+        upper_layer_retention = tf.subtract(
+            tf.subtract(one_tensor, self.sigma_up_1), self.sigma_down_1
+        )
+        lower_layer_retention = tf.subtract(one_tensor, self.sigma_up_2)
+
+        # Construct the transition matrix explicitly
+        # Using tf.stack to ensure proper tensor structure
+        transition_matrix = tf.stack(
+            [
+                tf.stack([upper_layer_retention, self.sigma_down_1]),
+                tf.stack([self.sigma_up_2, lower_layer_retention]),
+            ]
+        )
+
+        return transition_matrix
 
     ################ HELPER FUNCTIONS ################
     def Y_gross(self, t: int, k_t: tf.Tensor) -> tf.Tensor:

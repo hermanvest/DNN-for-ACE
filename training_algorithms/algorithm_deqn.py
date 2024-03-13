@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from typing import Tuple
 from agents.deqn_agent import DEQN_agent
-from environments.deqn_ace_dice.ace_dice_env import Ace_dice_env
+from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 
 
 class Algorithm_DEQN:
@@ -13,7 +13,7 @@ class Algorithm_DEQN:
         n_epochs: int,
         t_max: int,
         batch_size: int,
-        env: Ace_dice_env,
+        env: Env_ACE_DICE,
         agent: DEQN_agent,
         optimizer: tf.keras.optimizers.Optimizer,
         log_dir: str = "logs/train",

@@ -11,7 +11,7 @@ from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import (
 )
 
 
-class Ace_dice_env(Abstract_Environment):
+class Env_ACE_DICE(Abstract_Environment):
     def __init__(
         self,
         config: Dict[str, Any],
