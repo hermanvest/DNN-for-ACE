@@ -9,12 +9,14 @@ from environments.deqn_ace_dice.equations_of_motion.eom_ace_dice_2016 import (
 from environments.deqn_ace_dice.equations_of_motion.eom_ace_dice_2023 import (
     Eom_Ace_Dice_2023,
 )
-from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import (
+from environments.deqn_ace_dice.loss_ace_dice import (
     Loss_Ace_Dice,
 )
 
 
 class Env_ACE_DICE(Abstract_Environment):
+    """Class wrapping the equations of motion (EOM) and loss functions so that both EOM and losses are available in simple function calls."""
+
     def __init__(self, config: Dict[str, Any]) -> None:
         # Extracting the specific configurations
         eom_version = config["eom_version"]

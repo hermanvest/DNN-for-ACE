@@ -12,12 +12,13 @@ from typing import List, Optional
 # Define the path to the current script
 current_script_path = Path(__file__).parent
 
+model_version = "2023"
 # Navigate up to the common root and then to the YAML file
 yaml_file_path = (
     current_script_path.parent.parent.parent
     / "configs"
     / "state_and_action_space"
-    / "ace_dice_2016.yaml"
+    / f"ace_dice_{model_version}.yaml"
 )
 
 
@@ -152,7 +153,7 @@ def test_exo_vars() -> None:
     plt.tight_layout()
 
     # Directory where you want to save the plot
-    plot_directory = "plots/exo_vars"
+    plot_directory = f"plots/{model_version}/exo_vars"
     if not os.path.exists(plot_directory):
         os.makedirs(plot_directory)
 
@@ -180,7 +181,7 @@ def test_environment_dynamics() -> None:
     # Plot and save each state variable
     state_names = [item["name"] for item in env.equations_of_motion.states]
     # Save the plot to a file
-    plot_directory = "plots/sim_vectorized"
+    plot_directory = f"plots/{model_version}/simulation"
     if not os.path.exists(plot_directory):
         os.makedirs(plot_directory)
     time_steps = list(range(t_max))

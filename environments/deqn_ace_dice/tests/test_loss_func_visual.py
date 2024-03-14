@@ -5,7 +5,7 @@ from pathlib import Path
 from environments.deqn_ace_dice.equations_of_motion.eom_ace_dice_2016 import (
     Eom_Ace_Dice_2016,
 )
-from environments.deqn_ace_dice.compute_loss_ace_dice_2016 import (
+from environments.deqn_ace_dice.loss_ace_dice import (
     Loss_Ace_Dice,
 )
 
