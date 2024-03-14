@@ -22,17 +22,12 @@ class Eom_Base:
         Returns:
             tf.Tensor: transition matrix for temperatures
         """
-        # Ensure that constants are also tensors for consistent operations
         one_tensor = tf.constant(1.0, dtype=tf.float32)
 
-        # Calculate the retention rates explicitly using TensorFlow operations
-        upper_layer_retention = tf.subtract(
-            tf.subtract(one_tensor, self.sigma_up_1), self.sigma_down_1
-        )
-        lower_layer_retention = tf.subtract(one_tensor, self.sigma_up_2)
+        # Calculate the retention rates
+        upper_layer_retention = one_tensor - self.sigma_up_1 - self.sigma_down_1
+        lower_layer_retention = one_tensor - self.sigma_up_2
 
-        # Construct the transition matrix explicitly
-        # Using tf.stack to ensure proper tensor structure
         transition_matrix = tf.stack(
             [
                 tf.stack([upper_layer_retention, self.sigma_down_1]),
