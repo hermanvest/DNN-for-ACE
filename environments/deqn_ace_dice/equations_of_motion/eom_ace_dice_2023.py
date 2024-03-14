@@ -109,11 +109,10 @@ class Eom_Ace_Dice_2023(Eom_Base):
         t_values = tf.range(1, t_max + 1, dtype=tf.float32)
 
         # pbacktime(t) calculation
-        pbacktime = self.pback2050 * tf.exp(-self.timestep * 0.01 * (t_values - 7))
         pbacktime = tf.where(
             t_values > 7,
             self.pback2050 * tf.exp(-self.timestep * 0.001 * (t_values - 7)),
-            pbacktime,
+            self.pback2050 * tf.exp(-self.timestep * 0.01 * (t_values - 7)),
         )
 
         # gsig(t) calculation
@@ -121,17 +120,18 @@ class Eom_Ace_Dice_2023(Eom_Base):
 
         # sigma(t+1) calculation
         sigma_initial = self.E_1 / (self.Y_1 * (1 - self.mu_1))
-        sigma = tf.TensorArray(dtype=tf.float32, size=t_max, dynamic_size=False)
-        sigma = sigma.write(0, sigma_initial)  # Initialize first value of sigma
-        for t in tf.range(1, t_max):
-            sigma = sigma.write(t, sigma.read(t - 1) * tf.exp(5 * gsig[t - 1]))
-        sigma = sigma.stack()
+
+        sigma_change_factors = tf.exp(5 * gsig)
+        sigma_with_initial = tf.concat(
+            [[sigma_initial], sigma_change_factors[:-1]], axis=0
+        )
+        sigma = tf.math.cumprod(sigma_with_initial, axis=0)
 
         # emissrat(t) calculation
-        emissrat = self.emissrat2020 + (
+        linear_part = self.emissrat2020 + (
             (self.emissrat2100 - self.emissrat2020) / 16
         ) * (t_values - 1)
-        emissrat = tf.where(t_values >= 17, self.emissrat2100, emissrat)
+        emissrat = tf.where(t_values <= 16, linear_part, self.emissrat2100)
 
         # sigmatot(t) calculation
         sigmatot = sigma * emissrat
