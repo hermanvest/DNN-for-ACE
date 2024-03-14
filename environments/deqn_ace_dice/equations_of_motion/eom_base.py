@@ -1,7 +1,4 @@
-import numpy as np
 import tensorflow as tf
-
-from typing import Any, Dict, List
 from utils.debug import assert_valid
 from environments.deqn_ace_dice.computation_utils import custom_sigmoid
 
@@ -48,12 +45,15 @@ class Eom_Base:
             Y_t_gross (tf.Tensor): Gross output in trillion USD
 
         Relevant equation:
-            Y_t_gross = A_t (N_t^{1-kappa} / 1000) K_t^{kappa}
+            Y_t_gross = A_t ((N_t/1000)^{1-kappa}) K_t^{kappa}
+
+        Relevant GAMS code:
+            YGROSS(t)      =E= (AL(t)*(L(t)/1000)**(1-gama))*(K(t)**gama);
         """
         A_t = self.A_t[t]
         N_t = self.N_t[t]
         K_t = tf.math.exp(k_t)  # Need to convert k_t to K_t
-        labor_contrib = tf.pow(N_t, (1 - self.kappa)) / 1000
+        labor_contrib = tf.pow(N_t / 1000, (1 - self.kappa))
         capital_contrib = tf.pow(K_t, self.kappa)
 
         return A_t * labor_contrib * capital_contrib
