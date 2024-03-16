@@ -27,7 +27,6 @@ class Loss_Ace_Dice:
         self.sigma_transition = self.equations_of_motion.create_sigma_transitions()
 
     ################ HELPER FUNCITONS ################
-    # @tf.function add after debug
     def fischer_burmeister_function(self, a: float, b: float):
         powers = tf.pow(a, 2) + tf.pow(b, 2)
         square_roots = tf.sqrt(powers)
@@ -40,7 +39,6 @@ class Loss_Ace_Dice:
         raise NotImplementedError
 
     ################ INDIVIDUAL LOSS FUNCTIONS ################
-    # @tf.function add after debug
     def ell_1(
         self, x_t: tf.Tensor, lambda_k_t: tf.Tensor, lambda_k_tplus: tf.Tensor
     ) -> tf.Tensor:
@@ -68,6 +66,7 @@ class Loss_Ace_Dice:
         lambda_m_1_t: tf.Tensor,
         lambda_m_tplus: tf.Tensor,
         lambda_tau_1_t: tf.Tensor,
+        lambda_E_t: tf.Tensor,
     ) -> tf.Tensor:
         """Loss function based on FOC for E_t. The funciton assumes that appropriate bounds on E_t are applied.
 
@@ -104,10 +103,12 @@ class Loss_Ace_Dice:
         d_V_tplus_d_E_t = dm_tplus_part + dk_tplus_part
 
         return (
-            d_logF_d_E_t * (1 + lambda_k_t) + lambda_m_1_t + self.beta * d_V_tplus_d_E_t
+            d_logF_d_E_t * (1 + lambda_k_t)
+            + lambda_m_1_t
+            + lambda_E_t
+            + self.beta * d_V_tplus_d_E_t
         )
 
-    # @tf.function add after debug
     def ell_3(self, lambda_E_t: tf.Tensor, E_t: tf.Tensor) -> tf.Tensor:
         """Loss function based on Fischer-Burmeister function for E_t \geq 0.
 
@@ -121,7 +122,6 @@ class Loss_Ace_Dice:
         fb = self.fischer_burmeister_function(lambda_E_t, E_t)
         return fb
 
-    # @tf.function add after debug
     def ell_4(
         self, lambda_t_BAU: tf.Tensor, E_t: tf.Tensor, k_t: tf.Tensor, t: tf.Tensor
     ) -> tf.Tensor:
@@ -140,7 +140,6 @@ class Loss_Ace_Dice:
         emissions_diff = E_t_BAU - E_t
         return self.fischer_burmeister_function(lambda_t_BAU, emissions_diff)
 
-    # @tf.function add after debug
     def ell_5_7(
         self,
         lambda_m_t: tf.Tensor,
@@ -171,7 +170,6 @@ class Loss_Ace_Dice:
 
         return tf.reduce_sum(loss)
 
-    # @tf.function add after debug
     def ell_8_9(
         self,
         lambda_tau_t: tf.Tensor,
@@ -204,7 +202,6 @@ class Loss_Ace_Dice:
         loss = self.beta * (transitions - forc) - lambda_tau_t_reshaped
         return tf.reduce_sum(loss)
 
-    # @tf.function add after debug
     def ell_10(
         self,
         v_t: tf.Tensor,
@@ -235,7 +232,6 @@ class Loss_Ace_Dice:
         return tf.math.log(x_t) + production + damages + self.beta * v_tplus - v_t
 
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
-    # @tf.function add after debug
     def squared_error_for_transition(
         self, s_t: tf.Tensor, a_t: tf.Tensor, s_tplus: tf.Tensor, a_tplus: tf.Tensor
     ) -> float:
@@ -299,6 +295,7 @@ class Loss_Ace_Dice:
                     lambda_m_1_t,
                     lambda_m_tplus,
                     lambda_tau_1_t,
+                    lambda_E_t,
                 ),
             ),
             ((self.ell_3), (lambda_E_t, E_t)),

@@ -12,7 +12,7 @@ from typing import List, Optional
 # Define the path to the current script
 current_script_path = Path(__file__).parent
 
-model_version = "2023"
+model_version = "2016"
 # Navigate up to the common root and then to the YAML file
 yaml_file_path = (
     current_script_path.parent.parent.parent
@@ -175,7 +175,7 @@ def test_environment_dynamics() -> None:
     )
     env = setUp()
     t_max = 30
-    x_t, E_t = (0.70, 30.0)
+    x_t, E_t = (0.75, 10.0)
     states = get_trajectory(x_t=x_t, E_t=E_t, env=env, t_max=t_max)
 
     # Plot and save each state variable
@@ -189,7 +189,7 @@ def test_environment_dynamics() -> None:
         # Extract the ith state variable from each tensor in the states list
         state_variable_values = [state.numpy()[0, i] for state in states]
         plot_var(
-            name,
+            f"{name} (Using x_t: {x_t} and E_t: {E_t})",
             "Period",
             f"Value of {name}",
             name,

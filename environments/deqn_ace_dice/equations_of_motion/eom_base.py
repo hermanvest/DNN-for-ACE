@@ -77,19 +77,26 @@ class Eom_Base:
             log Y_t (tf.Tensor): Log of output in trillion USD
 
         Relevant equation:
-            log(Y_t) = log(Y_t_gross) + log( 1 - theta_{1,t}(|1-E_t/E_t_BAU|)^theta_2 )
+            log(Y_t) = log(Y_t_gross) + log(1 - theta_{1,t}(1-E_t/E_t_BAU)^theta_2 )
+
+        Relevant GAMS code:
+            abateeq(T)..         ABATECOST(T)   =E= YGROSS(T) * COST1TOT(T) * (MIU(T)**EXPCOST2);
+            ygrosseq(t)..        YGROSS(t)      =E= (AL(t)*(L(t)/1000)**(1-gama))*(K(t)**gama);
+            yneteq(t)..          YNET(t)        =E= YGROSS(t)*(1-damfrac(t));
+
+            NOTE: Damages are taken care of in the capital equation of motion.
         """
 
         E_t_BAU = self.E_t_BAU(t, k_t)
         E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
 
         log_Y_t_gross = tf.math.log(self.Y_gross(t, k_t))
+
         mu_t = 1 - E_t_adj / E_t_BAU
         abatement_cost = 1 - self.theta_1[t] * tf.pow((mu_t), self.theta_2)
         log_abatement_cost = tf.math.log(abatement_cost)
 
         result = log_Y_t_gross + log_abatement_cost
-
         return result
 
     ################ MAIN EQUATIONS ################

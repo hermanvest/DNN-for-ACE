@@ -12,11 +12,12 @@ from utils.config_loader import load_config
 current_script_path = Path(__file__).parent
 
 # Navigate up to the common root and then to the YAML file
+model_version = "2016"
 env_config_path = (
     current_script_path.parent.parent
     / "configs"
     / "state_and_action_space"
-    / "ace_dice_2016.yaml"
+    / f"ace_dice_{model_version}.yaml"
 )
 
 nw_config_path = (
@@ -53,7 +54,7 @@ def setUp() -> Algorithm_DEQN:
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
-        learning_rate=1e-5, clipvalue=1.0
+        learning_rate=1e-2, clipvalue=2.0
     )
 
     algorithm = Algorithm_DEQN(**algorithm_config)

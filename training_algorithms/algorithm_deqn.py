@@ -25,23 +25,6 @@ class Algorithm_DEQN:
         self.batch_size = batch_size
         self.t_max = t_max
 
-        # Adjusting task difficulty as network gets better
-        self.thresholds_and_sizes = [
-            (500, 32),  # "moderate loss threshold"
-            (200, 64),  # "small loss threshold"
-        ]
-
-        self.episodelengths = [
-            4,  # sorted easiest to hardest
-            8,
-            16,
-            32,
-            64,
-            128,
-            256,
-            300,
-        ]
-
         # Initializations for env, agent and optimizer
         self.env = env
         self.agent = agent
@@ -58,7 +41,9 @@ class Algorithm_DEQN:
 
         # Restore the latest checkpoint
         if self.checkpoint_manager.latest_checkpoint:
-            self.checkpoint.restore(self.checkpoint_manager.latest_checkpoint)
+            self.checkpoint.restore(
+                self.checkpoint_manager.latest_checkpoint
+            ).expect_partial()
             print(
                 f"\nRestoring policynetwork from {self.checkpoint_manager.latest_checkpoint}"
             )
@@ -89,39 +74,6 @@ class Algorithm_DEQN:
         print(
             f"========== Time elapsed: {int(hours)}h {int(minutes)}m {int(seconds)}s =========="
         )
-
-    def choose_batch_size(self, start: bool, total_loss: tf.Tensor = None) -> int:
-        # Handling the start condition by setting the batch size to the smallest one defined
-        if start:
-            # Assuming thresholds_and_sizes are sorted in descending order of thresholds
-            # The smallest batch size is the second element of the last tuple in the list
-            batch_size = self.thresholds_and_sizes[0][1]
-            return batch_size
-
-        # Ensure total_loss is a scalar and get its value
-        batch_size = 128
-
-        if total_loss is not None:
-            total_loss_value = total_loss.numpy()
-
-            # Reverse iterate to pop smaller thresholds without affecting indices of unvisited items
-            for i in reversed(range(len(self.thresholds_and_sizes))):
-                threshold, batch_size_i = self.thresholds_and_sizes[i]
-
-                # If total_loss is greater than the current threshold, update batch_size
-                if total_loss_value >= threshold:
-                    batch_size = batch_size_i
-
-                # If total_loss is less than the current threshold, pop this threshold off the list
-                else:
-                    self.thresholds_and_sizes.pop(i)
-        return batch_size
-
-    def choose_episode_length(self, total_loss: tf.Tensor = None) -> None:
-        if len(self.episodelengths) == 1:
-            return
-        if total_loss.numpy() < 20:
-            self.episodelengths.pop(0)
 
     ################ MAIN TRAINING FUNCTIONS ################
     def generate_episodes(self) -> tf.Tensor:
@@ -206,7 +158,10 @@ class Algorithm_DEQN:
         return epoch_mse
 
     def train_on_episodes(
-        self, episodes: tf.Tensor, iteration_number: int
+        self,
+        episodes: tf.Tensor,
+        iteration_number: int,
+        maintain_sequential_integrity: bool = True,
     ) -> tf.Tensor:
         """
         Trains the model on a dataset of episodes, reshaping and shuffling the episodes
@@ -227,14 +182,15 @@ class Algorithm_DEQN:
             tf.Tensor: The mean squared error loss averaged over all epochs, as a float32 tensor.
         """
         # Flattened, means shape from [batchnumbers, timesteps, state_variables] to [batchnumbers*timesteps, state_variables]
-        flattened_episodes = tf.reshape(episodes, [-1, episodes.shape[-1]])
-        shuffled_episodes = tf.random.shuffle(flattened_episodes)
+        train_episodes = tf.reshape(episodes, [-1, episodes.shape[-1]])
+        if not maintain_sequential_integrity:
+            train_episodes = tf.random.shuffle(train_episodes)
 
         total_epochs_loss = tf.constant(0.0, dtype=tf.float32)
         num_batches = tf.constant(0, dtype=tf.float32)
 
         for epoch_i in range(self.n_epochs):
-            batches = tf.data.Dataset.from_tensor_slices(shuffled_episodes).batch(
+            batches = tf.data.Dataset.from_tensor_slices(train_episodes).batch(
                 self.batch_size
             )
             # Calculating losses
@@ -243,7 +199,8 @@ class Algorithm_DEQN:
             num_batches += 1.0
 
             # Shuffling up the episodes for the next iteration
-            shuffled_episodes = tf.random.shuffle(shuffled_episodes)
+            if not maintain_sequential_integrity:
+                train_episodes = tf.random.shuffle(train_episodes)
 
             print(f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {epoch_mse}")
 
