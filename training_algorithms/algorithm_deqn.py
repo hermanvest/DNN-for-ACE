@@ -1,7 +1,5 @@
-import numpy as np
 import tensorflow as tf
 
-from typing import Tuple
 from agents.deqn_agent import DEQN_agent
 from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 
@@ -16,8 +14,9 @@ class Algorithm_DEQN:
         env: Env_ACE_DICE,
         agent: DEQN_agent,
         optimizer: tf.keras.optimizers.Optimizer,
-        log_dir: str = "logs/train",
-        checkpoint_dir: str = "checkpoints",
+        log_dir: str = "logs/training_stats",
+        checkpoint_dir: str = "logs/checkpoints",
+        model_checkpoint: str = None,
     ) -> None:
         # Initializations related to the algorithm
         self.n_iterations = n_iterations
@@ -31,26 +30,35 @@ class Algorithm_DEQN:
         self.optimizer = optimizer
 
         # Initializations related to logging model performance and model checkpointing
+        self.initialize_logging_and_checkpointing(
+            log_dir, checkpoint_dir, model_checkpoint
+        )
+
+    ################ HELPER FUNCITONS ################
+    def initialize_logging_and_checkpointing(
+        self, log_dir: str, checkpoint_dir: str, model_checkpoint: str
+    ) -> None:
+        # Initializations related to logging model performance and model checkpointing
         self.writer = tf.summary.create_file_writer(log_dir)
         self.checkpoint = tf.train.Checkpoint(
-            optimizer=optimizer, model=self.agent.policy_network
+            optimizer=self.optimizer, model=self.agent.policy_network
         )
         self.checkpoint_manager = tf.train.CheckpointManager(
             self.checkpoint, directory=checkpoint_dir, max_to_keep=5
         )
 
-        # Restore the latest checkpoint
-        if self.checkpoint_manager.latest_checkpoint:
-            self.checkpoint.restore(
-                self.checkpoint_manager.latest_checkpoint
-            ).expect_partial()
-            print(
-                f"\nRestoring policynetwork from {self.checkpoint_manager.latest_checkpoint}"
-            )
+        # Restore the latest checkpoint or a specific one if provided
+        checkpoint_to_restore = (
+            model_checkpoint
+            if model_checkpoint
+            else self.checkpoint_manager.latest_checkpoint
+        )
+        if checkpoint_to_restore:
+            self.checkpoint.restore(checkpoint_to_restore).expect_partial()
+            print(f"\nRestoring policy network from {checkpoint_to_restore}")
         else:
             print("\nInitializing policy network from scratch.")
 
-    ################ HELPER FUNCITONS ################
     def print_time_elapsed(
         self, current_time: tf.Tensor, start_time: tf.Tensor
     ) -> None:

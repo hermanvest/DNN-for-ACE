@@ -4,12 +4,15 @@ import os
 import shutil
 import numpy as np
 
-
 from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from utils.config_loader import load_config
 from typing import Tuple, List
+from pathlib import Path
+from environments.deqn_ace_dice.computation_utils import custom_sigmoid
+
+current_script_path = Path(__file__).parent
 
 
 def setup() -> Tuple[Env_ACE_DICE, DEQN_agent, List, List, int]:
@@ -38,9 +41,27 @@ def setup() -> Tuple[Env_ACE_DICE, DEQN_agent, List, List, int]:
       and a 'general' key with a 't_max' subkey indicating the maximum number of timesteps.
     """
     # Paths
-    env_config_path = "configs/state_and_action_space/ace_dice_2016.yaml"
-    nw_config_path = "configs/network_configs/network_config1.yaml"
-    algorithm_config_path = "configs/training_configs/base_configuration.yaml"
+    model_version = "2016"
+    env_config_path = (
+        current_script_path.parent
+        / "configs"
+        / "state_and_action_space"
+        / f"ace_dice_{model_version}.yaml"
+    )
+
+    nw_config_path = (
+        current_script_path.parent
+        / "configs"
+        / "network_configs"
+        / "network_config1.yaml"
+    )
+
+    algorithm_config_path = (
+        current_script_path.parent
+        / "configs"
+        / "training_configs"
+        / "base_configuration.yaml"
+    )
 
     # Loading configs
     env_config = load_config(env_config_path)
@@ -138,8 +159,8 @@ def generate_plots(
 
     # Assuming name index in name lists are corresponding to index in state and action tensors
     # Loop through the states and generate the relevant plots
-    for timestep, name in enumerate(state_names):
-        state_data = simulated_states[:, timestep].numpy()
+    for var_index, name in enumerate(state_names):
+        state_data = simulated_states[:, var_index].numpy()
         plt.figure()
         plt.plot(state_data, label=f"{name}")
         plt.title(f"State Variable: {name}")
@@ -150,8 +171,8 @@ def generate_plots(
         plt.close()
 
     # Loop through the actions and generate the relevant plots
-    for timestep, name in enumerate(action_names):
-        action_data = simulated_actions[:, timestep].numpy()
+    for var_index, name in enumerate(action_names):
+        action_data = simulated_actions[:, var_index].numpy()
         plt.figure()
         plt.plot(action_data, label=f"{name}")
         plt.title(f"Action Variable: {name}")
@@ -172,7 +193,9 @@ def generate_plots(
         ]
     )
     emissions = simulated_actions[:, 1].numpy()
-    emissions_adj = np.where(emissions > emissions_BAU, emissions_BAU, emissions)
+    emissions_adj = [
+        custom_sigmoid(emissions, emissions_BAU[i]) for i in range(emissions.shape[0])
+    ]
 
     # Plotting the comparison
     plt.figure()
@@ -194,7 +217,7 @@ def main():
     print("##################### RESTORING NETWORK WEIGHTS   #####################")
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-5, clipvalue=1.0)
 
-    checkpoint_dir = "checkpoints/ace_dice_2016"
+    checkpoint_dir = current_script_path.parent / "checkpoints/ace_dice_2016"
     checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=agent.policy_network)
     checkpoint_manager = tf.train.CheckpointManager(
         checkpoint, directory=checkpoint_dir, max_to_keep=5
