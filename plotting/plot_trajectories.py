@@ -43,6 +43,9 @@ def plot_var(
     plt.grid(True)
     plt.legend()
 
+    # Ensure the plot directory exists
+    os.makedirs(plot_directory, exist_ok=True)
+
     # File name for the plot
     plot_filename = f"{var_name}.png"
 
@@ -132,7 +135,7 @@ def plot_E_t(
         ]
     )
     emissions_adjusted = [
-        custom_sigmoid(emissions_path, emissions_BAU[i]) for i in time_steps
+        custom_sigmoid(emissions_path[i], emissions_BAU[i]) for i in time_steps
     ]
     plot_var(
         "Action: E_t",
@@ -147,15 +150,9 @@ def plot_E_t(
     )
 
 
-def plot_ACE_DICE_trajectories(
-    env: Env_ACE_DICE, agent: DEQN_agent, plot_dir: str, t_max: int = None
-):
-    if not t_max:
-        states, actions = generate_trajectory(env, agent, env.general_config["t_max"])
-        time_steps = list(range(env.general_config["t_max"]))
-    else:
-        states, actions = generate_trajectory(env, agent, t_max)
-        time_steps = list(range(t_max))
+def plot_ACE_DICE_trajectories(env: Env_ACE_DICE, agent: DEQN_agent, plot_dir: str):
+    states, actions = generate_trajectory(env, agent, env.equations_of_motion.t_max)
+    time_steps = list(range(env.equations_of_motion.t_max))
 
     # Getting state and action names
     state_names = [var["name"] for var in env.equations_of_motion.states]

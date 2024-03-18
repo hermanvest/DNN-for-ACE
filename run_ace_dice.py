@@ -4,6 +4,7 @@ from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
+from plotting.plot_trajectories import plot_ACE_DICE_trajectories
 from utils.config_loader import load_config
 from utils.arg_parsing import parse_model_arguments
 
@@ -40,6 +41,11 @@ def main(model_version: str):
 
     # Running the algorithm
     algorithm.main_loop()
+
+    # Plotting the trained model
+    plot_ACE_DICE_trajectories(
+        environment, agent, f"plotting/plots/ACE_DICE{model_version}"
+    )
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ class Eom_Ace_Dice_2023(Eom_Base):
         self.A_t = self.create_A_t(t_max)
         self.sigma, self.theta_1 = self.create_sigma_theta_1(t_max)
 
-        super().__init__()
+        super().__init__(t_max)
 
     ################ INITIALIZAITON FUNCTIONS ################
     def create_N_t(self, t_max: int) -> tf.Tensor:

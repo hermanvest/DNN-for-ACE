@@ -9,7 +9,8 @@ class Eom_Base:
     NOTE: This class assumes that initializations of constants are being made in the sublasses that extend this superclass.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, t_max: int) -> None:
+        self.t_max = t_max
         self.sigma_transition = self.create_sigma_transitions()
 
     ################ INITIALIZAITON FUNCTIONS ################
