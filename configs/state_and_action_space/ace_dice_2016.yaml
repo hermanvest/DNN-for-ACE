@@ -1,7 +1,7 @@
 eom_version: "Eom_Ace_Dice_2016"
 
 general:
-  t_max: 64
+  t_max: 64                         # Has to be in powers of 2 for Tensorflow compatibility
   num_batches: 1                    # Number of simultaneously simulated batches
 
 parameters:
@@ -13,7 +13,7 @@ parameters:
     g_k: 0.013838958                # Approx growth rate of capital (Assuming g_kt=g_k)
 
     # DICE Production specific parameters 2016
-    timestep: 10
+    timestep: 5
     
     ## For CO2-equivalent-emissions output ratio sigma_t
     g_0_sigma: -0.0152              # Initial growth of sigma (pr yr)

@@ -103,6 +103,7 @@ class Eom_Ace_Dice_2016(Eom_Base):
             tstep    Years per Period                                     /5       /
             gsigma1  Initial growth of sigma (per year)                   /-0.0152 /
             dsig     Decline rate of decarbonization (per period)         /-0.001  /
+            sig0 = e0/(q0*(1-miu0));
             gsig("1")=gsigma1; loop(t,gsig(t+1)=gsig(t)*((1+dsig)**tstep) ;);
             sigma("1")=sig0;   loop(t,sigma(t+1)=(sigma(t)*exp(gsig(t)*tstep)););
         """
@@ -140,11 +141,12 @@ class Eom_Ace_Dice_2016(Eom_Base):
             pbacktime(t)=pback*(1-gback)**(t.val-1);
             cost1(t) = pbacktime(t)*sigma(t)/expcost2/1000;
         """
-        theta_1 = np.zeros(t_max)
-        for t in range(t_max):
-            p_back_t = self.p_back * np.power((1 - self.g_back), t - 1)
-            theta_1_t = p_back_t * (self.sigma[t] / (self.theta_2 * 1000))
-            theta_1[t] = theta_1_t
+        t_values = tf.range(1, t_max + 1, dtype=tf.float32)
 
-        theta_1_tensor = tf.convert_to_tensor(theta_1, dtype=tf.float32)
-        return theta_1_tensor
+        # Compute pbacktime(t) for each time period
+        pbacktime = self.p_back * tf.pow((1 - self.g_back), (t_values - 1))
+
+        # Compute cost1(t) for each time period
+        theta_1 = pbacktime * self.sigma[:t_max] / self.theta_2 / 1000
+
+        return theta_1
