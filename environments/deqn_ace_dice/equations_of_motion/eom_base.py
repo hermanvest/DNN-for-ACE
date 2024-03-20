@@ -184,9 +184,7 @@ class Eom_Base:
         e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
         e_1 = tf.reshape(e_1, shape=[3, 1])
 
-        result = (
-            phi_mult_m + (e_1 * E_t_adj + e_1 * E_t_EXO) * self.timestep
-        )  # Have to include emissions for each year over the timesteps
+        result = phi_mult_m + (e_1 * (E_t_adj + E_t_EXO)) * self.timestep
 
         return tf.reshape(result, [-1])
 

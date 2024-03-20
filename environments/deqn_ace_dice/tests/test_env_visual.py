@@ -326,6 +326,16 @@ def test_environment_dynamics() -> None:
 
     # Plotting E_t
     capital_path = [state.numpy()[0, 0] for state in states]
+    plot_var(
+        f"K_t (Using x_t: {x_t} and E_t: {E_t})",
+        "Period",
+        f"Value of K_t",
+        "K_t",
+        plot_directory,
+        time_steps,
+        np.exp(capital_path),
+    )
+
     E_t_BAUs = [
         env.equations_of_motion.E_t_BAU(time_steps[i], capital_path[i])
         for i in range(t_max)
@@ -394,6 +404,15 @@ def test_env_dynamics_with_dice_control() -> None:
 
     # Plotting E_t
     capital_path = [state.numpy()[0, 0] for state in states]
+    plot_var(
+        f"K_t (Using x_t: {x_t} and Dice E_t controls)",
+        "Period",
+        f"Value of K_t",
+        "exp_k_t",
+        plot_directory,
+        time_steps,
+        np.exp(capital_path),
+    )
     E_t_BAUs = [
         env.equations_of_motion.E_t_BAU(time_steps[i], capital_path[i])
         for i in range(t_max)
@@ -410,8 +429,8 @@ def test_env_dynamics_with_dice_control() -> None:
         plot_directory,
         time_steps,
         E_ts,
-        "E_t_BAU",
-        E_t_BAUs,
+        # "E_t_BAU",
+        # E_t_BAUs,
     )
 
     # Plotting output Y_t
@@ -427,6 +446,21 @@ def test_env_dynamics_with_dice_control() -> None:
         plot_directory,
         time_steps,
         Y_gross_simulated,
+    )
+
+    # Plotting of temperatures
+    temp_1 = np.log([state.numpy()[0, 4] for state in states]) / 0.231049
+    temp_2 = np.log([state.numpy()[0, 5] for state in states]) / 0.231049
+    plot_var(
+        "Temperatures",
+        "Period",
+        "Value of Temperatures",
+        "T_1",
+        plot_directory,
+        time_steps,
+        temp_1,
+        "T_2",
+        temp_2,
     )
 
     print(

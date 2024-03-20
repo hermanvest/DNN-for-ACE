@@ -25,6 +25,7 @@ class Loss_Ace_Dice:
         self.equations_of_motion = equations_of_motion
         # Should place the create_sigma_transitions in a utility file.
         self.sigma_transition = self.equations_of_motion.create_sigma_transitions()
+        self.Phi = self.equations_of_motion.create_Phi_transitions()
 
     ################ HELPER FUNCITONS ################
     def fischer_burmeister_function(self, a: float, b: float):
