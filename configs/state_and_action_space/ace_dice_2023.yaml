@@ -9,8 +9,8 @@ parameters:
     # ACE specific parameters
     prtp: 0.013896                  # Pure rate of social time preference, Global
     kappa: 0.3                      # Capital share of output
-    delta_k: 0.45964994             # Capital depreciation factor
-    g_k: 0.013838958                # Approx growth rate of capital (Assuming g_kt=g_k)
+    delta_k: 0.0439                 # Capital depreciation factor
+    g_k: 0.02949                    # Approx growth rate of capital (Assuming g_kt=g_k)
 
     # DICE Production specific parameters 2016
     timestep: 5
@@ -38,17 +38,14 @@ parameters:
     a0: 5.84                        # Initial level of total factor productivity
 
   climate_specific:
-    xi_0: 0.2219
+    xi_0: 0.02219                   # Base scenario damage coefficient
     #xi_1: 0.25                     # Baked into the tau. probably not needed.
     sigma_forc: 0.519796017680083
     M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE
     # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
     
-    Phi:
-      - [0.8240, 0.0767, 0]
-      - [0.1760, 0.9183, 0.0007]
-      - [0, 0.0050, 0.9993]
-
+    Xi: [0.088, 0.0025, 0.03832888889, 0.00033750] # DICE2013 5yr step
+      
     sigma_down_1: 0.313477283382278 # Temp transition from upper layer to lower layer
     sigma_up_1: 0.519796017680083   # Temp transition from upper layer to space
     sigma_up_2: 0.0229478090365842  # Temp transition from lower layer to upper layer

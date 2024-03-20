@@ -22,3 +22,16 @@ def custom_sigmoid(x, upper_bound, epsilon=1e-6):
         >>> print(activated_x)
     """
     return upper_bound * (epsilon + (1 - 2 * epsilon) * tf.sigmoid(x))
+
+
+def logit(y):
+    """
+    Computes the logit (inverse of sigmoid) function using TensorFlow.
+
+    Args:
+        y (tf.Tensor): The input tensor, should contain values in the range (0, 1).
+
+    Returns:
+        tf.Tensor: The logit of the input tensor.
+    """
+    return tf.math.log(y / (1 - y))

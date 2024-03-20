@@ -6,13 +6,15 @@ import os
 from pathlib import Path
 from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
 from utils.config_loader import load_config
-from environments.deqn_ace_dice.computation_utils import custom_sigmoid
+from environments.deqn_ace_dice.computation_utils import custom_sigmoid, logit
 from typing import List, Optional
 
+######################## CONSTANTS (Bad practice...) ########################
 # Define the path to the current script
 current_script_path = Path(__file__).parent
 
-model_version = "2016"
+model_version = "2023"
+
 # Navigate up to the common root and then to the YAML file
 yaml_file_path = (
     current_script_path.parent.parent.parent
@@ -20,6 +22,112 @@ yaml_file_path = (
     / "state_and_action_space"
     / f"ace_dice_{model_version}.yaml"
 )
+
+emission_values = [
+    0.051,
+    0.057,
+    0.064,
+    0.071,
+    0.079,
+    0.088,
+    0.098,
+    0.107,
+    0.115,
+    0.125,
+    0.136,
+    0.147,
+    0.159,
+    0.172,
+    0.187,
+    0.202,
+    0.219,
+    0.238,
+    0.258,
+    0.279,
+    0.302,
+    0.328,
+    0.355,
+    0.385,
+    0.417,
+    0.452,
+    0.490,
+    0.531,
+    0.575,
+    0.623,
+    0.675,
+    0.732,
+    0.793,
+    0.859,
+    0.931,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+    1.000,
+]
+
+emission_values_tensor = tf.constant(emission_values, dtype=tf.float32)
 
 
 ######################## Uitlity functions ########################
@@ -66,13 +174,30 @@ def plot_var(
     plt.close()  # Close the figure to free memory
 
 
-def get_trajectory(x_t: float, E_t: float, env: Env_ACE_DICE, t_max: int) -> List:
+def get_trajectory(
+    x_t: float, env: Env_ACE_DICE, t_max: int, E_t: float = None
+) -> List:
     s_t = env.reset()  # shape [batch, statevariables]
     states = []  # shape [timestep, statevariables]
 
     for t in range(t_max):
         # Creating the actions batch, as I expect it to look
-        a_t = [x_t, E_t, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # Only first two are used
+        if E_t is None:
+            a_t = [
+                x_t,
+                logit(1 - emission_values_tensor[t] + 1e-7),
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+            ]
+        else:
+            a_t = [x_t, E_t, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # Only first two are used
         a_t = tf.convert_to_tensor(a_t)
 
         action_batch = []
@@ -87,6 +212,7 @@ def get_trajectory(x_t: float, E_t: float, env: Env_ACE_DICE, t_max: int) -> Lis
 
 def setUp() -> Env_ACE_DICE:
     config = load_config(yaml_file_path)
+    config["general"]["t_max"] = 81
     env = Env_ACE_DICE(config)
     return env
 
@@ -174,7 +300,7 @@ def test_environment_dynamics() -> None:
         "\n================== RUNNING: test_environment_dynamics() =================="
     )
     env = setUp()
-    t_max = 30
+    t_max = 81
     x_t, E_t = (0.75, 10.0)
     states = get_trajectory(x_t=x_t, E_t=E_t, env=env, t_max=t_max)
 
@@ -237,6 +363,77 @@ def test_environment_dynamics() -> None:
     )
 
 
+def test_env_dynamics_with_dice_control() -> None:
+    print(
+        "\n================== RUNNING: test_env_dynamics_with_dice_control() =================="
+    )
+    env = setUp()
+    t_max = 81
+    x_t = 0.75
+    states = get_trajectory(x_t=x_t, env=env, t_max=t_max)
+
+    # Plot and save each state variable
+    state_names = [item["name"] for item in env.equations_of_motion.states]
+    # Save the plot to a file
+    plot_directory = f"plots/{model_version}/dice_ctrl_simulation"
+    if not os.path.exists(plot_directory):
+        os.makedirs(plot_directory)
+    time_steps = list(range(t_max))
+    for i, name in enumerate(state_names):
+        # Extract the ith state variable from each tensor in the states list
+        state_variable_values = [state.numpy()[0, i] for state in states]
+        plot_var(
+            f"{name} (Using x_t: {x_t} and Dice E_t controls)",
+            "Period",
+            f"Value of {name}",
+            name,
+            plot_directory,
+            time_steps,
+            state_variable_values,
+        )
+
+    # Plotting E_t
+    capital_path = [state.numpy()[0, 0] for state in states]
+    E_t_BAUs = [
+        env.equations_of_motion.E_t_BAU(time_steps[i], capital_path[i])
+        for i in range(t_max)
+    ]
+    E_ts = [
+        custom_sigmoid(logit(1 - emission_values_tensor[i] + 1e-7), E_t_BAUs[i])
+        for i in range(t_max)
+    ]
+    plot_var(
+        "E_t",
+        "Period",
+        "Value of E_T",
+        "E_t",
+        plot_directory,
+        time_steps,
+        E_ts,
+        "E_t_BAU",
+        E_t_BAUs,
+    )
+
+    # Plotting output Y_t
+    Y_gross_simulated = [
+        env.equations_of_motion.Y_gross(time_steps[i], capital_path[i])
+        for i in range(t_max)
+    ]
+    plot_var(
+        "Y_gross",
+        "Period",
+        "Value of Y_gross",
+        "Y_gross",
+        plot_directory,
+        time_steps,
+        Y_gross_simulated,
+    )
+
+    print(
+        "================== TERMINATES: test_env_dynamics_with_dice_control() =================="
+    )
+
+
 def main():
     print("################## IN MAIN FUNCTION ##################")
 
@@ -253,6 +450,7 @@ def main():
 
     test_exo_vars()
     test_environment_dynamics()
+    test_env_dynamics_with_dice_control()
 
     print("################## END TESTS ##################")
 

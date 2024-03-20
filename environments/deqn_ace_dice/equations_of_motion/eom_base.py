@@ -12,6 +12,7 @@ class Eom_Base:
     def __init__(self, t_max: int) -> None:
         self.t_max = t_max
         self.sigma_transition = self.create_sigma_transitions()
+        self.Phi = self.create_Phi_transitions()
 
     ################ INITIALIZAITON FUNCTIONS ################
     def create_sigma_transitions(self) -> tf.Tensor:
@@ -20,17 +21,41 @@ class Eom_Base:
         Returns:
             tf.Tensor: transition matrix for temperatures
         """
-        one_tensor = tf.constant(1.0, dtype=tf.float32)
+        one = tf.constant(1.0, dtype=tf.float32)
 
         # Calculate the retention rates
-        upper_layer_retention = one_tensor - self.sigma_up_1 - self.sigma_down_1
-        lower_layer_retention = one_tensor - self.sigma_up_2
+        upper_layer_retention = one - self.sigma_up_1 - self.sigma_down_1
+        lower_layer_retention = one - self.sigma_up_2
 
         transition_matrix = tf.stack(
             [
                 tf.stack([upper_layer_retention, self.sigma_down_1]),
                 tf.stack([self.sigma_up_2, lower_layer_retention]),
             ]
+        )
+
+        return transition_matrix
+
+    def create_Phi_transitions(self) -> tf.Tensor:
+        """Creates the transition matrix for the carbon reservoirs of a three-layer carbon model, given the Xi vector of coefficients.
+
+        Returns:
+            tf.Tensor: The transition matrix for the carbon reservoirs.
+        """
+        five = tf.constant(5.0, dtype=tf.float32)
+
+        xi_scaled = self.Xi * (self.timestep / five)
+
+        # Correct usage of tf.stack by providing a list of tensors to be stacked
+        transition_matrix = tf.stack(
+            [
+                tf.stack([1.0 - xi_scaled[0], xi_scaled[2], 0.0]),
+                tf.stack(
+                    [xi_scaled[0], 1.0 - xi_scaled[1] - xi_scaled[2], xi_scaled[3]]
+                ),
+                tf.stack([0.0, xi_scaled[1], 1.0 - xi_scaled[3]]),
+            ],
+            axis=0,
         )
 
         return transition_matrix
@@ -60,7 +85,7 @@ class Eom_Base:
         return A_t * labor_contrib * capital_contrib
 
     def E_t_BAU(self, t: int, k_t: tf.Tensor) -> tf.Tensor:
-        """Returns Business As Usual emissions at time t.
+        """Returns yearly Business as Usual emissions at time t.
 
         Relevant equation:
             E_t_BAU = sigma_t * Y_gross_t
@@ -72,7 +97,7 @@ class Eom_Base:
 
         Args:
             k_t (tf.Tensor): log capital for time step t
-            E_t (tf.Tensor): emisions for time step t
+            E_t (tf.Tensor): yearly emisions for time step t
 
         Returns:
             log Y_t (tf.Tensor): Log of output in trillion USD
@@ -115,24 +140,37 @@ class Eom_Base:
         Returns:
             k_{t+1} (tf.Tensor): log capital in the next period
         """
+
         damages = -self.xi_0 * tau_1_t + self.xi_0
         log_one_x_t = tf.math.log(1 - x_t)
-        depreciation_factor = tf.math.log(1 + self.g_k) - tf.math.log(
-            self.delta_k + self.g_k
+        depreciation_factor = tf.math.log(
+            (1 + self.g_k * self.timestep) / ((self.delta_k + self.g_k) * self.timestep)
         )
 
-        result = log_Y_t + damages + log_one_x_t + depreciation_factor
+        result = (
+            log_Y_t
+            + damages
+            + log_one_x_t
+            + depreciation_factor
+            + tf.math.log(self.timestep)
+        )
         return result
 
     def m_tplus(
-        self, m_t: tf.Tensor, E_t: tf.Tensor, k_t: tf.Tensor, t: int
+        self,
+        m_t: tf.Tensor,
+        E_t: tf.Tensor,
+        k_t: tf.Tensor,
+        t: int,
+        E_t_EXO: tf.Tensor = tf.constant(0.0, dtype=tf.float32),
     ) -> tf.Tensor:
         """Computes carbon reservoirs for the next period using the equation of motion. Note that this function scales E_t to be in the range (epsilon, E_t_BAU)
         Args:
             m_t (tf.Tensor): The current vector of carbon stocks M_t
-            E_t (tf.Tensor): All emissions at current timestep, including exogenous emissions
+            E_t (tf.Tensor): Yearly emissions at current timestep.
             k_t (tf.Tensor): log capital in period t
             t (int): time step
+            E_t_EXO (tf.Tensor): Yearly exogenous emissions at current time step
 
         Returns
             M_{t+1} (tf.Tensor): Carbon stock for all layers in the next time step.
@@ -146,18 +184,23 @@ class Eom_Base:
         e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
         e_1 = tf.reshape(e_1, shape=[3, 1])
 
-        result = phi_mult_m + e_1 * E_t_adj
+        result = (
+            phi_mult_m + (e_1 * E_t_adj + e_1 * E_t_EXO) * self.timestep
+        )  # Have to include emissions for each year over the timesteps
 
         return tf.reshape(result, [-1])
 
     def tau_tplus(
-        self, tau_t: tf.Tensor, m_1_t: tf.Tensor, G_t: tf.Tensor = 0.0
+        self,
+        tau_t: tf.Tensor,
+        m_1_t: tf.Tensor,
+        G_t: tf.Tensor = tf.constant(0.0, dtype=tf.float32),
     ) -> tf.Tensor:
         """
         Args:
         - The current vector of transformed temperatures tau
         - Current atmospheric carbon stock M_{1,t}
-        - Exogenous non-CO2 ghg G_t
+        - Exogenous non-CO2 ghg G_t (now treated as cumulative sum of exo emisisons for the timesteps in between)
 
         Returns:
             tau_{t+1} (tf.Tensor): next periods vector of transformed temperatures
