@@ -221,8 +221,12 @@ class Algorithm_DEQN:
     def main_loop(self) -> None:
         training_start = tf.timestamp()
 
+        lowest_loss = tf.constant(float("inf"), dtype=tf.float32)
+
         for iteration_i in range(self.n_iterations):
-            print(f"\nStarting iteration {iteration_i+1}/{self.n_iterations}")
+            print(
+                f"\n========== Starting iteration {iteration_i+1}/{self.n_iterations} =========="
+            )
 
             ###### Algorithm steps  ######
             episode = self.generate_episodes()
@@ -242,7 +246,15 @@ class Algorithm_DEQN:
                 self.writer.flush()
 
             # Save the model checkpoint
-            self.checkpoint_manager.save()
-            print(f"Checkpoint saved at {self.checkpoint_manager.latest_checkpoint}")
+            if iteration_loss < lowest_loss.numpy():
+                lowest_loss = tf.constant(
+                    iteration_loss, dtype=tf.float32
+                )  # Update the lowest loss
+
+                # Save the model as it has the lowest loss observed so far
+                checkpoint_path = self.checkpoint_manager.save()
+                print(
+                    f"\nCheckpoint saved for lowest loss ({lowest_loss.numpy()}) at {checkpoint_path}"
+                )
 
             self.print_time_elapsed(tf.timestamp(), training_start)

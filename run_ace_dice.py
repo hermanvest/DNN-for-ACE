@@ -34,8 +34,10 @@ def main(model_version: str):
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
-        learning_rate=1e-2, clipvalue=2.0
+        learning_rate=1e-3, clipvalue=1.0
     )
+    algorithm_config["log_dir"] = f"logs/{model_version}/training_stats"
+    algorithm_config["checkpoint_dir"] = f"logs/{model_version}/checkpoints"
 
     algorithm = Algorithm_DEQN(**algorithm_config)
 

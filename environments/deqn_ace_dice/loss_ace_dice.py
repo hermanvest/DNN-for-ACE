@@ -53,7 +53,9 @@ class Loss_Ace_Dice:
         Returns:
             loss (tf.Tensor)
         """
-        parenthesis = lambda_k_t + self.beta * lambda_k_tplus * self.kappa
+        parenthesis = (
+            lambda_k_t + tf.pow(self.beta, self.timestep) * lambda_k_tplus * self.kappa
+        )
 
         return (1 / x_t) - (1 / (1 - x_t)) * parenthesis
 
@@ -107,7 +109,7 @@ class Loss_Ace_Dice:
             d_logF_d_E_t * (1 + lambda_k_t)
             + lambda_m_1_t
             + lambda_E_t
-            + self.beta * d_V_tplus_d_E_t
+            + tf.pow(self.beta, self.timestep) * d_V_tplus_d_E_t
         )
 
     def ell_3(self, lambda_E_t: tf.Tensor, E_t: tf.Tensor) -> tf.Tensor:
@@ -167,7 +169,10 @@ class Loss_Ace_Dice:
         e_1 = tf.reshape(e_1, shape=[3, 1])
         forc = lambda_tau_1_tplus * self.sigma_forc * (1 / self.M_pre)
 
-        loss = self.beta * (transitions + e_1 * forc) - lambda_m_t_reshaped
+        loss = (
+            tf.pow(self.beta, self.timestep) * (transitions + e_1 * forc)
+            - lambda_m_t_reshaped
+        )
 
         return tf.reduce_sum(loss)
 
@@ -200,7 +205,10 @@ class Loss_Ace_Dice:
         e_1 = tf.reshape(e_1, shape=[2, 1])
         forc = e_1 * self.xi_0 * (1 + lambda_k_tplus)
 
-        loss = self.beta * (transitions - forc) - lambda_tau_t_reshaped
+        loss = (
+            tf.pow(self.beta, self.timestep) * (transitions - forc)
+            - lambda_tau_t_reshaped
+        )
         return tf.reduce_sum(loss)
 
     def ell_10(
@@ -230,7 +238,13 @@ class Loss_Ace_Dice:
         production = self.equations_of_motion.log_Y_t(k_t, E_t, t)
         damages = -self.xi_0 * tau_1_t + self.xi_0
 
-        return tf.math.log(x_t) + production + damages + self.beta * v_tplus - v_t
+        return (
+            tf.math.log(x_t)
+            + production
+            + damages
+            + tf.pow(self.beta, self.timestep) * v_tplus
+            - v_t
+        )
 
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     def squared_error_for_transition(

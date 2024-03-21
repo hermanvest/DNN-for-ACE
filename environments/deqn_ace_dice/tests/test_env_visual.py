@@ -13,7 +13,7 @@ from typing import List, Optional
 # Define the path to the current script
 current_script_path = Path(__file__).parent
 
-model_version = "2023"
+model_version = "2016"
 
 # Navigate up to the common root and then to the YAML file
 yaml_file_path = (
@@ -212,7 +212,7 @@ def get_trajectory(
 
 def setUp() -> Env_ACE_DICE:
     config = load_config(yaml_file_path)
-    config["general"]["t_max"] = 81
+    config["general"]["t_max"] = 100
     env = Env_ACE_DICE(config)
     return env
 
@@ -378,7 +378,7 @@ def test_env_dynamics_with_dice_control() -> None:
         "\n================== RUNNING: test_env_dynamics_with_dice_control() =================="
     )
     env = setUp()
-    t_max = 81
+    t_max = env.equations_of_motion.t_max
     x_t = 0.75
     states = get_trajectory(x_t=x_t, env=env, t_max=t_max)
 
