@@ -1,6 +1,9 @@
 import tensorflow as tf
 from utils.debug import assert_valid
-from environments.deqn_ace_dice.computation_utils import custom_sigmoid
+from environments.deqn_ace_dice.computation_utils import (
+    custom_sigmoid,
+    convert_co2_to_c,
+)
 
 
 class Eom_Base:
@@ -176,7 +179,7 @@ class Eom_Base:
             M_{t+1} (tf.Tensor): Carbon stock for all layers in the next time step.
         """
         E_t_BAU = self.E_t_BAU(t, k_t)
-        E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
+        E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU) / 1000
 
         m_reshaped = tf.reshape(m_t, (3, 1))
         phi_mult_m = tf.matmul(self.Phi, m_reshaped)
@@ -184,7 +187,9 @@ class Eom_Base:
         e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
         e_1 = tf.reshape(e_1, shape=[3, 1])
 
-        result = phi_mult_m + (e_1 * (E_t_adj + E_t_EXO)) * self.timestep
+        result = (
+            phi_mult_m + (e_1 * (convert_co2_to_c(E_t_adj + E_t_EXO))) * self.timestep
+        )
 
         return tf.reshape(result, [-1])
 

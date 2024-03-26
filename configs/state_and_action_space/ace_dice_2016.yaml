@@ -1,7 +1,7 @@
 eom_version: "Eom_Ace_Dice_2016"
 
 general:
-  t_max: 128                        # Has to be in powers of 2 for Tensorflow compatibility
+  t_max: 64                         # Has to be in powers of 2 for Tensorflow compatibility
   num_batches: 1                    # Number of simultaneously simulated batches
 
 parameters:
@@ -41,8 +41,8 @@ parameters:
     xi_0: 0.02219                   # Base scenario damage coefficient
     #xi_1: 0.25                     # Baked into the tau. probably not needed.
     sigma_forc: 0.519796017680083
-    M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE
-    # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
+    M_pre: 0.5964                   # Pre-industrial atmospheric carbon concentration ACE
+    # M_pre: 0.600                  # Pre-industrial atmospheric carbon concentration DICE
     
     Xi: [0.088, 0.0025, 0.03832888889, 0.00033750] # DICE2013 5yr step
 
@@ -55,11 +55,11 @@ state_variables:
   - name: k_t
     init_val: 223                   # Initial capital value 2015 (trill 2010 usd)
   - name: M_1_t
-    init_val: 862.86                # 2015 Carbon stock Atmosphere GtCO2
+    init_val: 0.86286               # 2015 Carbon stock Atmosphere 1000GtCO2
   - name: M_2_t
-    init_val: 1541.11               # 2015 Carbon stock Upper ocean GtCO2
+    init_val: 1.54111               # 2015 Carbon stock Upper ocean 1000GtCO2
   - name: M_3_t
-    init_val: 10010.44              # 2015 Carbon stock Lower ocean GtCO2
+    init_val: 10.01044              # 2015 Carbon stock Lower ocean 1000GtCO2
   - name: tau_1_t
     init_val: 1.256727218547292     # Row 1, column 5 in initial temperatures, ace code
   - name: tau_2_t

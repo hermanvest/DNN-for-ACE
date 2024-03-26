@@ -123,6 +123,7 @@ class Algorithm_DEQN:
 
         for batch_index, batch_s_t in enumerate(batches):
             with tf.GradientTape() as tape:
+
                 batch_a_t = self.agent.get_actions(batch_s_t)
                 batch_s_tplus = self.env.step(batch_s_t, batch_a_t)
                 batch_a_tplus = self.agent.get_actions(batch_s_tplus)
@@ -201,16 +202,15 @@ class Algorithm_DEQN:
             batches = tf.data.Dataset.from_tensor_slices(train_episodes).batch(
                 self.batch_size
             )
-            # Calculating losses
             epoch_mse = self.epoch(batches, iteration_number)
             total_epochs_loss += epoch_mse
             num_batches += 1.0
 
-            # Shuffling up the episodes for the next iteration
+            # Shuffling the episodes for the next iteration if flagged
             if not maintain_sequential_integrity:
                 train_episodes = tf.random.shuffle(train_episodes)
 
-            print(f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {epoch_mse}")
+            print(f"Epoch {epoch_i+1}/{self.n_epochs}: Total Loss = {epoch_mse:.4e}")
 
         # MSE over all batches
         mean_epoch_loss = total_epochs_loss / num_batches
@@ -234,7 +234,7 @@ class Algorithm_DEQN:
 
             ###### Logging          ######
             print(
-                f"Loss for iteration {iteration_i+1}/{self.n_iterations}: Loss = {iteration_loss}"
+                f"Loss for iteration {iteration_i+1}/{self.n_iterations}: Loss = {iteration_loss:.4e}"
             )
 
             with self.writer.as_default():
@@ -253,8 +253,6 @@ class Algorithm_DEQN:
 
                 # Save the model as it has the lowest loss observed so far
                 checkpoint_path = self.checkpoint_manager.save()
-                print(
-                    f"\nCheckpoint saved for lowest loss ({lowest_loss.numpy()}) at {checkpoint_path}"
-                )
+                print(f"\nCheckpoint saved for lowest loss at {checkpoint_path}")
 
             self.print_time_elapsed(tf.timestamp(), training_start)

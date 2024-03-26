@@ -35,3 +35,21 @@ def logit(y):
         tf.Tensor: The logit of the input tensor.
     """
     return tf.math.log(y / (1 - y))
+
+
+def convert_co2_to_c(co2: tf.Tensor):
+    """Converts tensor with any unit co2 to the same unit carbon.
+
+    The conversion factor is approximately 1 unit of carbon = 3.67 units of co2.
+    Therefore, co2/3.67 is returned.
+
+    Args:
+        carbon (tf.Tensor): converted tensor of co2
+    """
+    carbon_mass = tf.constant(12.011, dtype=tf.float32)
+    oxygen_mass = tf.constant(15.999, dtype=tf.float32)
+
+    total_mass_co2 = carbon_mass + 2 * oxygen_mass
+    conversion_factor = total_mass_co2 / carbon_mass
+
+    return co2 / conversion_factor
