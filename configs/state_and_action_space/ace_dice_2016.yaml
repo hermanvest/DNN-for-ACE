@@ -55,11 +55,11 @@ state_variables:
   - name: k_t
     init_val: 223                   # Initial capital value 2015 (trill 2010 usd)
   - name: M_1_t
-    init_val: 0.86286               # 2015 Carbon stock Atmosphere 1000GtCO2
+    init_val: 862.86                # 2015 Carbon stock Atmosphere GtCO2
   - name: M_2_t
-    init_val: 1.54111               # 2015 Carbon stock Upper ocean 1000GtCO2
+    init_val: 1541.11               # 2015 Carbon stock Upper ocean GtCO2
   - name: M_3_t
-    init_val: 10.01044              # 2015 Carbon stock Lower ocean 1000GtCO2
+    init_val: 10010.44              # 2015 Carbon stock Lower ocean GtCO2
   - name: tau_1_t
     init_val: 1.256727218547292     # Row 1, column 5 in initial temperatures, ace code
   - name: tau_2_t
