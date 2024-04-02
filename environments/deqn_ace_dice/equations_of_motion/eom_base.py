@@ -16,6 +16,8 @@ class Eom_Base:
         self.t_max = t_max
         self.sigma_transition = self.create_sigma_transitions()
         self.Phi = self.create_Phi_transitions()
+        if not hasattr(self, "E_t_EXO"):
+            self.E_t_EXO = None
 
     ################ INITIALIZAITON FUNCTIONS ################
     def create_sigma_transitions(self) -> tf.Tensor:
@@ -179,7 +181,7 @@ class Eom_Base:
             M_{t+1} (tf.Tensor): Carbon stock for all layers in the next time step.
         """
         E_t_BAU = self.E_t_BAU(t, k_t)
-        E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU) / 1000
+        E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
 
         m_reshaped = tf.reshape(m_t, (3, 1))
         phi_mult_m = tf.matmul(self.Phi, m_reshaped)
@@ -248,13 +250,15 @@ class Eom_Base:
         t_plus = s_t[6] + 1
 
         # 3. call functions with variables and get state values
-        # how do I get G_t?
-        G_t = 0
+        if self.E_t_EXO is not None:
+            exo_emissions = self.E_t_EXO[t]
+        else:
+            exo_emissions = tf.constant(0.0, dtype=tf.float32)
 
         log_Y_t = self.log_Y_t(k_t, E_t, t)
         k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t)
-        m_plus = self.m_tplus(m_vector, E_t, k_t, t)
-        tau_tplus = self.tau_tplus(tau_vector, m_vector[0], G_t)
+        m_plus = self.m_tplus(m_vector, E_t, k_t, t, exo_emissions)
+        tau_tplus = self.tau_tplus(tau_vector, m_vector[0], G_t=exo_emissions)
 
         # 4. return state values for next state
         s_t_plus_tensor = tf.concat(

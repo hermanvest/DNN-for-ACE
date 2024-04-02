@@ -41,8 +41,8 @@ parameters:
     xi_0: 0.02219                   # Base scenario damage coefficient
     #xi_1: 0.25                     # Baked into the tau. probably not needed.
     sigma_forc: 0.519796017680083
-    M_pre: 0.5964                   # Pre-industrial atmospheric carbon concentration ACE
-    # M_pre: 0.600                  # Pre-industrial atmospheric carbon concentration DICE
+    M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE
+    # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
     
     Xi: [0.088, 0.0025, 0.03832888889, 0.00033750] # DICE2013 5yr step
 

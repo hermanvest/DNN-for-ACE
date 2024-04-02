@@ -24,6 +24,7 @@ class Eom_Ace_Dice_2023(Eom_Base):
         self.N_t = self.create_N_t(t_max)
         self.A_t = self.create_A_t(t_max)
         self.sigma, self.theta_1 = self.create_sigma_theta_1(t_max)
+        self.E_t_EXO = self.create_e_land(t_max)
 
         super().__init__(t_max)
 
@@ -140,3 +141,23 @@ class Eom_Ace_Dice_2023(Eom_Base):
         theta_1 = pbacktime * sigmatot / (self.theta_2 * 1000)
 
         return sigmatot, theta_1
+
+    def create_e_land(self, t_max: int) -> tf.Tensor:
+        """Computes and returns landuse emissions in GtCO2 per year.
+
+        Args:
+            t_max (int): max simulation length
+
+        Returns:
+            tf.Tensor: landuse emissions
+
+        Relevant GAMS code:
+            eland0         Carbon emissions from land 2015 (GtCO2 per year)  / 5.9    /
+            deland         Decline rate of land emissions (per period)       / .1     /
+            eland(t) = eland0*(1-deland)**(t.val-1);
+        """
+        t = tf.range(1, t_max + 1, dtype=tf.float32)
+
+        e_land = self.e_land0 * (1 - self.de_land) ** (t)
+
+        return e_land
