@@ -40,6 +40,20 @@ class Loss_Ace_Dice:
         raise NotImplementedError
 
     ################ INDIVIDUAL LOSS FUNCTIONS ################
+    def ell_0(self, lambda_k_t: tf.Tensor, lambda_k_t_plus: tf.Tensor):
+        """Foc w.r.t. k_tplus
+
+        Args:
+            lambda_k_t (tf.Tensor): _description_
+            lambda_k_t_plus (tf.Tensor): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        return (
+            tf.pow(self.beta, self.timestep) * lambda_k_t_plus * self.kappa - lambda_k_t
+        )
+
     def ell_1(
         self, x_t: tf.Tensor, lambda_k_t: tf.Tensor, lambda_k_tplus: tf.Tensor
     ) -> tf.Tensor:
@@ -298,6 +312,7 @@ class Loss_Ace_Dice:
 
         # TODO: This is an abomination. Need to find time to make this prettier.
         loss_functions = [
+            ((self.ell_0, (lambda_k_t, lambda_k_tplus))),
             ((self.ell_1), (x_t, lambda_k_t, lambda_k_tplus)),
             (
                 (self.ell_2),

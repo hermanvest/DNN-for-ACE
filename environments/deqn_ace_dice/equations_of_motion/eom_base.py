@@ -247,7 +247,7 @@ class Eom_Base:
         m_vector = s_t[1:4]
         tau_vector = s_t[4:6]
         t = (int)(s_t[6].numpy())
-        t_plus = s_t[6] + 1
+        t_plus = s_t[6] + 1  # Needs to be tensor
 
         # 3. call functions with variables and get state values
         if self.E_t_EXO is not None:
