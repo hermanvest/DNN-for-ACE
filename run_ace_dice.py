@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
+from environments.ace_dice.env_ace_dice import Env_ACE_DICE
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from training_algorithms.algorithm_deqn import Algorithm_DEQN

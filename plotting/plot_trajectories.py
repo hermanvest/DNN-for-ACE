@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
+from environments.ace_dice.env_ace_dice import Env_ACE_DICE
 from agents.deqn_agent import DEQN_agent
 from typing import Tuple, List, Optional
-from environments.deqn_ace_dice.computation_utils import custom_sigmoid
+from environments.ace_dice.computation_utils import custom_sigmoid
 
 
 def plot_var(

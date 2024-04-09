@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from agents.deqn_agent import DEQN_agent
-from environments.deqn_ace_dice.env_ace_dice import Env_ACE_DICE
+from environments.ace_dice.env_ace_dice import Env_ACE_DICE
 
 
 class Algorithm_DEQN:
