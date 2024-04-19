@@ -1,7 +1,7 @@
 eom_version: "Eom_Ace_Dice_2016"
 
 general:
-  t_max: 64                         # Has to be in powers of 2 for Tensorflow compatibility
+  t_max: 128                        # Has to be in powers of 2 for Tensorflow compatibility
   num_batches: 1                    # Number of simultaneously simulated batches
 
 parameters:

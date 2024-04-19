@@ -4,7 +4,7 @@ from environments.ace_dice.env_ace_dice import Env_ACE_DICE
 from networks.policy_network import Policy_Network
 from agents.deqn_agent import DEQN_agent
 from training_algorithms.algorithm_deqn import Algorithm_DEQN
-from plotting.plot_trajectories import plot_ACE_DICE_trajectories
+from plotting.plot_results import plot_results
 from utils.config_loader import load_config
 from utils.arg_parsing import parse_model_arguments
 
@@ -34,7 +34,7 @@ def main(model_version: str):
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
-        learning_rate=1e-4,  # clipvalue=1.0
+        learning_rate=1e-3,  # clipvalue=1.0
     )
     algorithm_config["log_dir"] = f"logs/{model_version}/training_stats"
     algorithm_config["checkpoint_dir"] = f"logs/{model_version}/checkpoints"
@@ -45,8 +45,8 @@ def main(model_version: str):
     algorithm.main_loop()
 
     # Plotting the trained model
-    plot_ACE_DICE_trajectories(
-        environment, agent, f"plotting/plots/ACE_DICE{model_version}"
+    plot_results(
+        environment, agent, f"plotting/plots/model_run/ACE_DICE{model_version}"
     )
 
 

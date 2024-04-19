@@ -222,8 +222,9 @@ class Algorithm_DEQN:
         training_start = tf.timestamp()
 
         lowest_loss = tf.constant(float("inf"), dtype=tf.float32)
+        error_tolerance = tf.constant(1e-4)
 
-        for iteration_i in range(self.n_iterations):
+        for iteration_i in range(self.n_iterations) or lowest_loss < error_tolerance:
             print(
                 f"\n========== Starting iteration {iteration_i+1}/{self.n_iterations} =========="
             )
@@ -256,3 +257,12 @@ class Algorithm_DEQN:
                 print(f"\nCheckpoint saved for lowest loss at {checkpoint_path}")
 
             self.print_time_elapsed(tf.timestamp(), training_start)
+
+        print("#######################################")
+        print("#######################################")
+        if lowest_loss < error_tolerance:
+            print(f"Training converged with lowest loss of {lowest_loss}")
+        else:
+            print(
+                f"Maximum number of iterations reached!\nLowest loss achieved was {lowest_loss}"
+            )

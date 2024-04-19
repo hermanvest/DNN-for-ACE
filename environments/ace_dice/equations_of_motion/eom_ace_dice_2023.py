@@ -21,12 +21,13 @@ class Eom_Ace_Dice_2023(Eom_Base):
         self.states = states
         self.actions = actions
 
-        self.N_t = self.create_N_t(t_max)
-        self.A_t = self.create_A_t(t_max)
-        self.sigma, self.theta_1 = self.create_sigma_theta_1(t_max)
-        self.E_t_EXO = self.create_e_land(t_max)
+        # t_max + 1 needed for loss calculations
+        self.N_t = self.create_N_t(t_max + 1)
+        self.A_t = self.create_A_t(t_max + 1)
+        self.sigma, self.theta_1 = self.create_sigma_theta_1(t_max + 1)
+        self.E_t_EXO = self.create_e_land(t_max + 1)
 
-        super().__init__(t_max)
+        super().__init__(t_max + 1)
 
     ################ INITIALIZAITON FUNCTIONS ################
     def create_N_t(self, t_max: int) -> tf.Tensor:
