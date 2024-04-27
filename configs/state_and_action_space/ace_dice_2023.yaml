@@ -95,6 +95,6 @@ action_variables:
   - name: lambda_tau_2
     activation: linear
   - name: lambda_t_BAU
-    activation: softplus
+    activation: linear
   - name: lambda_E_t
-    activation: softplus
+    activation: linear

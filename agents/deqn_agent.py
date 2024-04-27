@@ -20,7 +20,7 @@ class DEQN_agent:
     ) -> tf.Tensor:
         """Applies time transformation as in Traeger (2014) and downscales carbon reservoirs from GtCO2 to 1000GtCO2.
 
-        Time scaled as: hat(t) = -exp(-varsigma t)
+        Time scaled as: hat(t) = 1-exp(-varsigma t)
 
         Args:
             state (tf.Tensor): Shape [batch, state, state variables]
@@ -30,10 +30,12 @@ class DEQN_agent:
         """
         # Time located at index 6, where we select index 6 to, but not including 7.
         t = state[..., 6:7]
-        hat_t = -tf.exp(-varsigma * t) + 1
+        one = tf.constant(1.0, dtype=tf.float32)
+        hat_t = one - tf.exp(-varsigma * t)
 
+        thousand = tf.constant(1000.0, dtype=tf.float32)
         m = state[..., 1:4]
-        m_scaled = m / 1000
+        m_scaled = m / thousand
 
         preprocessed_state = tf.concat(
             [state[..., :1], m_scaled, state[..., 4:6], hat_t], axis=-1

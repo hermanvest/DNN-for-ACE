@@ -10,50 +10,70 @@ from typing import Tuple, List, Optional
 from environments.ace_dice.computation_utils import custom_sigmoid
 
 
-def plot_var(
-    title: str,
-    xlab: str,
-    ylab: str,
-    var_name: str,
-    plot_directory: str,
-    time_steps: List,
-    variable_values: List,
-    extra_var_name: Optional[str] = None,
-    extra_variable_values: Optional[List] = None,
-) -> None:
-    """Saves plot from given arguments including an optional extra variable
+#################### START CONSTANTS            ####################
+def get_sigma_matrix_for_scc(env: Env_ACE_DICE) -> tf.Tensor:
+    sigma = env.equations_of_motion.sigma_transition
+    ones_matrix = tf.ones_like(sigma)
 
-    Args:
-        title (str): Title of the plot.
-        xlab (str): Label for the X-axis.
-        ylab (str): Label for the Y-axis.
-        var_name (str): Name of the primary variable to be plotted.
-        plot_directory (str): Directory path to save the plot.
-        time_steps (List): Time steps for the variables.
-        variable_values (List): Values of the variable over time.
-        extra_var_name (Optional[str]): Name of the extra variable to be plotted, optional.
-        extra_variable_values (Optional[List]): Values of the extra variable over time, optional.
-    """
-    plt.figure(figsize=(10, 5))
-    plt.plot(time_steps, variable_values, marker="o", label=var_name)
-    if extra_variable_values is not None:
-        plt.plot(time_steps, extra_variable_values, marker="x", label=extra_var_name)
-    plt.title(title)
-    plt.xlabel(xlab)
-    plt.ylabel(ylab)
-    plt.grid(True)
-    plt.legend()
+    # Calculate the inverse of (ones_matrix - beta * sigma)
+    matrix_to_invert = ones_matrix - env.equations_of_motion.beta * sigma
+    inverse_matrix = tf.linalg.inv(matrix_to_invert)
 
-    # Ensure the plot directory exists
-    os.makedirs(plot_directory, exist_ok=True)
+    # Extract the element at the first row and first column
+    result_element = inverse_matrix[0, 0]
+    return result_element
 
-    # File name for the plot
-    plot_filename = f"{var_name}.png"
 
-    # Full path to save the plot
-    plot_path = os.path.join(plot_directory, plot_filename)
-    plt.savefig(plot_path)
-    plt.close()  # Close the figure to free memory
+def get_Phi_inverse_for_scc(env: Env_ACE_DICE) -> tf.Tensor:
+    phi = env.equations_of_motion.Phi
+    ones_matrix = tf.ones_like(phi)
+
+    # Calculate the inverse of (ones_matrix - beta * Phi)
+    matrix_to_invert = ones_matrix - env.equations_of_motion.beta * phi
+    inverse_matrix = tf.linalg.inv(matrix_to_invert)
+
+    # Extract the element at the first row and first column
+    result_element = inverse_matrix[0, 0]
+    return result_element
+
+
+def damage_t(env: Env_ACE_DICE, tau_layer_1_t: tf.Tensor) -> tf.Tensor:
+    damage_t = 1 - tf.exp(
+        -env.equations_of_motion.xi_0 * tau_layer_1_t + env.equations_of_motion.xi_0
+    )
+    return damage_t
+
+
+def calculate_scc_t(
+    env: Env_ACE_DICE,
+    net_output_t: tf.Tensor,
+    sigma_inverse: tf.Tensor,
+    phi_inverse: tf.Tensor,
+) -> tf.Tensor:
+
+    return (
+        (
+            (tf.pow(env.equations_of_motion.beta, 2) * net_output_t)
+            / env.equations_of_motion.M_pre
+        )
+        * sigma_inverse
+        * env.equations_of_motion.sigma_forc
+        * phi_inverse
+    )
+
+
+def calculate_optimal_abatement_rate(
+    env: Env_ACE_DICE, tau_layer_1_t: tf.Tensor, scc_t: tf.Tensor, t: int
+) -> tf.Tensor:
+    p_back_t = env.equations_of_motion.pbacktime[t]
+    fraction = scc_t / (p_back_t * (1 - damage_t(env, tau_layer_1_t)))
+
+    exponent = 1 / (env.equations_of_motion.theta_2 - 1)
+    return tf.pow(fraction, exponent)
+
+
+#################### END CONSTANTS              ####################
+#################### START HELPER METHODS       ####################
 
 
 def generate_trajectory(
@@ -79,9 +99,45 @@ def generate_trajectory(
     return states_tensor, actions_tensor
 
 
+def get_adj_emissions_and_bau_emissions(
+    env: Env_ACE_DICE,
+    capital_path: tf.Tensor,
+    emissions_path: tf.Tensor,
+    time_steps: List,
+) -> Tuple[np.array, np.array]:
+
+    emissions_BAU_list = []
+    emissions_adjusted_list = []
+
+    for t in time_steps:
+        k_t = capital_path[t]
+        E_t = emissions_path[t]
+
+        E_t_BAU = env.equations_of_motion.E_t_BAU(t, k_t)
+        emissions_BAU_list.append(E_t_BAU.numpy())
+
+        E_t_adjusted = custom_sigmoid(E_t, E_t_BAU).numpy()
+        emissions_adjusted_list.append(E_t_adjusted)
+
+    # Convert lists to numpy arrays before returning
+    emissions_BAU_np = np.array(emissions_BAU_list)
+    emissions_adjusted_np = np.array(emissions_adjusted_list)
+
+    return emissions_adjusted_np, emissions_BAU_np
+
+
+#################### END OF HELPER METHODS      ####################
+#################### START RESULT GENERATION    ####################
+
+
 def plot_states(
     states: tf.Tensor, years: List, plot_dir: str, env: Env_ACE_DICE
 ) -> None:
+    print(
+        "\n--------------------------------\nNOW GENERATING: Results for state variables."
+    )
+    os.makedirs(plot_dir, exist_ok=True)
+
     # Plotting of capital
     aggregate_capital_path = tf.math.exp(states[:, 0]).numpy()
     plt.plot(years, aggregate_capital_path, label="Aggregate Capital")
@@ -127,57 +183,63 @@ def plot_states(
     plt.savefig(file_path, bbox_inches="tight")
 
     plt.close()
-
-
-def plot_E_t(
-    env: Env_ACE_DICE,
-    emissions_path: tf.Tensor,
-    capital_path: tf.Tensor,
-    time_steps: List,
-    plot_dir: str,
-) -> None:
-    emissions_BAU = np.array(
-        [
-            env.equations_of_motion.E_t_BAU(timestep, capital_path[timestep]).numpy()
-            for timestep in range(len(capital_path))
-        ]
-    )
-    emissions_adjusted = [
-        custom_sigmoid(emissions_path[i], emissions_BAU[i]) for i in time_steps
-    ]
-    plot_var(
-        "Action: E_t",
-        "Time step",
-        "Value of E_T",
-        "E_t",
-        plot_dir,
-        time_steps,
-        emissions_adjusted,
-        "E_t_BAU",
-        emissions_BAU,
-    )
+    print(f"Plots located at {plot_dir}")
 
 
 def plot_actions(
+    env: Env_ACE_DICE,
     actions: tf.Tensor,
+    states: tf.Tensor,
     action_names: List,
     time_steps: List,
+    years: List,
     plot_dir: str,
 ) -> None:
-    # Loop through the actions and generate the relevant plots
-    for variable_index, name in enumerate(action_names):
-        if name == "E_t":
-            continue
+    print(
+        "\n--------------------------------\nNOW GENERATING: Results for action variables."
+    )
+    os.makedirs(plot_dir, exist_ok=True)
+
+    # Plotting x_t
+    consumption_rate_path = actions[:, 0].numpy() * 100  # Converting to percent
+    plt.plot(years, consumption_rate_path, label="Consumption Rate")
+    plt.xlabel("Years")
+    plt.ylabel("Rate (%)")
+    filename = "consumption_rate_plot.png"
+    file_path = os.path.join(plot_dir, filename)
+    plt.savefig(file_path, bbox_inches="tight")
+    plt.close()
+
+    # Plotting E_t and BAU
+    emissions_path = actions[:, 1]
+    capital_path = states[:, 0]
+    emissions_adjusted, emissions_BAU = get_adj_emissions_and_bau_emissions(
+        env, capital_path, emissions_path, time_steps
+    )
+    plt.plot(years, emissions_adjusted, label="Emissions After Abatement")
+    plt.plot(years, emissions_BAU, label="BAU Emissions")
+    plt.xlabel("Years")
+    plt.ylabel("GtCO2")
+    filename = "emissions_plot.png"
+    file_path = os.path.join(plot_dir, filename)
+    plt.savefig(file_path, bbox_inches="tight")
+    plt.close()
+
+    # Loop through the rest and generate the plots
+    start_index = 2
+    for variable_index, name in enumerate(
+        action_names[start_index:], start=start_index
+    ):
         action_data = actions[:, variable_index].numpy()
-        plot_var(
-            f"Action: {name}",
-            "Time step",
-            f"Value of {name}",
-            name,
-            plot_dir,
-            time_steps,
-            action_data,
-        )
+        plt.plot(years, action_data, label=f"{name}")
+        plt.xlabel("Years")
+        plt.ylabel(f"Shadow value of {name}")
+        filename = f"{name}_plot.png"
+        file_path = os.path.join(plot_dir, filename)
+        plt.savefig(file_path, bbox_inches="tight")
+        plt.close()
+
+    print(f"Plots located at {plot_dir}")
 
 
 def generate_error_statistics(
@@ -219,6 +281,7 @@ def generate_error_statistics(
         and `os` library for file operations. It also assumes TensorFlow tensors are in a format
         compatible with slicing as used in this function.
     """
+    print("\n--------------------------------\nNOW GENERATING: Error statistics.")
     # initialize a numpy_array that stores numpy_arrays of losses
     all_losses = []
 
@@ -251,6 +314,68 @@ def generate_error_statistics(
     with open(file_path, "w") as f:
         f.write(latex_table)
 
+    print(f"Error statistics located at: {dir}")
+
+
+def scc_and_optimal_abatement_path(
+    env: Env_ACE_DICE,
+    states: tf.Tensor,
+    actions: tf.Tensor,
+    t_max: int,
+    years: List,
+    plot_dir: str,
+):
+    print(
+        "\n--------------------------------\nNOW GENERATING: Analytic derivations (SCC and abatement rate)."
+    )
+    os.makedirs(plot_dir, exist_ok=True)
+    sigma_inverse = get_sigma_matrix_for_scc(env)
+    phi_inverse = get_Phi_inverse_for_scc(env)
+    emissions_path = actions[:, 1]
+    capital_path = states[:, 0]
+    tau_layer1 = states[:, 4]
+    scc_path = []
+    optimal_abatement_rate_path = []
+
+    for t in range(t_max):
+        E_t = emissions_path[t]
+        k_t = capital_path[t]
+
+        net_output_t = tf.exp(env.equations_of_motion.log_Y_t(k_t, E_t, t)) * (
+            1 - damage_t(env, tau_layer1[t])
+        )
+        scc_t = calculate_scc_t(env, net_output_t, sigma_inverse, phi_inverse)
+        scc_path.append(scc_t)
+        optimal_abatement_rate_path.append(
+            calculate_optimal_abatement_rate(env, tau_layer1[t], scc_t, t)
+        )
+
+    # Plotting SCC
+    scc_path_np = np.array(scc_path)
+    plt.plot(years, scc_path_np, label="Social Cost of Carbon")
+    plt.xlabel("Years")
+    plt.ylabel("SCC in utils")
+    filename = "SCC.png"
+    file_path = os.path.join(plot_dir, filename)
+    plt.savefig(file_path, bbox_inches="tight")
+    plt.close()
+
+    # Plotting Optimal Anatement Rate
+    optimal_abatement_rate_path_np = np.array(optimal_abatement_rate_path)
+    plt.plot(years, optimal_abatement_rate_path_np, label="Optimal Abatement Rate Path")
+    plt.xlabel("Years")
+    plt.ylabel("Rate (decimal)")
+    filename = "optimal_abatement_rate_path.png"
+    file_path = os.path.join(plot_dir, filename)
+    plt.savefig(file_path, bbox_inches="tight")
+    plt.close()
+
+    print(f"Analytic derivations located at: {plot_dir}")
+
+
+#################### END RESULT GENERATION      ####################
+#################### START MAIN METHOD          ####################
+
 
 def plot_results(env: Env_ACE_DICE, agent: DEQN_agent, plot_dir: str):
     states, actions = generate_trajectory(env, agent, env.equations_of_motion.t_max)
@@ -261,17 +386,27 @@ def plot_results(env: Env_ACE_DICE, agent: DEQN_agent, plot_dir: str):
     action_names = [var["name"] for var in env.equations_of_motion.actions]
 
     plot_states(states, years, f"{plot_dir}/states", env)
-    plot_actions(actions, action_names, time_steps, f"{plot_dir}/actions")
-
-    emissions_path = actions[:, 1]
-    capital_path = states[:, 0]
-    plot_E_t(env, emissions_path, capital_path, time_steps, f"{plot_dir}/actions")
+    plot_actions(
+        env, actions, states, action_names, time_steps, years, f"{plot_dir}/actions"
+    )
 
     generate_error_statistics(
         states,
         actions,
-        agent,
         env,
         env.equations_of_motion.t_max,
         f"{plot_dir}/error_statistics",
+    )
+
+    scc_and_optimal_abatement_path(
+        env,
+        states,
+        actions,
+        env.equations_of_motion.t_max,
+        years,
+        f"{plot_dir}/analytic_derivations",
+    )
+
+    print(
+        "\n--------------------------------\nFINISHED: All results have been successfully generated."
     )

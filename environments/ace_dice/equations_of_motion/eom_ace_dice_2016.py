@@ -22,6 +22,7 @@ class Eom_Ace_Dice_2016(Eom_Base):
         self.actions = actions
 
         # t_max + 1 needed for loss calculations
+        self.pbacktime = self.create_pbacktime(t_max + 1)
         self.N_t = self.create_N_t(t_max + 1)
         self.A_t = self.create_A_t(t_max + 1)
         self.sigma = self.create_sigma(t_max + 1)
@@ -30,6 +31,13 @@ class Eom_Ace_Dice_2016(Eom_Base):
         super().__init__(t_max + 1)
 
     ################ INITIALIZAITON FUNCTIONS ################
+    def create_pbacktime(self, t_max: int):
+        t_values = tf.range(1, t_max + 1, dtype=tf.float32)
+
+        # Compute pbacktime(t) for each time period
+        pbacktime = self.p_back * tf.pow((1 - self.g_back), (t_values - 1))
+        return pbacktime
+
     def create_N_t(self, t_max: int) -> tf.Tensor:
         """_summary_
 
@@ -87,9 +95,9 @@ class Eom_Ace_Dice_2016(Eom_Base):
         for t in range(1, t_max):
             tfp[t + 1] = tfp[t] / (1 - ga[t])
 
-        labor_tensor = tf.convert_to_tensor(tfp[1:], dtype=tf.float32)
+        tfp_tensor = tf.convert_to_tensor(tfp[1:], dtype=tf.float32)
 
-        return labor_tensor
+        return tfp_tensor
 
     def create_sigma(self, t_max: int) -> tf.Tensor:
         """
@@ -143,12 +151,7 @@ class Eom_Ace_Dice_2016(Eom_Base):
             pbacktime(t)=pback*(1-gback)**(t.val-1);
             cost1(t) = pbacktime(t)*sigma(t)/expcost2/1000;
         """
-        t_values = tf.range(1, t_max + 1, dtype=tf.float32)
-
-        # Compute pbacktime(t) for each time period
-        pbacktime = self.p_back * tf.pow((1 - self.g_back), (t_values - 1))
-
         # Compute cost1(t) for each time period
-        theta_1 = pbacktime * self.sigma[:t_max] / self.theta_2 / 1000
+        theta_1 = self.pbacktime * self.sigma[:t_max] / self.theta_2 / 1000
 
         return theta_1

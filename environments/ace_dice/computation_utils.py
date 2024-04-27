@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def custom_sigmoid(x, upper_bound, epsilon=1e-10):
+def custom_sigmoid(x, upper_bound, epsilon=1e-10) -> tf.Tensor:
     """
     Applies a modified sigmoid activation function to input tensor `x` that scales the output to be between `epsilon` and `upper_bound` minus `epsilon`. This function is useful for scenarios where the activation output needs to be constrained within a specific range, avoiding exact 0 and ensuring differentiability.
 

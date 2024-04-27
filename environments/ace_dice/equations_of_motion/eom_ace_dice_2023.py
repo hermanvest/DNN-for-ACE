@@ -22,6 +22,7 @@ class Eom_Ace_Dice_2023(Eom_Base):
         self.actions = actions
 
         # t_max + 1 needed for loss calculations
+        self.pbacktime = self.create_pbacktime(t_max + 1)
         self.N_t = self.create_N_t(t_max + 1)
         self.A_t = self.create_A_t(t_max + 1)
         self.sigma, self.theta_1 = self.create_sigma_theta_1(t_max + 1)
@@ -30,6 +31,17 @@ class Eom_Ace_Dice_2023(Eom_Base):
         super().__init__(t_max + 1)
 
     ################ INITIALIZAITON FUNCTIONS ################
+    def create_pbacktime(self, t_max: int):
+        t_values = tf.range(1, t_max + 1, dtype=tf.float32)
+
+        # pbacktime(t) calculation
+        pbacktime = tf.where(
+            t_values > 7,
+            self.pback2050 * tf.exp(-self.timestep * 0.001 * (t_values - 7)),
+            self.pback2050 * tf.exp(-self.timestep * 0.01 * (t_values - 7)),
+        )
+        return pbacktime
+
     def create_N_t(self, t_max: int) -> tf.Tensor:
         """_summary_
 
@@ -79,9 +91,9 @@ class Eom_Ace_Dice_2023(Eom_Base):
         for t in range(1, t_max):
             tfp[t + 1] = tfp[t] / (1 - ga[t])
 
-        labor_tensor = tf.convert_to_tensor(tfp[1:], dtype=tf.float32)
+        tfp_tensor = tf.convert_to_tensor(tfp[1:], dtype=tf.float32)
 
-        return labor_tensor
+        return tfp_tensor
 
     def create_sigma_theta_1(self, t_max: int) -> tuple[tf.Tensor, tf.Tensor]:
         """
@@ -110,13 +122,6 @@ class Eom_Ace_Dice_2023(Eom_Base):
         """
         t_values = tf.range(1, t_max + 1, dtype=tf.float32)
 
-        # pbacktime(t) calculation
-        pbacktime = tf.where(
-            t_values > 7,
-            self.pback2050 * tf.exp(-self.timestep * 0.001 * (t_values - 7)),
-            self.pback2050 * tf.exp(-self.timestep * 0.01 * (t_values - 7)),
-        )
-
         # gsig(t) calculation
         gsig = tf.minimum(self.gsigma1 * self.delgsig ** (t_values - 1), self.asymgsig)
 
@@ -139,7 +144,7 @@ class Eom_Ace_Dice_2023(Eom_Base):
         sigmatot = sigma * emissrat
 
         # cost1tot(t) calculation
-        theta_1 = pbacktime * sigmatot / (self.theta_2 * 1000)
+        theta_1 = self.pbacktime * sigmatot / (self.theta_2 * 1000)
 
         return sigmatot, theta_1
 

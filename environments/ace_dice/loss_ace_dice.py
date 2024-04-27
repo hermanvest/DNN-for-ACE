@@ -85,7 +85,7 @@ class Loss_Ace_Dice:
             tf.Tensor: loss
         """
         return (
-            tf.pow(self.beta, self.timestep)
+            self.beta
             * lambda_k_t_plus
             * self.calculate_F_t_wrt_k_t(E_tplus, E_tplusBAU, tplus)
             - lambda_k_t
@@ -113,9 +113,12 @@ class Loss_Ace_Dice:
         Returns:
             loss (tf.Tensor)
         """
-        parenthesis = lambda_k_t + tf.pow(
-            self.beta, self.timestep
-        ) * lambda_k_tplus * self.calculate_F_t_wrt_k_t(E_tplus, E_tplusBAU, tplus)
+        parenthesis = (
+            lambda_k_t
+            + self.beta
+            * lambda_k_tplus
+            * self.calculate_F_t_wrt_k_t(E_tplus, E_tplusBAU, tplus)
+        )
 
         return (1 / x_t) - (1 / (1 - x_t)) * parenthesis
 
@@ -169,7 +172,7 @@ class Loss_Ace_Dice:
             d_logF_d_E_t * (1 + lambda_k_t)
             + lambda_m_1_t
             + lambda_E_t
-            + tf.pow(self.beta, self.timestep) * d_V_tplus_d_E_t
+            + self.beta * d_V_tplus_d_E_t
         )
 
     def ell_3(self, lambda_E_t: tf.Tensor, E_t: tf.Tensor) -> tf.Tensor:
@@ -229,10 +232,7 @@ class Loss_Ace_Dice:
         e_1 = tf.reshape(e_1, shape=[3, 1])
         forc = lambda_tau_1_tplus * self.sigma_forc * (1 / self.M_pre)
 
-        loss = (
-            tf.pow(self.beta, self.timestep) * (transitions + e_1 * forc)
-            - lambda_m_t_reshaped
-        )
+        loss = self.beta * (transitions + e_1 * forc) - lambda_m_t_reshaped
 
         return loss
 
@@ -265,10 +265,7 @@ class Loss_Ace_Dice:
         e_1 = tf.reshape(e_1, shape=[2, 1])
         forc = e_1 * self.xi_0 * (1 + lambda_k_tplus)
 
-        loss = (
-            tf.pow(self.beta, self.timestep) * (transitions - forc)
-            - lambda_tau_t_reshaped
-        )
+        loss = self.beta * (transitions - forc) - lambda_tau_t_reshaped
 
         return loss
 
@@ -299,13 +296,7 @@ class Loss_Ace_Dice:
         production = self.equations_of_motion.log_Y_t(k_t, E_t, t)
         damages = -self.xi_0 * tau_1_t + self.xi_0
 
-        return (
-            tf.math.log(x_t)
-            + production
-            + damages
-            + tf.pow(self.beta, self.timestep) * v_tplus
-            - v_t
-        )
+        return tf.math.log(x_t) + production + damages + self.beta * v_tplus - v_t
 
     ################ MAIN LOSS FUNCTION CALLED FROM ENV ################
     def squared_error_for_transition(
@@ -322,10 +313,11 @@ class Loss_Ace_Dice:
         Returns:
             float: squared error without penalty
         """
-        assert_valid(s_t, "s_t")
-        assert_valid(s_tplus, "s_tplus")
-        assert_valid(a_t, "a_t")
-        assert_valid(a_tplus, "a_tplus")
+        # For debug porposes
+        # assert_valid(s_t, "s_t")
+        # assert_valid(s_tplus, "s_tplus")
+        # assert_valid(a_t, "a_t")
+        # assert_valid(a_tplus, "a_tplus")
 
         # action variables t
         x_t = a_t[0]
@@ -415,10 +407,6 @@ class Loss_Ace_Dice:
             np.array: Array of individual losses, each element representing a separate loss
             calculated from different aspects of the state and action transitions.
         """
-        assert_valid(s_t, "s_t")
-        assert_valid(s_tplus, "s_tplus")
-        assert_valid(a_t, "a_t")
-        assert_valid(a_tplus, "a_tplus")
 
         # action variables t
         x_t = a_t[0]

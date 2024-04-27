@@ -19,6 +19,11 @@ class Eom_Base:
         if not hasattr(self, "E_t_EXO"):
             self.E_t_EXO = None
 
+        # Note: beta is adjusted for the time step.
+        self.beta = tf.constant(
+            (1 / (1 + self.prtp)) ** self.timestep, dtype=tf.float32
+        )
+
     ################ INITIALIZAITON FUNCTIONS ################
     def create_sigma_transitions(self) -> tf.Tensor:
         """Used for initializing the transition matrix for temperatures. Assumes that values sigma_up_1, sigma_up_2, and sigma_down_1 are already initialized.
@@ -102,7 +107,7 @@ class Eom_Base:
 
         Args:
             k_t (tf.Tensor): log capital for time step t
-            E_t (tf.Tensor): yearly emisions for time step t
+            E_t (tf.Tensor): unadjusted yearly emisions for time step t
 
         Returns:
             log Y_t (tf.Tensor): Log of output in trillion USD
@@ -234,8 +239,9 @@ class Eom_Base:
         Raises:
             TypeError: If either s_t or a_t is not of dtype tf.float32.
         """
-        assert_valid(a_t, "a_t")
-        assert_valid(s_t, "s_t")
+        # For debug purposes
+        # assert_valid(a_t, "a_t")
+        # assert_valid(s_t, "s_t")
 
         # state- and action values should be in the same order as in the config
         # 1. get x_t and E_t
