@@ -1,5 +1,6 @@
 import tensorflow as tf
 from typing import Tuple
+import os
 
 from environments.ace_dice.env_ace_dice import Env_ACE_DICE
 from networks.policy_network import Policy_Network
@@ -28,8 +29,15 @@ def load_network(checkpoint_dir: str, agent: DEQN_agent):
 
 
 def initialize(model_version: str) -> Tuple[Env_ACE_DICE, DEQN_agent]:
-    env_config_path = f"configs/state_and_action_space/ace_dice_{model_version}.yaml"
-    nw_config_path = "configs/network_configs/network_config1.yaml"
+    base_dir = os.path.dirname(os.path.realpath(__file__))
+
+    env_config_path = os.path.join(
+        base_dir, f"configs/state_and_action_space/ace_dice_{model_version}.yaml"
+    )
+    nw_config_path = os.path.join(
+        base_dir, "configs/network_configs/network_config1.yaml"
+    )
+    checkpoint_dir = os.path.join(base_dir, f"logs/{model_version}/checkpoints")
 
     env_config = load_config(env_config_path)
     network_config = load_config(nw_config_path)
@@ -40,7 +48,7 @@ def initialize(model_version: str) -> Tuple[Env_ACE_DICE, DEQN_agent]:
     network = Policy_Network(**network_config)
     agent = DEQN_agent(network)
 
-    load_network(checkpoint_dir=f"logs/{model_version}/checkpoints", agent=agent)
+    load_network(checkpoint_dir=checkpoint_dir, agent=agent)
 
     return environment, agent
 

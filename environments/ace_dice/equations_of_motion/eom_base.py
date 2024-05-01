@@ -12,19 +12,40 @@ class Eom_Base:
     NOTE: This class assumes that initializations of constants are being made in the sublasses that extend this superclass.
     """
 
-    def __init__(self, t_max: int) -> None:
+    def __init__(self, t_max: int, mod_version: str) -> None:
         self.t_max = t_max
         self.sigma_transition = self.create_sigma_transitions()
         self.Phi = self.create_Phi_transitions()
-        if not hasattr(self, "E_t_EXO"):
-            self.E_t_EXO = None
+        self.E_t_EXO = self.create_e_land(t_max + 1)
 
         # Note: beta is adjusted for the time step.
         self.beta = tf.constant(
             (1 / (1 + self.prtp)) ** self.timestep, dtype=tf.float32
         )
 
+        self.mod_version = mod_version
+
     ################ INITIALIZAITON FUNCTIONS ################
+    def create_e_land(self, t_max: int) -> tf.Tensor:
+        """Computes and returns landuse emissions in GtCO2 per year.
+
+        Args:
+            t_max (int): max simulation length
+
+        Returns:
+            tf.Tensor: landuse emissions
+
+        Relevant GAMS code:
+            eland0         Carbon emissions from land 2015 (GtCO2 per year)  / 2.6  (2016) or 5.9 (2023)    /
+            deland         Decline rate of land emissions (per period)       / .115 (2016) or 0.1 (2023)     /
+            eland(t) = eland0*(1-deland)**(t.val-1);
+        """
+        t = tf.range(0, t_max, dtype=tf.float32)
+
+        e_land = self.e_land0 * tf.pow(1 - self.de_land, t)
+
+        return e_land
+
     def create_sigma_transitions(self) -> tf.Tensor:
         """Used for initializing the transition matrix for temperatures. Assumes that values sigma_up_1, sigma_up_2, and sigma_down_1 are already initialized.
 
@@ -56,7 +77,6 @@ class Eom_Base:
 
         xi_scaled = self.Xi * (self.timestep / five)
 
-        # Correct usage of tf.stack by providing a list of tensors to be stacked
         transition_matrix = tf.stack(
             [
                 tf.stack([1.0 - xi_scaled[0], xi_scaled[2], 0.0]),
@@ -122,9 +142,12 @@ class Eom_Base:
 
             NOTE: Damages are taken care of in the capital equation of motion.
         """
-
-        E_t_BAU = self.E_t_BAU(t, k_t)
-        E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
+        if self.mod_version == "2016":
+            E_t_BAU = self.E_t_BAU(t, k_t)
+            E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
+        else:
+            E_t_BAU = self.E_t_BAU(t, k_t) + self.E_t_EXO[t]
+            E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
 
         log_Y_t_gross = tf.math.log(self.Y_gross(t, k_t))
 
@@ -172,7 +195,6 @@ class Eom_Base:
         E_t: tf.Tensor,
         k_t: tf.Tensor,
         t: int,
-        E_t_EXO: tf.Tensor = tf.constant(0.0, dtype=tf.float32),
     ) -> tf.Tensor:
         """Computes carbon reservoirs for the next period using the equation of motion. Note that this function scales E_t to be in the range (epsilon, E_t_BAU)
         Args:
@@ -186,7 +208,10 @@ class Eom_Base:
             M_{t+1} (tf.Tensor): Carbon stock for all layers in the next time step.
         """
         E_t_BAU = self.E_t_BAU(t, k_t)
-        E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU)
+        if self.mod_version == "2016":
+            E_t_adj = custom_sigmoid(x=E_t, upper_bound=E_t_BAU) + self.E_t_EXO[t]
+        else:
+            E_t_adj = custom_sigmoid(x=E_t, upper_bound=(E_t_BAU + self.E_t_EXO[t]))
 
         m_reshaped = tf.reshape(m_t, (3, 1))
         phi_mult_m = tf.matmul(self.Phi, m_reshaped)
@@ -194,9 +219,7 @@ class Eom_Base:
         e_1 = tf.constant([1, 0, 0], dtype=tf.float32)
         e_1 = tf.reshape(e_1, shape=[3, 1])
 
-        result = (
-            phi_mult_m + (e_1 * (convert_co2_to_c(E_t_adj + E_t_EXO))) * self.timestep
-        )
+        result = phi_mult_m + (e_1 * (convert_co2_to_c(E_t_adj))) * self.timestep
 
         return tf.reshape(result, [-1])
 
@@ -256,14 +279,9 @@ class Eom_Base:
         t_plus = s_t[6] + 1  # Needs to be tensor
 
         # 3. call functions with variables and get state values
-        if self.E_t_EXO is not None:
-            exo_emissions = self.E_t_EXO[t]
-        else:
-            exo_emissions = tf.constant(0.0, dtype=tf.float32)
-
         log_Y_t = self.log_Y_t(k_t, E_t, t)
         k_tplus = self.k_tplus(log_Y_t, tau_vector[0], x_t)
-        m_plus = self.m_tplus(m_vector, E_t, k_t, t, exo_emissions)
+        m_plus = self.m_tplus(m_vector, E_t, k_t, t)
         tau_tplus = self.tau_tplus(tau_vector, m_vector[0])
 
         # 4. return state values for next state

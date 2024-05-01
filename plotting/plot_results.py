@@ -128,6 +128,47 @@ def get_adj_emissions_and_bau_emissions(
 
 #################### END OF HELPER METHODS      ####################
 #################### START RESULT GENERATION    ####################
+def store_data(
+    states: tf.Tensor,
+    actions: tf.Tensor,
+    dir: str,
+    action_names: List,
+    state_names: List,
+) -> None:
+    """This function takes simulated trajectories for states and actions formatted as they are in the config files of the environments.
+    It saves the trajectories to a pandas dataframe that then saves the dataframe as a csv to the specified directory.
+
+    Args:
+        states (tf.Tensor): Tensor containing state variables.
+        actions (tf.Tensor): Tensor containing action variables.
+        dir (str): Directory where the CSV file will be saved.
+    """
+    print(
+        "\n--------------------------------\nNOW GENERATING: Analytic derivations (SCC and abatement rate)."
+    )
+
+    # Convert Tensors to numpy if not already
+    states = states.numpy() if isinstance(states, tf.Tensor) else states
+    actions = actions.numpy() if isinstance(actions, tf.Tensor) else actions
+
+    # Create dataframes from the states and actions
+    df_states = pd.DataFrame(states, columns=state_names)
+    df_actions = pd.DataFrame(actions, columns=action_names)
+
+    # Concatenate the states and actions dataframes
+    df = pd.concat([df_states, df_actions], axis=1)
+
+    # Check if directory exists, if not, create it
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
+    # Define the full path for the csv file
+    file_path = os.path.join(dir, "trajectory_data.csv")
+
+    # Save the dataframe to csv
+    df.to_csv(file_path, index=False)
+
+    print(f"Data saved successfully to {file_path}")
 
 
 def plot_states(
@@ -169,7 +210,7 @@ def plot_states(
 
     # Plotting of temperatures
     temperature_layer = (
-        tf.math.log(states[:, 4:6]).numpy() / env.equations_of_motion.xi_0
+        tf.math.log(states[:, 4:6]).numpy() / env.equations_of_motion.xi_1
     )
     plt.plot(years, temperature_layer[:, 0], label="Layer 1")
     plt.plot(years, temperature_layer[:, 1], label="Layer 2")
@@ -383,7 +424,10 @@ def plot_results(env: Env_ACE_DICE, agent: DEQN_agent, plot_dir: str):
     years = [x * 5 for x in time_steps]
 
     # Getting state and action names
+    state_names = [var["name"] for var in env.equations_of_motion.states]
     action_names = [var["name"] for var in env.equations_of_motion.actions]
+
+    store_data(states, actions, f"{plot_dir}/csv", action_names, state_names)
 
     plot_states(states, years, f"{plot_dir}/states", env)
     plot_actions(

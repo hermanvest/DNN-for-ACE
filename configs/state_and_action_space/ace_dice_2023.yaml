@@ -17,7 +17,7 @@ parameters:
     
     ## For CO2-equivalent-emissions output ratio sigma_t and abatement costs theta_1
     emissrat2020: 1.40              # Ratio of CO2e to industrial CO2 2020
-    emissrat2100: 1.21              # Ratio of CO2e to industrial CO2 2020
+    emissrat2100: 1.21              # Ratio of CO2e to industrial CO2 2100
     pback2050: 515.0                # Cost of backstop 2019$ per tCO2 2050
     gsigma1: -0.015                 # Initial growth of sigma (per year)
     delgsig: 0.96                   # Decline rate of gsigma per period
@@ -43,7 +43,7 @@ parameters:
 
   climate_specific:
     xi_0: 0.02219                   # Base scenario damage coefficient
-    #xi_1: 0.25                     # Baked into the tau. probably not needed.
+    xi_1: 0.25                      # Baked into the tau. probably not needed.
     sigma_forc: 0.519796017680083
     M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE in 1000GtCO2
     # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
@@ -57,9 +57,9 @@ parameters:
 # STATE VARIABLES
 state_variables:
   - name: k_t
-    init_val: 223                   # Initial capital value 2015 (trill 2010 usd)
+    init_val: 295                   # Initial capital value 2020 (trill 2019 usd)
   - name: M_1_t
-    init_val: 862.86               # 2015 Carbon stock Atmosphere GtC
+    init_val: 862.86                # 2015 Carbon stock Atmosphere GtC
   - name: M_2_t
     init_val: 1541.11               # 2015 Carbon stock Upper ocean GtC
   - name: M_3_t

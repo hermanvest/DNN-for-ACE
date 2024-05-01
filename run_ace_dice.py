@@ -30,16 +30,20 @@ def main(model_version: str):
     agent = DEQN_agent(network)
 
     # Initialization of algorithm
+    learning_rate = 1e-3
     algorithm_config["t_max"] = env_config["general"]["t_max"]
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
     algorithm_config["optimizer"] = tf.keras.optimizers.Adam(
-        learning_rate=1e-3,  # clipvalue=1.0
+        learning_rate=learning_rate,  # clipvalue=1.0
     )
     algorithm_config["log_dir"] = f"logs/{model_version}/training_stats"
     algorithm_config["checkpoint_dir"] = f"logs/{model_version}/checkpoints"
 
     algorithm = Algorithm_DEQN(**algorithm_config)
+    algorithm.optimizer = tf.keras.optimizers.Adam(
+        learning_rate=learning_rate,  # clipvalue=1.0
+    )
 
     # Running the algorithm
     algorithm.main_loop()

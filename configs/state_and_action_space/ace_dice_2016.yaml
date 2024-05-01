@@ -36,10 +36,14 @@ parameters:
     dela: 0.005                     # Decline rate of TFP per 5 years
     ga0: 0.076                      # Initial growth rate for TFP per 5 years
     a0: 5.115                       # Initial level of total factor productivity
+    
+    ## For initializing landuse emissions
+    e_land0: 2.6                     # Carbon emissions from land 2015 (GtCO2 per year)
+    de_land: 0.115                    # Decline rate of land emissions (per period)
 
   climate_specific:
     xi_0: 0.02219                   # Base scenario damage coefficient
-    #xi_1: 0.25                     # Baked into the tau. probably not needed.
+    xi_1: 0.25                      #
     sigma_forc: 0.519796017680083
     M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE
     # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
@@ -50,16 +54,17 @@ parameters:
     sigma_up_1: 0.519796017680083   # Temp transition from upper layer to space
     sigma_up_2: 0.0229478090365842  # Temp transition from lower layer to upper layer
 
+
 # STATE VARIABLES
 state_variables:
   - name: k_t
     init_val: 223                   # Initial capital value 2015 (trill 2010 usd)
   - name: M_1_t
-    init_val: 862.86                # 2015 Carbon stock Atmosphere GtCO2
+    init_val: 862.86                # 2015 Carbon stock Atmosphere GtC
   - name: M_2_t
-    init_val: 1541.11               # 2015 Carbon stock Upper ocean GtCO2
+    init_val: 1541.11               # 2015 Carbon stock Upper ocean GtC
   - name: M_3_t
-    init_val: 10010.44              # 2015 Carbon stock Lower ocean GtCO2
+    init_val: 10010.44              # 2015 Carbon stock Lower ocean GtC
   - name: tau_1_t
     init_val: 1.256727218547292     # Row 1, column 5 in initial temperatures, ace code
   - name: tau_2_t
