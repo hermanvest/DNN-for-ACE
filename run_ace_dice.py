@@ -30,7 +30,7 @@ def main(model_version: str):
     agent = DEQN_agent(network)
 
     # Initialization of algorithm
-    learning_rate = 1e-3
+    learning_rate = 1e-4
     algorithm_config["t_max"] = env_config["general"]["t_max"]
     algorithm_config["env"] = environment
     algorithm_config["agent"] = agent
