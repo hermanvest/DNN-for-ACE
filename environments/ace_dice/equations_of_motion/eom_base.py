@@ -19,9 +19,7 @@ class Eom_Base:
         self.E_t_EXO = self.create_e_land(t_max + 1)
 
         # Note: beta is adjusted for the time step.
-        self.beta = tf.constant(
-            (1 / (1 + self.prtp)) ** self.timestep, dtype=tf.float32
-        )
+        self.beta = tf.exp(-self.timestep * self.prtp)
 
         self.mod_version = mod_version
 

@@ -1,13 +1,13 @@
 eom_version: "Eom_Ace_Dice_2023"
 
 general:
-  t_max: 64                         # Has to be in powers of 2 for Tensorflow compatibility
+  t_max: 128                         # Has to be in powers of 2 for Tensorflow compatibility
   num_batches: 1                    # Number of simultaneously simulated batches
 
 parameters:
   production_specific:
     # ACE specific parameters
-    prtp: 0.013896                  # Pure rate of social time preference, Global
+    prtp: 0.0286                    # Pure rate of social time preference, Global
     kappa: 0.3                      # Capital share of output
     delta_k: 0.0439                 # Capital depreciation factor
     g_k: 0.02949                    # Approx growth rate of capital (Assuming g_kt=g_k)
@@ -50,9 +50,9 @@ parameters:
     
     Xi: [0.088, 0.0025, 0.03832888889, 0.00033750] # DICE2013 5yr step
       
-    sigma_down_1: 0.313477283382278 # Temp transition from upper layer to lower layer
-    sigma_up_1: 0.519796017680083   # Temp transition from upper layer to space
-    sigma_up_2: 0.0229478090365842  # Temp transition from lower layer to upper layer
+    sigma_down_1: 0.313477283382278 # Temp transition from upper layer to lower layer 10yr
+    sigma_up_1: 0.519796017680083   # Temp transition from upper layer to space 10yr
+    sigma_up_2: 0.0229478090365842  # Temp transition from lower layer to upper layer 10yr
 
 # STATE VARIABLES
 state_variables:
