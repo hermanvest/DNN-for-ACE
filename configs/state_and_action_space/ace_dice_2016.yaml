@@ -78,7 +78,7 @@ action_variables:
   - name: x_t
     activation: sigmoid
   - name: E_t
-    activation: softplus
+    activation: linear
   # Value function prediction
   - name: V_t
     activation: softplus
