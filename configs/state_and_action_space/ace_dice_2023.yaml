@@ -50,9 +50,9 @@ parameters:
     
     Xi: [0.088, 0.0025, 0.03832888889, 0.00033750] # DICE2013 5yr step
       
-    sigma_down_1: 0.313477283382278 # Temp transition from upper layer to lower layer 10yr
-    sigma_up_1: 0.519796017680083   # Temp transition from upper layer to space 10yr
-    sigma_up_2: 0.0229478090365842  # Temp transition from lower layer to upper layer 10yr
+    sigma_down_1: 0.1479            # Temp transition from upper layer to lower layer 5yr
+    sigma_up_1: 0.24755             # Temp transition from upper layer to space 5yr
+    sigma_up_2: 0.011354            # Temp transition from lower layer to upper layer 5yr
 
 # STATE VARIABLES
 state_variables:
