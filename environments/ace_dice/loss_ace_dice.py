@@ -27,6 +27,7 @@ class Loss_Ace_Dice:
 
         self.sigma_transition = self.equations_of_motion.create_sigma_transitions()
         self.Phi = self.equations_of_motion.create_Phi_transitions()
+        self.sigma_forc = 1 - self.sigma_transition[0][0] - self.sigma_transition[0][1]
 
     ################ HELPER FUNCITONS ################
     def fischer_burmeister_function(self, a: float, b: float):
@@ -85,9 +86,8 @@ class Loss_Ace_Dice:
             tf.Tensor: loss
         """
         return (
-            self.beta
-            * lambda_k_t_plus
-            * self.calculate_F_t_wrt_k_t(E_tplus, E_tplusBAU, tplus)
+            self.beta * lambda_k_t_plus
+            # * self.calculate_F_t_wrt_k_t(E_tplus, E_tplusBAU, tplus)
             - lambda_k_t
         )
 

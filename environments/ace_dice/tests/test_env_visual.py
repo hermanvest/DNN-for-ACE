@@ -13,7 +13,7 @@ from typing import List, Optional
 # Define the path to the current script
 current_script_path = Path(__file__).parent
 
-model_version = "2023"
+model_version = "2016"
 
 # Navigate up to the common root and then to the YAML file
 yaml_file_path = (
@@ -22,7 +22,121 @@ yaml_file_path = (
     / "state_and_action_space"
     / f"ace_dice_{model_version}.yaml"
 )
+"""
+emission_values = [
+    0.0299,
+    0.0323,
+    0.0349,
+    0.0377,
+    0.0408,
+    0.0441,
+    0.0476,
+    0.0515,
+    0.0556,
+    0.0601,
+    0.0650,
+    0.0702,
+    0.0759,
+    0.0821,
+    0.0887,
+    0.0959,
+    0.1036,
+    0.1120,
+    0.1210,
+    0.1308,
+    0.1414,
+    0.1528,
+    0.1651,
+    0.1785,
+    0.1929,
+    0.2085,
+    0.2253,
+    0.2436,
+    0.2632,
+    0.2845,
+    0.3075,
+    0.3323,
+    0.3592,
+    0.3882,
+    0.4196,
+    0.4535,
+    0.4902,
+    0.5298,
+    0.5726,
+    0.6188,
+    0.6688,
+    0.7229,
+    0.7813,
+    0.8444,
+    0.9127,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+    1.2000,
+]
 
+"""
 emission_values = [
     0.051,
     0.057,
@@ -185,7 +299,7 @@ def get_trajectory(
         if E_t is None:
             a_t = [
                 x_t,
-                logit(1 - emission_values_tensor[t] + 1e-7),
+                logit(1 - emission_values_tensor[t] + 1e-10),
                 1,
                 1,
                 1,
@@ -422,6 +536,17 @@ def test_env_dynamics_with_dice_control() -> None:
         for i in range(t_max)
     ]
     plot_var(
+        "E_t and bau",
+        "Period",
+        "Value of E_T",
+        "E_t--",
+        plot_directory,
+        time_steps,
+        E_ts,
+        "BAU",
+        E_t_BAUs,
+    )
+    plot_var(
         "E_t",
         "Period",
         "Value of E_T",
@@ -430,7 +555,7 @@ def test_env_dynamics_with_dice_control() -> None:
         time_steps,
         E_ts,
         "E_t and land use",
-        E_ts + env.equations_of_motion.E_t_EXO.numpy(),
+        E_ts + env.equations_of_motion.E_t_EXO.numpy()[:t_max],
     )
     plot_var(
         "Land use emissions",
@@ -439,7 +564,7 @@ def test_env_dynamics_with_dice_control() -> None:
         "Land use emissions",
         plot_directory,
         time_steps,
-        env.equations_of_motion.E_t_EXO.numpy(),
+        env.equations_of_motion.E_t_EXO.numpy()[:t_max],
     )
 
     # Plotting output Y_t
@@ -458,8 +583,12 @@ def test_env_dynamics_with_dice_control() -> None:
     )
 
     # Plotting of temperatures
-    temp_1 = np.log([state.numpy()[0, 4] for state in states]) / 0.231049
-    temp_2 = np.log([state.numpy()[0, 5] for state in states]) / 0.231049
+    temp_1 = (
+        np.log([state.numpy()[0, 4] for state in states]) / env.equations_of_motion.xi_1
+    )
+    temp_2 = (
+        np.log([state.numpy()[0, 5] for state in states]) / env.equations_of_motion.xi_1
+    )
     plot_var(
         "Temperatures",
         "Period",

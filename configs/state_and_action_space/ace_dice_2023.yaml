@@ -1,7 +1,7 @@
 eom_version: "Eom_Ace_Dice_2023"
 
 general:
-  t_max: 128                         # Has to be in powers of 2 for Tensorflow compatibility
+  t_max: 64                         # Has to be in powers of 2 for Tensorflow compatibility
   num_batches: 1                    # Number of simultaneously simulated batches
 
 parameters:
@@ -43,8 +43,7 @@ parameters:
 
   climate_specific:
     xi_0: 0.02219                   # Base scenario damage coefficient
-    xi_1: 0.25                      # 
-    sigma_forc: 0.519796017680083
+    xi_1: 0.2310                     # 
     M_pre: 596.4                    # Pre-industrial atmospheric carbon concentration ACE in 1000GtCO2
     # M_pre: 600                    # Pre-industrial atmospheric carbon concentration DICE
     

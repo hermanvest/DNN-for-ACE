@@ -17,6 +17,7 @@ class Eom_Base:
         self.sigma_transition = self.create_sigma_transitions()
         self.Phi = self.create_Phi_transitions()
         self.E_t_EXO = self.create_e_land(t_max + 1)
+        self.sigma_forc = 1-self.sigma_transition[0][0] - self.sigma_transition[0][1]
 
         # Note: beta is adjusted for the time step.
         self.beta = tf.exp(-self.timestep * self.prtp)
@@ -231,7 +232,7 @@ class Eom_Base:
         Args:
         - The current vector of transformed temperatures tau
         - Current atmospheric carbon stock M_{1,t}
-        - Exogenous non-CO2 ghg G_t (now treated as cumulative sum of exo emisisons for the timesteps in between)
+        - Exogenous non-CO2 ghg forcing G_t
 
         Returns:
             tau_{t+1} (tf.Tensor): next periods vector of transformed temperatures

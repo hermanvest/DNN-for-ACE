@@ -143,9 +143,7 @@ def store_data(
         actions (tf.Tensor): Tensor containing action variables.
         dir (str): Directory where the CSV file will be saved.
     """
-    print(
-        "\n--------------------------------\nNOW GENERATING: Analytic derivations (SCC and abatement rate)."
-    )
+    print("\n--------------------------------\nNOW GENERATING: Storing trajectory data")
 
     # Convert Tensors to numpy if not already
     states = states.numpy() if isinstance(states, tf.Tensor) else states
