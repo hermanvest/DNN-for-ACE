@@ -1,7 +1,7 @@
 eom_version: "Eom_Ace_Dice_2016"
 
 general:
-  t_max: 128                         # Has to be in powers of 2 for Tensorflow compatibility
+  t_max: 64                         # Has to be in powers of 2 for Tensorflow compatibility
   num_batches: 1                    # Number of simultaneously simulated batches
 
 parameters:
@@ -17,14 +17,14 @@ parameters:
     
     ## For CO2-equivalent-emissions output ratio sigma_t
     g_0_sigma: -0.0152              # Initial growth of sigma (pr yr)
-    delta_sigma: 0.001              # Decline rate of decarbonization (per period, so 5yrs?)
+    delta_sigma: -0.001             # Decline rate of decarbonization (per period, so 5yrs?)
     E_0: 35.85                      # Industrial emissions 2015 (GtCO2 pr yr)
     Y_0: 105.5                      # Initial world gross output 2015 (trill 2010 usd)
     mu_0: 0.03                      # Initial emissions control rate for base case 2015
     
     ## For abatement costs theta_{1,t}
     p_back: 550                     # Cost of backstop 2010$ per tCO2 2015
-    g_back: 0.25                    # Initial cost decline backstop cost per period
+    g_back: 0.025                    # Initial cost decline backstop cost per period
     theta_2: 2.6                    # Exponent of control cost function
     
     ## For initializing labor (N_t)
