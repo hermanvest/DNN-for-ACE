@@ -1,46 +1,18 @@
+---
+output:
+  md_document:
+    variant: markdown_github
+bibliography: bibliography.bib
+---
+
 # Deep Equilibrium Nets for The Analytic Climate Economy
 
 ![Cover Image](front_page_img.webp)
 
 ## Description
 
-This GitHub repository contains the codes for a mapping of [Deep Equilibrium Nets](https://github.com/sischei/DeepEquilibriumNets) to the Analytic Climate Economomy  
-
-...
-
-## Key Features
-
-...
-
-## Technologies
-
-...
-
-## Installation
-
-...
-
-### (Step 0): Miniconda for Package Management
-
-1. **Why Miniconda?** I recommend using Miniconda for managing packages and environments.
-2. **What is Miniconda?** Miniconda is a minimal installer for Conda, an open-source package management system and environment manager.
-3. **Quick Installation Guide:**
-   - Download Miniconda from the [official site](https://docs.conda.io/projects/miniconda/en/latest/).
-   - Install by following the instructions for your OS.
-   - Create and activate a new Conda environment with `conda create --name myenv python=3.x` and `conda activate myenv`.
-
-### Step 1
-
-...
-
-## Usage
-
-...
+This GitHub repository contains the codes for my thesis, called "Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy". Please refer to [@Azinovic2022DEQN] for Deep Equilibrium Nets and their [GitHub repository](https://github.com/sischei/DeepEquilibriumNets) and to [@TraegerChristian2023ACE] for the paper on the Analytic Climate Economy.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-...
