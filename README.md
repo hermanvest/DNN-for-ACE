@@ -38,6 +38,9 @@ python generate_results.py --model_version version
 
 where you also need to replace version with 2016 or 2023.
 
+The main results for the thesis, including the analytical calculations, are in the following notebook: [![Python Notebook](https://img.shields.io/badge/Python%20Notebook-thesis__results.ipynb-lightgrey?logo=jupyter)](plotting/thesis_results.ipynb)
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
