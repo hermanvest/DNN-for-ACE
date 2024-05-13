@@ -41,7 +41,7 @@ where version is replaced by 2016 or 2023.
 The main results for the thesis, including the analytical calculations, are in the following notebook: [![Python Notebook](https://img.shields.io/badge/Python%20Notebook-thesis__results.ipynb-lightgrey?logo=jupyter)](plotting/thesis_results.ipynb)
 
 Training logs can be analyzed with [![TensorBoard](https://img.shields.io/badge/TensorBoard-Open%20docs-orange?logo=tensorflow)](https://www.tensorflow.org/tensorboard)
-. To run tensorboard and alalyze logged training results, use
+. To run tensorboard and analyze logged training results, use
 
 ```shell
 tensorboard --logdir=logs/version/training_stats
