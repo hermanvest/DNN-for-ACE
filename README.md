@@ -4,21 +4,21 @@ This GitHub repository contains the codes for my master's thesis, called "Beyond
 
 ## Dependencies
 
-- debugpy v:1.6.6
-- Jinja2 v:3.1.3
-- Keras v:2.10.0
-- Keras-Preprocessing
-- matplotlib v:3.8.3
-- matplotlib-inline v:0.1.6
-- numpy v:1.26.3
-- pandas v:2.2.2
-- pytest v:8.0.0
-- PyYAML v:6.0.1
-- scipy v:1.11.4
-- tensorboard v:2.10.0
-- tensorflow v:2.10.0
-- tensorflow-estimator v:2.10.0
-- tensorflow-probability v:0.24.0
+- ![debugpy](https://img.shields.io/badge/debugpy-v1.6.6-blue)
+- ![Jinja2](https://img.shields.io/badge/Jinja2-v3.1.3-blue)
+- ![Keras](https://img.shields.io/badge/Keras-v2.10.0-blue)
+- ![matplotlib](https://img.shields.io/badge/matplotlib-v3.8.3-blue)
+- ![matplotlib-inline](https://img.shields.io/badge/matplotlib--inline-v0.1.6-blue)
+- ![numpy](https://img.shields.io/badge/numpy-v1.26.3-blue)
+- ![pandas](https://img.shields.io/badge/pandas-v2.2.2-blue)
+- ![pytest](https://img.shields.io/badge/pytest-v8.0.0-blue)
+- ![PyYAML](https://img.shields.io/badge/PyYAML-v6.0.1-blue)
+- ![scipy](https://img.shields.io/badge/scipy-v1.11.4-blue)
+- ![tensorboard](https://img.shields.io/badge/tensorboard-v2.10.0-blue)
+- ![tensorflow](https://img.shields.io/badge/tensorflow-v2.10.0-blue)
+- ![tensorflow-estimator](https://img.shields.io/badge/tensorflow--estimator-v2.10.0-blue)
+- ![tensorflow-probability](https://img.shields.io/badge/tensorflow--probability-v0.24.0-blue)
+
 
 ## Usage
 
