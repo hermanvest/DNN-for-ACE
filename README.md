@@ -4,6 +4,8 @@
 
 ## Description
 
+This GitHub repository contains the codes for a mapping of [Deep Equilibrium Nets](https://github.com/sischei/DeepEquilibriumNets) to the Analytic Climate Economomy  
+
 ...
 
 ## Key Features

@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Herman"
+  given-names: "V. Thieme"
+title: "Research Software for 'Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy'"
+version: 1.0
+date-released: 2023-05-08
+url: "https://github.com/hermanvest/DNN-for-ACE"
