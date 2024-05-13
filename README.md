@@ -30,7 +30,7 @@ python run_ace_dice.py --model_version version
 
 where version is replaced by either 2016 or 2023. This loads the most recently trained weights, located in
 
-![Static Badge](https://img.shields.io/badge/logs%2F)
+[![Static Badge](https://img.shields.io/badge/logs%2F)](logs/)
 
 If you want to train a network from scratch, you need to delete the checkpoint files before starting training.
 
