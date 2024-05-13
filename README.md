@@ -1,8 +1,7 @@
 ---
-output:
-  md_document:
-    variant: markdown_github
-bibliography: bibliography.bib
+title: "My Document"
+bibliography: references.bib
+link-citations: true
 ---
 
 # Deep Equilibrium Nets for The Analytic Climate Economy
@@ -11,7 +10,7 @@ bibliography: bibliography.bib
 
 ## Description
 
-This GitHub repository contains the codes for my thesis, called "Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy". Please refer to [@Azinovic2022DEQN] for Deep Equilibrium Nets and their [GitHub repository](https://github.com/sischei/DeepEquilibriumNets) and to [@TraegerChristian2023ACE] for the paper on the Analytic Climate Economy.
+This GitHub repository contains the codes for my master's thesis, called "Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy". Please refer to [@Azinovic2022DEQN] for Deep Equilibrium Nets and their [GitHub repository](https://github.com/sischei/DeepEquilibriumNets) and to [@TraegerChristian2023ACE] for the paper on the Analytic Climate Economy.
 
 ## License
 
