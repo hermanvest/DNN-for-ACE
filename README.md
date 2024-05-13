@@ -1,6 +1,6 @@
 # Deep Equilibrium Nets for The Analytic Climate Economy
 
-This GitHub repository contains the codes for my master's thesis, called "Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy". Please refer to Azinovib et al. (2022) for Deep Equilibrium Nets and their [GitHub repository](https://github.com/sischei/DeepEquilibriumNets) and to Traeger (2023) for the paper on the Analytic Climate Economy.
+This GitHub repository contains the codes for my master's thesis, called "Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy". Please refer to Azinovib et al. (2022) for Deep Equilibrium Nets and their [![GitHub Repository](https://img.shields.io/badge/GitHub-DeepEquilibriumNets-blue?logo=github)](https://github.com/sischei/DeepEquilibriumNets) and to Traeger (2023) for the paper on the Analytic Climate Economy.
 
 ## Dependencies
 
@@ -28,11 +28,7 @@ Model training is done by running
 python run_ace_dice.py --model_version version
 ```
 
-where version is replaced by either 2016 or 2023. This loads the most recently trained weights, located in
-
-[![Static Badge](https://img.shields.io/badge/logs%2F)](logs/)
-
-If you want to train a network from scratch, you need to delete the checkpoint files before starting training.
+where version is replaced by either 2016 or 2023. This loads the most recently trained weights, located in [![Logs Directory](https://img.shields.io/badge/Logs-Directory-lightgrey?logo=github)](logs/). If you want to train a network from scratch, you need to delete the checkpoint files before starting training.
 
 For storing the results with the training weights, run
 
