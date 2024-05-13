@@ -448,6 +448,8 @@ class Loss_Ace_Dice:
         # TODO: This is an abomination. Need to find time to make this prettier.
         loss_functions = [
             ((self.ell_0), (lambda_k_t, lambda_k_tplus, E_tplus, E_tplus_BAU, tplus)),
+            ((self.ell_5_7), (lambda_m_t, lambda_m_tplus, lambda_tau_1_tplus)),
+            ((self.ell_8_9), (lambda_tau_t, lambda_tau_tplus, lambda_k_tplus)),
             (
                 (self.ell_1),
                 (x_t, lambda_k_t, lambda_k_tplus, E_tplus, E_tplus_BAU, tplus),
@@ -468,8 +470,6 @@ class Loss_Ace_Dice:
             ),
             ((self.ell_3), (lambda_E_t, E_t)),
             ((self.ell_4), (lambda_t_BAU, E_t, k_t, t)),
-            ((self.ell_5_7), (lambda_m_t, lambda_m_tplus, lambda_tau_1_tplus)),
-            ((self.ell_8_9), (lambda_tau_t, lambda_tau_tplus, lambda_k_tplus)),
             ((self.ell_10), (v_t, v_tplus, x_t, E_t, k_t, tau_1_t, t)),
         ]
 
