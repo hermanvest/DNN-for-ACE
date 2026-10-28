@@ -24,7 +24,7 @@ from ace_deqn.residuals import RESIDUAL_NAMES, residuals
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 RESULTS = os.path.join(HERE, "..", "results")
-ORIGINAL_RUNS = os.path.join(HERE, "..", "..", "plotting", "plots", "model_run")
+ORIGINAL_RUNS = os.path.join(HERE, "..", "..", "1_original", "plotting", "plots", "model_run")
 VERSIONS = ["2016", "2023"]
 START_YEAR = {"2016": 2015, "2023": 2020}
 PLOT_PERIODS = 58  # Show the paths up to roughly 2300

@@ -2,7 +2,7 @@
 
 Usage: python make_results.py
 Reads   ../results/runs/dice{2016,2023}[tag]/ and, for comparison only, the trajectory
-        CSVs of the corrected DEQN in ../../revised/results/csv/ (data, no code).
+        CSVs of the corrected DEQN in ../../2_revised/results/csv/ (data, no code).
 Writes  ../results/figures/, ../results/tables/, ../results/csv/
 """
 
@@ -23,7 +23,7 @@ from ace_ac.env import AceEnv
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 RESULTS = os.path.join(HERE, "..", "results")
-DEQN_CSV = os.path.join(HERE, "..", "..", "revised", "results", "csv")
+DEQN_CSV = os.path.join(HERE, "..", "..", "2_revised", "results", "csv")
 VERSIONS = ["2016", "2023"]
 START_YEAR = {"2016": 2015, "2023": 2020}
 HORIZON = 58  # Periods up to about 2300
