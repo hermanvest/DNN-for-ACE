@@ -1,0 +1,12 @@
+\section{Mapping ACE onto DEQNs}
+\label{sec:mapping_ace_onto_deqns}
+
+This section maps the general ACE-DICE onto the DEQN solution framework. The derivations largely follow those taken in the appendices in \textcite{Folini2024ClimateInCE} and \textcite{friedl2023_deepUQ}, but is more comprehensive to facilitate understanding and easier replication for adaptations to new models. For details on model-specific mappings needed for the experiments conducted in this study, please refer to the thesis' appendix (\ref{appendix:deqn_model_specific_mapping}). 
+
+This section begins by establishing the policy objective through the recursive Lagrange problem. Next, I derive the first-order necessary Lagrange conditions and move on to the envelope conditions, which help eliminate the value function derivatives in the first-order conditions. The section then formulates the final objective functions that guide the decision-making process. Finally, it provides details of the state- and action space as well as normalizations.
+
+\input{chapters/ch5-solution_algorithms/policy_objective}
+
+\input{chapters/ch5-solution_algorithms/lagrange_conditions}
+
+\input{chapters/ch5-solution_algorithms/simulation_details}

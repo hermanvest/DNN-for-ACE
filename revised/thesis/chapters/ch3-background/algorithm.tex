@@ -1,0 +1,37 @@
+\begin{algorithm}[H]
+\caption{DEQN policy iteration for estimating \(\pi\approx \pi^*\)}
+\label{algo:DEQN_policy_iteration}
+\begin{algorithmic}[1] % 1 indicating that lines are numbered
+    % INPUTS TO THE ALGORITHM
+    \Require
+    \Statex A differentiable policy objective $\ell: \mathcal{S} \times \mathcal{A} \times \mathbb{R}^d \rightarrow \mathbb{R}$
+    \Statex Algorithm parameters: Episode length $T$, MaxIterations, NumEpochs, step size parameter $\alpha$, and error tolerance $\epsilon$
+    \Statex Starting state $\bm{s}_0 \in \mathbb{R}^{|\mathcal{S}|}$
+    \Statex 
+    
+    % OUTPUTS FROM THE ALGORITHM
+    \Ensure
+    \Statex Trained parameters $\bm{\theta}$ of the policy network s.t. $\bm{\pi_\theta}(\bm{s}_t)$ minimizes the policy objective. 
+    \Statex
+
+    % THE STEPS IN THE ALGORITHM
+    \State Initialize parameters $\bm{\theta}\in \mathbb{R}^d$ arbitrarily for the policy network $\bm{\pi_{\theta}}(\bm{s}_t)$
+    \State Initialize episode counter $\gets 0$
+    \State Initialize $\Delta \gets \infty$
+    \Statex
+    \While{counter $<$ MaxIterations and $\epsilon < \Delta$}
+        \State Generate an episode of length $T$ with trajectory $\tau$ following $\bm{\pi}_\theta$
+        \State $\Delta \gets 0$
+        \For{epoch = 1 to NumEpochs}
+            \State List of batches $\gets$ divide episode into batches
+            \For{batch in list of batches}
+                \State Compute policy objective $\ell_{\bm{\theta}}$ for batch
+                \State $\Delta \gets \max (\Delta, |\ell_{\bm{\theta}}|)$
+                \State Do batch gradient descent $\bm{\theta} \gets \bm{\theta} - \alpha \nabla\ell_{\bm{\theta}}$            
+            \EndFor
+        \EndFor
+        \State counter $\gets$ counter $+ 1$
+    \EndWhile
+    \State \textbf{return} $\bm{\theta}$
+\end{algorithmic}
+\end{algorithm}

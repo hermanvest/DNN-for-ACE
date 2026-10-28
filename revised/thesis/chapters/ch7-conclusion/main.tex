@@ -1,0 +1,10 @@
+\section{Conclusion}
+
+
+This thesis marks one of the first applications of DEQNs to an IAM. It details the methodology required to adapt ACE to the DEQN framework, offering a more comprehensive treatment than previous studies. Given ACE's general structure, the methods and derivations in this thesis should be easily extended to other IAMs, facilitating broader adoption in future research.
+
+The thesis conducts two experiments utilizing the mapping of ACE to the DEQN framework. The results reveal that the policy network encounters difficulties during the learning phase, leading to significant discrepancies between the estimated controls and the analytic solutions. Specifically, the estimated consumption rates for the DICE 2016 version of ACE are lower than the analytical solution, while those for the 2023 version exceed the analytical solution. Furthermore, the abatement rates for both versions are too low, resulting in excessive CO$_2$ emissions. These elevated emissions contribute to increased atmospheric temperatures and, therefore, higher economic damages than optimal. 
+
+I highlight the normalization methods used in this thesis for the states and controls as a probable cause for the DEQNs' difficulties in approximating equilibrium conditions. Future studies should focus on enhancing these methods to improve the policy network's accuracy in estimating the optimal controls.
+
+This work establishes a connection with RL by comprehensively discussing concepts common to both DEQNs and the broader RL literature. Contrary to previous research that classified this algorithm as unsupervised learning, this thesis argues that the DEQN algorithm should be categorized as model-based RL. This reclassification provides a foundation for the potential integration of more sophisticated RL algorithms in future economic research.

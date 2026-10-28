@@ -1,3 +1,15 @@
 __pycache__/
 .pytest_cache/
-.vscode
+.vscoderevised/thesis/*.aux
+revised/thesis/*.log
+revised/thesis/*.bbl
+revised/thesis/*.bcf
+revised/thesis/*.blg
+revised/thesis/*.fdb_latexmk
+revised/thesis/*.fls
+revised/thesis/*.out
+revised/thesis/*.run.xml
+revised/thesis/*.toc
+revised/thesis/*.lof
+revised/thesis/*.lot
+revised/thesis/svg-inkscape/

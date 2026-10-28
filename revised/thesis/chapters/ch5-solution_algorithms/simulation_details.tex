@@ -1,0 +1,51 @@
+\subsection{Policy Network Input and Outputs}
+
+This section details the policy network's inputs and outputs. It starts by highlighting the preprocessing steps necessary to optimize network performance and ensure the inputs are well-suited for the model's requirements. Following the discussion of inputs, I describe the network's outputs, characterizing its elements and dimensions.
+
+
+\subsubsection{Inputs}
+In general, our policy network receives three types of input: aggregate log capital \(k_t\), \(m\in\mathbb{N}\) carbon reservoirs \(\bm{M}_t\), and \(l \in \mathbb{N}\) transformed temperature layers \(\bm{\tau}_t\). In addition, I will include time as an exogenous state to account for the non-stationary nature of IAMs, as noted in \textcite{Folini2024ClimateInCE}. Thus, the state space is characterized by the following vector:
+
+
+\begin{equation}
+    \bm{s}_t \in \mathbb{R}^{2+m+l} \doteq \left (k_t, \bm{M}_t^\top, \bm{\tau}_t^\top, t \right )^\top 
+\end{equation}
+
+To maintain computational tractability, some kind of preprocessing of the state variables is necessary. Generally, in deep learning, some form of a normalization procedure is necessary to smooth out differences in magnitude between the features of the input variables, which can lead to better model convergence. For more on normalization, refer to \textcite{HuangLei2023NTiT} and the references therein. More formally, normalization of a dataset \(\mathcal{D}=\{ \bm{x}_i \}^N_{i=1} \) is a function \(f:\bm{x} \to \bm{\hat x}\), which results in a transformed dataset \(\hat{\mathcal{D}}=\{ \bm{\hat x}_i \}^N_{i=1} \) that has certain statistical properties \parencite[Definition II.1.]{HuangLei2023NTiT}. 
+
+There are no explicit normalization practices in the literature specifically related to this thesis, which, as mentioned before, is \textcite{Folini2024ClimateInCE, friedl2023_deepUQ}. Interestingly, normalization is not even common in the broader literature of deep RL, as noted in \textcite{HuangLei2023NTiT}. However, the two related papers try to reduce the scale of the state variables, which resembles an attempt to perform normalization. Specifically, they scaled capital by productive labor \(\frac{K_t}{A_tN_t}\), used 1000 gigaton carbon instead of gigatons, and applied the time transformation in \textcite{Traeger2014timetrafo}. 
+
+For my thesis, I am using the log of aggregate capital, which already greatly reduces its scale. Additionally, I am following the two mentioned papers in feeding the network 1000 gigatonnes instead of gigatonnes and adopting the time transformation in \textcite{Traeger2014timetrafo}, resulting in scaled time \(\tilde t\) in the interval \((0,1)\). The time transformation is given as follows:
+
+\begin{equation}
+\begin{aligned}
+    \tilde t &= 1-\exp(-\varsigma t), \quad \text{with the inverse} \\
+    t &= -\frac{\ln(1-\tilde t)}{\varsigma}.
+\end{aligned}
+\end{equation}
+
+Where the parameter \(\varsigma\) is \(0.02\). With these state normalizations, the preprocessed state vector \(\bm{s}_t^p\) becomes:
+
+\begin{equation}
+    \bm{s}_t^p \in \mathbb{R}^{2+m+l} \doteq \left (k_t, \frac{\bm{M}_t^\top}{1000}, \bm{\tau}_t^\top, \tilde t \right )^\top 
+\end{equation}
+
+With this, the current state of normalization techniques, particularly for deep learning methods applied to IAMs, as is the case for the present thesis, appears somewhat rudimentary and arbitrarily applied. While functionally adequate in the previous studies, this underscores a gap in the methodological rigor and suggests room for advancement in this area.
+
+
+\subsubsection{Outputs}
+
+The outputs of the neural network consist of the consumption rate \(x_t\) and \(I_E\) resource inputs \(\bm{E}_t\), as well as the vector of costate variables \(\bm{\lambda}_t\). As previously covered, this vector consists of \(m\) costate variables for the carbon reservoirs, \(l\) costate variables for the temperature layers, and \(I_E\) costate variables for the KKT conditions on the resource inputs. The reason why we need to predict the costate variables is because they can't be analytically derived. However, the objective functions allow us to pin them down. 
+
+The action vector, representing the outputs of the neural network, is structured as follows: 
+
+\begin{equation}
+    \bm{a}_t \in \mathbb{R}^{3+I_E+m+l+I_E} \doteq 
+    \left ( 
+        x_{t}, \bm{E}_t^\top, V_t(\bm{s}_t), \lambda_{k,t}, \bm{\lambda_{M,t}}^\top, \bm{\lambda}_{\tau, t}^\top, \bm{\lambda}_{E, t}^\top 
+    \right)^\top 
+\end{equation} 
+
+In the DICE specification of Appendix (\ref{appendix:deqn_model_specific_mapping}), the upper bound \(E_t \leq E_t^{\text{BAU}}\) adds one more multiplier \(\lambda_t^{\text{BAU}}\) to the output vector, so that the policy network has \(|\mathcal{A}| = 11\) outputs.
+
+I want to note that \textcite{Folini2024ClimateInCE, friedl2023_deepUQ}, both use \(k_{t+1}\) as the control instead of consumption. This approach allows them to circumvent the need to explicitly model the equation of motion for capital in forward simulations. Although this methodological choice simplifies the computational requirements, it should yield equivalent results to the approach I am taking.

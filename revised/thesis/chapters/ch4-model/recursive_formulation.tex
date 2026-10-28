@@ -1,0 +1,67 @@
+\subsection{Recursive Formulation}
+\label{subsec:recursive formulation}
+
+The objective of the social planner is to solve the discrete time, infinite horizon problem with a discount factor \(\beta < 1\) and welfare defined as the logarithm of aggregate consumption \(C_t\):
+
+\begin{equation}
+    \max \sum_{t=0}^\infty \beta^t \log C_t
+\end{equation}
+
+I will follow \textcite{TraegerChristian2023ACE} in using the transformed model that is linear in the states' equations of motion. For this, I refer you to the online appendix, section A3, accompanying his paper.
+
+The transformed temperatures are defined as \(\tau_{i,t} = \exp(\xi_1 T_{i,t}), \; i \in \{1, \dots, l\}\). The equation of motion of the transformed temperatures is:
+\begin{equation}
+    \bm{\tau}_{t+1} = \bm{\sigma}\bm{\tau}_t + \sigma^{\text{forc}}\frac{M_{1,t}+G_t}{M_{\text{pre}}}\bm{e}_1 .
+\end{equation}
+
+Using the damage function and transformed temperatures, he defines welfare as a function of the consumption rate:
+\begin{equation}
+\begin{aligned}
+    u(x_t) &\equiv \log(C_t) = \log(x_t) + \log(Y_t) + \log[1-D(T_{1,t})] \\
+    &= \log x_t + \log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t) - \xi_0\tau_{1,t} + \xi_0
+\end{aligned}
+\label{eq:utility_function_transformed}
+\end{equation}
+
+Furthermore, he uses \(\log K_t = k_t\), where the transforming the equation of motion for the effective capital stock to:
+\begin{equation}
+\begin{aligned}
+    k_{t+1} = &\log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t) - \xi_0\tau_{1,t} + \xi_0 + \log(1-x_t) \\
+    & +\log[1+g_{k,t}] - \log[\delta_k + g_{k,t}]
+\end{aligned}
+\label{eq:capital_transformed}
+\end{equation}
+
+
+Let the state vector \(\bm{s}_t\) capture the state variables in the general ACE-DICE model as such \(\bm{s}_t = \begin{bmatrix} k_t & \bm{M}_t^\top & \bm{\tau}_t^\top \end{bmatrix}\). Then we get the following Bellman equation in terms of transformed state variables:
+
+\begin{equation}
+    V(\bm{s}_t) = \max_{x_t, \bm{E_t}} \Bigg\{ \log x_t 
+        + \log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t)
+        - \xi_0\tau_{1,t} + \xi_0
+        + \beta V(\bm{s}_{t+1}) \Bigg \}
+\label{eq:bellman_equation_tranformed_states}
+\end{equation}
+
+Two important results follow from this recursive formulation. The first is that it provides an analytical solution for the consumption rate. This relationship is derived in \textcite{TraegerChristian2023ACE}, establishing a constant relationship across all time steps:
+
+\begin{equation}
+    x_t^* = x^*= 1 - \beta\kappa.
+\label{eq:analytical_x_t}
+\end{equation}
+
+The second result is that it allows for a closed-form solution of the optimal abatement rate in the DICE variation of ACE, as presented in section (\ref{subsec:ace_with_dice_dunc_forms}). \textcite{traeger2021analytic_discussion} derives the optimal abatement rate as:
+
+\begin{equation}
+    \mu_t = \left( \frac{\Gamma_t}{p_t^\text{back}[1-D(T_{1,t})]} \right)^{\frac{1}{\theta_2 - 1}} .
+\label{eq:analytical_abatement_rate}
+\end{equation}
+
+In this formulation, \(p_t^\text{back}\) is the backstop price in USD per tCO$_2$ and $\Gamma_t$ represents the total social cost associated with using a CO$_2$-measured unit of fossil fuel in period \(t\). For my analysis, $\Gamma_t$ equals the SCC in period \(t\), denoted in USD/tCO$_2$. Notably, while \textcite{traeger2021analytic_discussion} defines $\Gamma_t$ as the sum of the Hotelling rent and the SCC ($\Gamma_t = HOT_t + SCC_t$), my model does not rely on any hotelling rent. The equation for the the SCC in period \(t\), is given as:
+
+\begin{equation}
+    SCC_t = \frac{\beta^2 Y_t^{net}}{M_{pre}} \xi_0 \underbrace{[(\bm{1}-\beta\bm{\sigma})^{-1}]_{1,1}}_{\approx 2.1405} \sigma^{forc}\underbrace{[(\bm{1}-\beta\bm{\Phi})^{-1}]_{1,1}}_{\approx 5.1416},
+\label{eq:analytical_scc}
+\end{equation}
+
+where \(\bm{1}\) is the identity matrix, \(-1\) indicates inversion of the matrix, and the subscript [1,1] specifies the element located at the first row and first column of the inverted matrix.

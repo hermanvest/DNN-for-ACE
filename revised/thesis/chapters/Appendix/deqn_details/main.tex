@@ -1,0 +1,167 @@
+\section{DEQN Objective Details}
+\label{appendix:deqn_model_specific_mapping}
+
+\subsection{General ACE: Policy Objective Summary}
+
+\begin{flalign}
+    \ell_0 &\doteq \lambda_{k,t} - \beta (1 + \lambda_{k,t+1}) \frac{\partial \log F_{t+1}(\cdot)}{\partial k_{t+1}} 
+    \tag{\ref{eq:general_objective_0}} \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ell_1 &\doteq 
+        \bm{\lambda_{M,t}} - \beta \left( 
+        \bm{\Phi}^\top \bm{\lambda_{M,t+1}}
+        + \bm{e_1} \lambda_{\tau_1,t+1} \sigma^{\text{forc}}\frac{1}{M_{\text{pre}}} 
+    \right)
+    \tag{\ref{eq:general_objective_1}} \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ell_2 &\doteq 
+        \bm{\lambda_{\tau, t}} - \beta \left( 
+            \bm{\sigma}^\top\bm{\lambda_{\tau, t+1}} - \bm{e_1}\xi_0(1 + \lambda_{k,t+1})
+        \right)
+    \tag{\ref{eq:general_objective_2}} \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ell_3 &\doteq \frac{1}{x_t} 
+        - \lambda_{k,t}\frac{1}{1-x_t}
+    \tag{\ref{eq:general_objective_3}} \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ell_4 &\doteq (1 + \lambda_{k,t}) \frac{\partial \log F_t(\cdot)}{\partial E_{i,t}}
+        + \lambda_{M_1,t}
+        + \lambda_{E_i,t}
+    \tag{\ref{eq:general_objective_4}} \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ell_5 &\doteq \lambda_{E_i,t}+E_{i,t} - \sqrt{\lambda_{E_i,t}^2+E_{i,t}^2}
+    \tag{\ref{eq:general_objective_5}} \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ell_6 &\doteq
+        \log x_t^* + \log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t^*) - \xi_0\tau_{1,t} + \xi_0
+        + \beta V(\bm{s}_{t+1})
+        - V(\bm{s}_t)
+    \tag{\ref{eq:general_objective_6}}
+\end{flalign}
+
+
+\subsection{Model-specific Mapping}
+For the derivatives, we will need the log of the production function. I will rewrite the log of the following variables \(\log A_t = a_t, \log K_t = k_t\). The log of the production function is:
+
+\begin{equation}
+\begin{aligned}
+    \log Y_t &= \log F_t(\cdot) \\
+    &=  a_t + \kappa k_t + (1-\kappa)\log N_t 
+        + \log \left[ 
+        1 - \theta_{1,t} \left(
+            1 - \frac{E_t}{E_t^{\text{BAU}}} 
+        \right)^{\theta_2}
+    \right]
+\end{aligned}
+\end{equation}
+
+where \(E_t^{\text{BAU}}\) is treated as an exogenous variable. In DICE, business-as-usual emissions are proportional to gross output, \(E_t^{\text{BAU}} = \sigma_t Y_t^{\text{gross}}\), so they depend on capital. The planner, however, takes the sequence \(E_t^{\text{BAU}}\) as given when choosing controls, and the simulation evaluates \(E_t^{\text{BAU}}\) at the realized capital stock. This keeps \(\log F_t(\cdot)\) linear in \(k_t\), which is what makes the analytical solution of section (\ref{subsec:recursive formulation}) available as a benchmark. We need the derivative of \(\log Y_t\) with respect to \(k_t\):
+
+\begin{equation*}
+    \frac{\partial \log F_t(\cdot)}{\partial k_t} = 
+    \kappa
+\end{equation*}
+
+We also need the derivative of \(Y_t\) w.r.t. \(E_t\):
+\begin{equation*}
+\begin{aligned}
+    \frac{\partial \log F_t(\cdot)}{\partial E_t} &=
+    \Bigg( 
+        1 - \theta_{1,t} \left(
+            1 - \frac{E_t}{E_t^{\text{BAU}}} 
+        \right)^{\theta_2}
+    \Bigg)^{-1}
+    \Bigg(
+        - \theta_{1,t}\theta_2 \left(
+        1 - \frac{E_t}{E_t^{\text{BAU}}} 
+        \right)^{\theta_2-1}
+    \Bigg )
+    \Bigg( 
+        - \frac{1}{E_t^{\text{BAU}}} 
+    \Bigg) \\
+    &= \frac{
+        \theta_{1,t}\theta_2 \left(
+        1 - \frac{E_t}{E_t^{\text{BAU}}} 
+        \right)^{\theta_2-1}
+    }{
+        E_t^{\text{BAU}}\Bigg(1 - \theta_{1,t} \left(
+            1 - \frac{E_t}{E_t^{\text{BAU}}} 
+        \right)^{\theta_2} \Bigg)
+    }
+\end{aligned}
+\end{equation*}
+
+Finally, we need to make sure that we are choosing \(E_t\) such that \(0\leq E_t \leq E_t^{\text{BAU}}\). This gives an additional constraint and KKT condition:
+
+\begin{equation}
+    E_t^{\text{BAU}} - E_t \geq 0 
+    \quad \bot \quad
+    \lambda_t^{\text{BAU}} \geq 0
+\end{equation}
+
+along with the Fischer-Burmeister function, where the multiplier \(\lambda_t^{\text{BAU}}\) enters the first-order condition on emissions with a negative sign:
+
+\begin{equation}
+    \Psi^{\text{FB}}(\lambda_t^{\text{BAU}}, E_t^{\text{BAU}} - E_t) =
+    \lambda_t^{\text{BAU}} + (E_t^{\text{BAU}} - E_t) 
+        - \sqrt{(\lambda_t^{\text{BAU}})^2 + (E_t^{\text{BAU}} - E_t)^2}
+\end{equation}
+
+In the DICE calibration, emissions \(E_t\) are measured in GtCO\(_2\) per year, while the carbon reservoirs \(\bm{M}_t\) are measured in GtC and the model is solved with a time step of \(\Delta\) years. The atmospheric carbon stock therefore increases by \(\frac{\partial M_{1,t+1}}{\partial E_t} = \zeta \equiv \frac{\Delta}{3.664}\) per unit of yearly emissions, where 3.664 converts CO\(_2\) to carbon, and this factor scales \(\lambda_{M_1,t}\) in the first-order condition on emissions. Here, I restate the objective functions with the DICE production function:
+
+\begin{flalign}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOC for k_{t+1}
+    &\ell_0 \doteq \beta (1 + \lambda_{k,t+1})\kappa
+    - \lambda_{k,t} & \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% M_{t+1}
+    & \ell_1 \doteq \beta \left( 
+        \bm{\Phi}^\top \bm{\lambda_{M,t+1}}
+        + \bm{e_1} \lambda_{\tau_1,t+1} \sigma^{\text{forc}}\frac{1}{M_{\text{pre}}}
+    \right )
+        -\bm{\lambda_{M,t}}
+    & \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \tau_{1,t+1}
+    & \ell_2 \doteq \beta \left( 
+        \bm{\sigma}^\top\bm{\lambda_{\tau, t+1}} - \bm{e_1}\xi_0(1 + \lambda_{k,t+1}) \right )  
+    - \bm{\lambda_{\tau,t}}
+    & \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOC for x_t
+    &\ell_3 \doteq \frac{1}{x_t} 
+        - \frac{\lambda_{k,t}}{1-x_t}
+    & \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOC for each E_t
+    &\ell_4 \doteq \frac{\partial \log F_t(\cdot)}{\partial E_t} (1 +
+        \lambda_{k,t})
+        + \zeta \lambda_{M_1,t}
+        + \lambda_{E,t}
+        - \lambda_t^{\text{BAU}} & \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% KKT: Fischer-Burmeister function E_t>0
+    &\ell_{5,A} \doteq \lambda_{E,t}+E_t-\sqrt{\lambda_{E,t}^2+(E_t)^2}
+    & \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% KKT: Fischer-Burmeister function (E_t leq E_t^{BAU})
+    & \ell_{5,B} \doteq \lambda_t^{\text{BAU}} + (E_t^{\text{BAU}} - E_t) 
+        - \sqrt{(\lambda_t^{\text{BAU}})^2 + (E_t^{\text{BAU}} - E_t)^2}
+    & \label{eq:ell_5B_FB-E_t^BAU} \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bellman equation
+    & \ell_6 \doteq \log x_t^* +
+        a_t + \kappa k_t + (1-\kappa)\log N_t 
+        + \log \left[ 
+        1 - \theta_{1,t} \left(
+            1 - \frac{E_t^*}{E_t^{\text{BAU}}} 
+        \right)^{\theta_2}
+    \right] \\
+    &\quad\quad
+        - \xi_0\tau_{1,t} + \xi_0
+        + \beta V(\bm{s}_{t+1})
+        - V(\bm{s}_t)
+    &\notag
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{flalign}

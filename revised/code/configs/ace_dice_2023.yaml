@@ -1,0 +1,76 @@
+version: "2023"
+
+simulation:
+  t_max: 128                        # Episode length in 5-year periods
+  t_extra: 200                      # Extra periods of exogenous paths for the analytic benchmark
+
+economy:
+  prtp: 0.0286                      # Pure rate of social time preference (per year)
+  kappa: 0.3                        # Capital share of output
+  delta_k: 0.0439                   # Capital depreciation rate (per year)
+  g_k: 0.02949                      # Approximate growth rate of capital (per year)
+  timestep: 5                       # Years per period
+  theta_2: 2.6                      # Exponent of the abatement cost function
+
+  # Carbon intensity sigma_t and backstop price
+  emissrat2020: 1.40                # Ratio of CO2e to industrial CO2 2020
+  emissrat2100: 1.21                # Ratio of CO2e to industrial CO2 2100
+  pback2050: 515.0                  # Cost of backstop 2019$ per tCO2 2050
+  gsigma1: -0.015                   # Initial growth of sigma (per year)
+  delgsig: 0.96                     # Decline rate of gsigma per period
+  asymgsig: -0.005                  # Asymptotic gsigma
+  E_1: 37.56                        # Industrial emissions 2020 (GtCO2 per year)
+  Y_1: 135.7                        # Initial world output 2020 (trillion 2019 USD)
+  mu_1: 0.05                        # Emissions control rate 2020
+
+  # Labor N_t
+  pop0: 7752.9                      # Initial world population 2020 (millions)
+  popadj: 0.145                     # Growth rate to calibrate to 2050 pop projection
+  popasym: 10825.0                  # Asymptotic population (millions)
+
+  # Total factor productivity A_t
+  dela: 0.0015                      # Decline rate of TFP growth per 5 years
+  ga0: 0.066                        # Initial growth rate of TFP per 5 years
+  a0: 5.84                          # Initial level of TFP
+
+  # Land-use emissions
+  e_land0: 5.9                      # Land-use emissions 2020 (GtCO2 per year)
+  de_land: 0.1                      # Decline rate of land-use emissions (per period)
+
+climate:
+  xi_0: 0.02219                     # Damage coefficient
+  xi_1: 0.2310                      # Temperature transformation coefficient
+  M_pre: 596.4                      # Preindustrial atmospheric carbon (GtC)
+  Xi: [0.088, 0.0025, 0.03832888889, 0.00033750]  # DICE 2013 carbon cycle, 5-year step
+  sigma_down_1: 0.1479              # Heat transfer upper -> lower layer
+  sigma_up_1: 0.24755               # Forcing weight / heat transfer to space
+  sigma_up_2: 0.011354              # Heat transfer lower -> upper layer
+
+initial_state:
+  K_0: 295                          # Capital 2020 (trillion 2019 USD)
+  M_0: [862.86, 1541.11, 10010.44]  # Carbon stocks (GtC)
+  tau_0: [1.256727218547292, 1.185465055669960]  # Transformed temperatures
+
+network:
+  hidden_nodes: 1024
+  hidden_layers: 2
+  activation: relu
+  seed: 1
+
+# The policy network outputs O(1) numbers. These scales map them onto the
+# magnitude of each economic quantity, and the same scales normalize the
+# corresponding residuals so that every condition carries comparable weight.
+scales:
+  V: 30.0
+  lambda_k: 1.0
+  lambda_M: 1.0e-4
+  lambda_tau: 0.1
+  lambda_kkt: 1.0e-4
+
+training:
+  iterations: 3000
+  epochs: 4
+  batch_size: 32
+  learning_rate: 1.0e-3
+  final_learning_rate: 1.0e-5
+  clipnorm: 1.0

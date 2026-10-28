@@ -1,0 +1,52 @@
+\subsubsection{The Climate Model}
+
+I will use the ACE-DICE style carbon cycle model, as it is widely used in climate emulators of IAMs\footnote{\textcite{TraegerChristian2023ACE} presents two models: ACE-DICE and ACE-Joos. ACE-Joos is based on \textcite{Joos2013impulseresp} and addresses recent criticism of DICE's carbon cycle using an impulse-response model of atmospheric carbon that is calibrated to an ensemble of climate models \parencite{Taylor2012cmip5}}. The model consists of \(m\in\mathbb{N}\) carbon reservoirs, represented by the vector \(\bm{M}_t \in \mathbb{R}^m\):
+
+\begin{equation}
+    \bm{M_t} = \begin{bmatrix}
+    M_{1,t} & M_{2,t} & \dots & M_{m,t}
+\end{bmatrix}^\top .
+\end{equation}
+
+The reservoirs are ordered from the highest to deepest reservoirs, with the upper layers starting from the atmosphere, \(M_{1,t}\), having the lower indexes, and the deeper layers are indexed higher. The matrix \(\bm{\Phi}\) is the transition matrix, and contains elements \(\Phi_{i,j}\) which are the transfer coefficient from reservoir \(j\) to \(i\). The equation of motion for the carbon reservoirs is as follows:
+
+\begin{equation}
+    \bm{M}_{t+1} = \bm{\Phi}\bm{M}_t + \bm{b} \left(\sum_{i=1}^{I_d} E_{i,t} + E^{\text{exo}}_t \right) .
+\end{equation}
+
+Originally, \(\bm{b} \in \mathbb{R}^m\) contains coefficients that distribute emissions into the different carbon reservoirs. For simplicity, I will assume that \(\bm{b}\) is the first unity vector \(\bm{b} = \bm{e_1}\) for the rest of the thesis. Emissions consist of the first \(I_d\) indices in \(\bm{E_t}\) and exogenously given emissions \(E_t^{\text{EXO}}\). 
+
+When emissions are released into the atmosphere, the concentration of atmospheric carbon and other greenhouse gases (GHGs) increases, disrupting the energy balance of our planet and leading to a rise in global temperatures. This heating process, known as anthropogenic radiative forcing, happens immediately when GHGs enter the atmosphere. In ACE, radiative forcing is a function of atmospheric concentration of CO$_2$ \(M_{1,t}\), exogenous forcing from other non-CO$_2$ GHGs \(G_t\) and preindustrial carbon concentration \(M_{\text{pre}}\):
+
+\begin{equation}
+    F_t = \eta \frac{
+        \log \frac{M_{1,t} + G_t}{M_{\text{pre}}}
+    }{\log 2} .
+\end{equation}
+
+The parameter \(\eta\) quantifies the intensity of the greenhouse effect, where forcing immediately increases by \(\eta\) if CO$_2$ concentrations double. Conversely, the temperature has a very slow response to heating. It takes decades to centuries to reach a new temperature equilibrium in the lower atmosphere \(T^{\text{new}}_{1,\text{eq}}\) in response to a new forcing level \(F^{\text{new}}\). The new equilibrium is characterized as follows:
+
+\begin{equation}
+    T^{\text{new}}_{1,\text{eq}} = \frac{s}{\eta} F^{\text{new}} = \frac{s}{\log 2} \log \frac{M_{1, \text{eq}}+G_{\text{eq}}}{M_{\text{pre}}} .
+\end{equation}
+
+Here, the climate sensitivity parameter \(s\) represents the amount by which global temperatures are expected to increase if the CO$_2$ concentrations in the atmosphere are doubled from preindustrial levels.
+
+The temperature layers are organized in adjacent layers \(T_{i,t} \; i\in\{0, 1, 2,...,l, \;l\in \mathbb{N}\}\) where index zero is reserved for the atmospheric equilibrium temperature:
+
+\begin{equation}
+    T_{0, t} = \frac{s}{\eta} F_t .
+\end{equation}
+
+Each temperature layer exchanges heat with the adjacent layers. For an analytic solution, the next period temperature in layer \(i\) is modeled as a mean of layer \(i\in \{1,...,l\}\) current temperature and its adjacent layers \(T_{i-1, t}\) and \(T_{i+1, t}\):
+
+\begin{equation}
+\begin{aligned}
+    T_{i, t+1} = &\frac{1}{\xi_1} \log \bigg(
+        (1-\sigma_{i,i-1}-\sigma_{i,i+1}) \exp[\xi_1 T_{i,t}]\\
+        &+ \sigma_{i,i-1}\exp[\xi_1 T_{i-1,t}] + \sigma_{i,i+1}\exp[\xi_1 T_{i+1,t}]
+    \bigg )
+\end{aligned}
+\end{equation}
+
+with  weight matrix \(\bm{\sigma}\) capturing the heat transitions between the layers. 
