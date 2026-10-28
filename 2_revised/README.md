@@ -1,8 +1,8 @@
-# DNN for ACE — revised
+# 2. Revision: corrected code, results and thesis
 
 This directory holds a corrected version of the thesis *Deep Equilibrium Nets for the
 Analytic Climate Economy* and a rewritten implementation. The original code, results and
-checkpoints in the repository root are left untouched for reference.
+checkpoints are left untouched for reference in [`../1_original/`](../1_original/).
 
 ## What changed
 
@@ -44,7 +44,7 @@ The revised thesis is available as [`thesis/thesis_revised.pdf`](thesis/thesis_r
 ## Layout
 
 ```
-revised/
+2_revised/
 ├── code/                    Rewritten, vectorized implementation (TensorFlow 2)
 │   ├── ace_deqn/
 │   │   ├── exogenous.py     DICE 2016 / 2023 exogenous paths
@@ -68,7 +68,7 @@ revised/
 ## Reproducing
 
 ```bash
-cd revised/code
+cd 2_revised/code
 pip install tensorflow-cpu pyyaml pandas matplotlib pytest
 python -m pytest                 # analytic solution satisfies the corrected conditions
 python train.py --version 2016   # ~25 min on a 4-core CPU
@@ -76,6 +76,6 @@ python train.py --version 2023
 python make_results.py           # writes ../results/{figures,tables,csv}
 ```
 
-To build the thesis, run `latexmk -pdf -shell-escape main.tex` in `revised/thesis/` and copy
+To build the thesis, run `latexmk -pdf -shell-escape main.tex` in `2_revised/thesis/` and copy
 `main.pdf` to `thesis_revised.pdf`. The SVG figure in chapter 3 is converted by Inkscape, which
 must be installed.

@@ -1,9 +1,9 @@
-# Model-based actor-critic for ACE
+# 3. Extension: model-based actor-critic for ACE
 
 A reinforcement-learning alternative to Deep Equilibrium Nets for the Analytic Climate
-Economy. This directory is independent of the thesis (`../revised/`) and of the original
-code in the repository root: it has its own environment, benchmark, training code, results
-and paper.
+Economy. This directory is independent of the revision ([`../2_revised/`](../2_revised/)) and of
+the original code ([`../1_original/`](../1_original/)): it has its own environment,
+benchmark, training code, results and paper.
 
 **Paper:** [`paper/paper.pdf`](paper/paper.pdf)
 
@@ -29,7 +29,7 @@ problem the actor-critic solves.
 ## Layout
 
 ```
-actor_critic/
+3_actor_critic/
 ├── code/
 │   ├── ace_ac/
 │   │   ├── env.py         Differentiable ACE-DICE environment and analytic policy
@@ -47,7 +47,7 @@ actor_critic/
 ## Reproducing
 
 ```bash
-cd actor_critic/code
+cd 3_actor_critic/code
 python -m pytest
 python train.py --version 2016
 python train.py --version 2023
@@ -58,5 +58,5 @@ cd ../paper && latexmk -pdf main.tex && cp main.pdf paper.pdf
 ```
 
 `make_results.py` also reads the trajectories of the corrected DEQN from
-`../revised/results/csv/`, but only for the comparison table. If they are missing, the DEQN
+`../2_revised/results/csv/`, but only for the comparison table. If they are missing, the DEQN
 columns are left empty.
