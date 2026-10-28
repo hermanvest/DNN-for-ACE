@@ -60,8 +60,10 @@ The second result is that it allows for a closed-form solution of the optimal ab
 In this formulation, \(p_t^\text{back}\) is the backstop price in USD per tCO$_2$ and $\Gamma_t$ represents the total social cost associated with using a CO$_2$-measured unit of fossil fuel in period \(t\). For my analysis, $\Gamma_t$ equals the SCC in period \(t\), denoted in USD/tCO$_2$. Notably, while \textcite{traeger2021analytic_discussion} defines $\Gamma_t$ as the sum of the Hotelling rent and the SCC ($\Gamma_t = HOT_t + SCC_t$), my model does not rely on any hotelling rent. The equation for the the SCC in period \(t\), is given as:
 
 \begin{equation}
-    SCC_t = \frac{\beta^2 Y_t^{net}}{M_{pre}} \xi_0 \underbrace{[(\bm{1}-\beta\bm{\sigma})^{-1}]_{1,1}}_{\approx 2.1405} \sigma^{forc}\underbrace{[(\bm{1}-\beta\bm{\Phi})^{-1}]_{1,1}}_{\approx 5.1416},
+    SCC_t = 1000\,\zeta\,\frac{\beta^2 Y_t^{net}}{M_{pre}} \xi_0 \underbrace{[(\bm{1}-\beta\bm{\sigma})^{-1}]_{1,1}}_{\approx 2.1460} \sigma^{forc}\underbrace{[(\bm{1}-\beta\bm{\Phi})^{-1}]_{1,1}}_{\approx 5.1896},
 \label{eq:analytical_scc}
 \end{equation}
+
+where \(\beta = (1+\rho)^{-\Delta}\) is the discount factor per period of \(\Delta = 5\) years. The factor \(1000\,\zeta\) converts the expression into USD per tCO\(_2\): net output \(Y_t^{net}\) is measured in trillion USD per year, and \(\zeta = \Delta/3.664\) is the increase in atmospheric carbon (GtC) from one GtCO\(_2\) of yearly emissions over a period (see Appendix \ref{appendix:deqn_model_specific_mapping}). Expressed through the costate variables of section (\ref{sec:mapping_ace_onto_deqns}), the same SCC is \(SCC_t = -1000\, Y_t^{net}\, \zeta \lambda_{M_1,t} / (1 + \lambda_{k,t})\), which allows the SCC implied by the policy network to be compared with the analytical value.
 
 where \(\bm{1}\) is the identity matrix, \(-1\) indicates inversion of the matrix, and the subscript [1,1] specifies the element located at the first row and first column of the inverted matrix.

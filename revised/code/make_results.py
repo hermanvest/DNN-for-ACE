@@ -286,9 +286,9 @@ def fig_residuals(results):
     }
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0), sharey=True)
     for ax, version in zip(axes, VERSIONS):
-        d, r = results[version]["data"], np.abs(results[version]["residuals"])
-        years = d["year"].to_numpy()[:-1]
-        box = [r[:, idx].max(axis=1) for idx in groups.values()]
+        r = np.abs(results[version]["residuals"])
+        # Reversed so that l0 is drawn at the top
+        box = [r[:, idx].max(axis=1) for idx in reversed(list(groups.values()))]
         parts = ax.boxplot(box, orientation="horizontal", showfliers=False, patch_artist=True, widths=0.55)
         for patch in parts["boxes"]:
             patch.set_facecolor("#dbe8f8")
@@ -296,7 +296,7 @@ def fig_residuals(results):
         for key in ("whiskers", "caps", "medians"):
             for line in parts[key]:
                 line.set_color(COLOR_DEQN if key != "medians" else "#0b0b0b")
-        ax.set_yticks(range(1, len(groups) + 1), list(groups.keys()))
+        ax.set_yticks(range(1, len(groups) + 1), list(reversed(list(groups.keys()))))
         ax.set_xscale("log")
         ax.set_title(f"ACE-DICE {version}")
         ax.set_xlabel("|residual| over the episode (scaled units)")
@@ -360,6 +360,85 @@ def table_comparison(results):
     return df
 
 
+LATEX_CONDITIONS = [
+    r"$\ell_0$",
+    r"$\ell_{1,M_1}$",
+    r"$\ell_{1,M_2}$",
+    r"$\ell_{1,M_3}$",
+    r"$\ell_{2,\tau_1}$",
+    r"$\ell_{2,\tau_2}$",
+    r"$\ell_3$",
+    r"$\ell_4$",
+    r"$\ell_{5,A}$",
+    r"$\ell_{5,B}$",
+    r"$\ell_6$",
+]
+
+
+def latex_residual_table(results, version: str) -> None:
+    """Rows are statistics, columns are conditions, as in the original thesis tables."""
+    r = np.abs(results[version]["residuals"])
+    stats = {
+        "mean": r.mean(axis=0),
+        "std": r.std(axis=0),
+        "min": r.min(axis=0),
+        "25\\%": np.quantile(r, 0.25, axis=0),
+        "50\\%": np.quantile(r, 0.5, axis=0),
+        "75\\%": np.quantile(r, 0.75, axis=0),
+        "99.9\\%": np.quantile(r, 0.999, axis=0),
+        "max": r.max(axis=0),
+    }
+    lines = [
+        "\\begin{tabular}{l" + "r" * len(LATEX_CONDITIONS) + "}",
+        "\\toprule",
+        "Statistic & " + " & ".join(LATEX_CONDITIONS) + " \\\\",
+        "\\midrule",
+    ]
+    for name, values in stats.items():
+        lines.append(name + " & " + " & ".join(f"{v:.1e}" for v in values) + " \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    with open(os.path.join(RESULTS, "tables", f"residuals_dice{version}.tex"), "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def latex_comparison_table(comparison: pd.DataFrame) -> None:
+    c = comparison.set_index("version")
+    rows = [
+        ("Consumption rate $x$ (mean to 2300)", "x_deqn_mean", "x_star", "{:.4f}"),
+        (r"Costate $\lambda_k$", "lambda_k_deqn", "lambda_k_star", "{:.4f}"),
+        (r"Costate $\lambda_{M_1}$ ($\times 10^{-4}$)", "lambda_M1_deqn", "lambda_M1_star", "{:.3f}"),
+        (r"Costate $\lambda_{\tau_1}$", "lambda_tau1_deqn", "lambda_tau1_star", "{:.4f}"),
+        ("SCC in 2050 (USD/tCO$_2$)", "scc_2050_deqn", "scc_2050_star", "{:.1f}"),
+        ("Temperature in 2100 (°C)", "T_2100_deqn", "T_2100_star", "{:.2f}"),
+        ("Peak temperature (°C)", "T_max_deqn", "T_max_star", "{:.2f}"),
+    ]
+    lines = [
+        "\\begin{tabular}{lcccc}",
+        "\\toprule",
+        " & \\multicolumn{2}{c}{ACE-DICE 2016} & \\multicolumn{2}{c}{ACE-DICE 2023} \\\\",
+        "\\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
+        " & DEQN & Analytic & DEQN & Analytic \\\\",
+        "\\midrule",
+    ]
+    for label, deqn, star, fmt in rows:
+        scale = 1e4 if "M1" in deqn else 1.0
+        cells = []
+        for version in VERSIONS:
+            cells += [fmt.format(c.loc[version, deqn] * scale), fmt.format(c.loc[version, star] * scale)]
+        lines.append(label + " & " + " & ".join(cells) + " \\\\")
+    mu = [f"{c.loc[v, 'mu_mean_abs_err']:.4f}" for v in VERSIONS]
+    mu_max = [f"{c.loc[v, 'mu_max_abs_err']:.4f}" for v in VERSIONS]
+    lines += [
+        "\\midrule",
+        r"Abatement rate, mean $|\mu - \mu^*|$ & \multicolumn{2}{c}{" + mu[0] + "} & \\multicolumn{2}{c}{" + mu[1] + "} \\\\",
+        r"Abatement rate, max $|\mu - \mu^*|$ & \multicolumn{2}{c}{" + mu_max[0] + "} & \\multicolumn{2}{c}{" + mu_max[1] + "} \\\\",
+        "\\bottomrule",
+        "\\end{tabular}",
+    ]
+    with open(os.path.join(RESULTS, "tables", "comparison.tex"), "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def main() -> None:
     results = {version: collect(version) for version in VERSIONS}
     fig_training(results)
@@ -369,7 +448,11 @@ def main() -> None:
     fig_states(results)
     fig_residuals(results)
     print(table_residuals(results).to_string())
-    print(table_comparison(results).T.to_string())
+    comparison = table_comparison(results)
+    print(comparison.T.to_string())
+    for version in VERSIONS:
+        latex_residual_table(results, version)
+    latex_comparison_table(comparison)
 
 
 if __name__ == "__main__":

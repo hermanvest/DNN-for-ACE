@@ -21,6 +21,26 @@ At the analytic solution, the original ℓ0 and ℓ3 are not zero, so the networ
 a different, wrong fixed point. With the corrected conditions, the analytic solution makes
 every residual vanish (see `code/tests/test_residuals.py`).
 
+## Results
+
+With the corrected conditions, the DEQN recovers the analytic solution of ACE closely in both
+DICE versions (full tables in [`results/tables/`](results/tables/), figures in
+[`results/figures/`](results/figures/)):
+
+| | DICE 2016: DEQN | DICE 2016: analytic | DICE 2023: DEQN | DICE 2023: analytic |
+|---|---|---|---|---|
+| Consumption rate x | 0.7394 | 0.7395 | 0.7396 | 0.7395 |
+| Mean abs. error in abatement rate μ | 0.0009 | – | 0.0020 | – |
+| SCC in 2050 (USD/tCO2) | 36.9 | 37.0 | 37.3 | 37.4 |
+| Temperature in 2100 (°C) | 2.96 | 2.96 | 3.47 | 3.47 |
+
+The original implementation estimated a consumption rate of 0.53–0.75 (2016) and above 0.89
+(2023), and an abatement rate close to zero in both versions.
+
+![Consumption and abatement rates](results/figures/controls.png)
+
+The revised thesis is available as [`thesis/thesis_revised.pdf`](thesis/thesis_revised.pdf).
+
 ## Layout
 
 ```

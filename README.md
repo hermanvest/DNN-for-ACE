@@ -6,7 +6,7 @@
 > envelope condition, double-counted terms in the consumption and emissions first-order
 > conditions, a missing unit conversion, off-by-one time indices, and a double transformation of
 > emissions in the Bellman residual. They are corrected in a rewritten implementation, and the
-> updated thesis, with new results, is in [`revised/`](revised/). The original code used for the
+> updated thesis, with new results, is in [`revised/`](revised/) ([PDF](revised/thesis/thesis_revised.pdf)). The original code used for the
 > submitted thesis is kept unchanged in the repository root.
 
 This GitHub repository contains the codes for my master's thesis, called "Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy". Please refer to Azinovic et al. (2022) for Deep Equilibrium Nets and their [![GitHub Repository](https://img.shields.io/badge/GitHub-DeepEquilibriumNets-blue?logo=github)](https://github.com/sischei/DeepEquilibriumNets) and to Traeger (2023) for the paper on the Analytic Climate Economy.
@@ -17,7 +17,7 @@ The repository is divided into two parts:
 
 | Part | Location | Contents |
 |---|---|---|
-| **Revised version** | [`revised/`](revised/) | Corrected and rewritten code ([`revised/code/`](revised/code/)), new results with figures and tables ([`revised/results/`](revised/results/)), and the updated thesis, LaTeX source and PDF ([`revised/thesis/`](revised/thesis/)). See [`revised/README.md`](revised/README.md) for what was corrected and how to reproduce the results. |
+| **Revised version** | [`revised/`](revised/) | Corrected and rewritten code ([`revised/code/`](revised/code/)), new results with figures and tables ([`revised/results/`](revised/results/)), and the updated thesis ([PDF](revised/thesis/thesis_revised.pdf), LaTeX source in [`revised/thesis/`](revised/thesis/)). See [`revised/README.md`](revised/README.md) for what was corrected and how to reproduce the results. |
 | **Original thesis code** | repository root (`agents/`, `configs/`, `environments/`, `networks/`, `training_algorithms/`, `plotting/`, `logs/`, ...) | The code, trained checkpoints and results used for the submitted thesis, kept unchanged for reference. Note that its loss functions contain the errors described above. |
 
 ## Revised version
