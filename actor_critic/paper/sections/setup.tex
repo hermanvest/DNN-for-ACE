@@ -1,0 +1,12 @@
+\section{Experimental Setup}
+\label{sec:setup}
+
+I train one actor-critic for each of the DICE 2016 and DICE 2023 calibrations of ACE, with identical hyperparameters. The parameters of the economy and the climate system follow the respective DICE versions as implemented by \textcite{traeger2021analytic_discussion}, with a pure rate of time preference of 2.86\% per year and a capital share of \(\kappa = 0.3\).
+
+\paragraph{Evaluation.} After training, I simulate the learned policy from the initial state for 128 periods and compare it with the analytic solution over the periods up to 2300. I report the deviation of the consumption rate from \(x^*\), the deviation of the abatement rate from \(\mu^*_t\) at the same date, the relative error of the costates \(\beta\nabla V_\phi(\bm{s}_{t+1})\) and of the implied SCC, and two measures of the critic and the policy as a whole. The first is the relative error of the critic against the true value of the learned policy, computed by simulating the policy for 250 periods from each state. The second is the welfare loss of the learned policy relative to the optimum, as the permanent percentage reduction in consumption that makes the planner indifferent: \(\exp\big((1-\beta)(V^*(\bm{s}_0) - V^{\pi}(\bm{s}_0))\big) - 1\). The weights used for evaluation are those after the final iteration; no checkpoint is selected using the benchmark.
+
+\paragraph{Comparison with a DEQN.} As a reference, I compare with a DEQN trained on correctly derived equilibrium conditions for the same model, with a 2\(\times\)1024 network and hand-chosen scales for the costate outputs and residuals. That DEQN treats \(E^{\text{BAU}}_t\) as given in its first-order conditions but evaluates it at the simulated capital stock, which differs slightly from the exogenous reference path used here. I therefore compare the two methods by their errors relative to their own analytic benchmark rather than by their paths.
+
+\paragraph{Ablations.} To identify which components matter, I retrain the DICE 2016 model (i) without the value-gradient term, so that the critic is trained by temporal-difference learning alone, and (ii) without state perturbations, so that the critic sees only the states along the simulated trajectory.
+
+\paragraph{Computation.} Each training run takes about 25 minutes on four CPU cores. Code, configurations, trained weights and training logs are available in the repository.

@@ -15,3 +15,14 @@ revised/thesis/*.toc
 revised/thesis/*.lof
 revised/thesis/*.lot
 revised/thesis/svg-inkscape/
+actor_critic/results/
+actor_critic/paper/*.aux
+actor_critic/paper/*.log
+actor_critic/paper/*.bbl
+actor_critic/paper/*.bcf
+actor_critic/paper/*.blg
+actor_critic/paper/*.fdb_latexmk
+actor_critic/paper/*.fls
+actor_critic/paper/*.out
+actor_critic/paper/*.run.xml
+actor_critic/paper/main.pdf

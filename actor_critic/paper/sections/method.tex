@@ -1,0 +1,62 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Model-Based Actor-Critic}
+
+The actor \(\pi_\theta(\bm{s}) = (x, \mu)\) and the critic \(V_\phi(\bm{s})\) are feed-forward networks with two hidden layers of 512 ReLU units. The actor's two outputs pass through a sigmoid, so that \(x, \mu \in (0, 1)\). The critic outputs \(V_\phi = 40 + 30\, h_\phi(\bm{s})\), a fixed affine map of the network output \(h_\phi\) onto the typical range of the value function. Both networks receive log capital, the carbon stocks in thousands of GtC, the transformed temperatures and the transformed time \(1 - e^{-0.02t}\).
+
+Write \(f(\bm{s}, \bm{a})\) for the laws of motion. The critic is trained on the Bellman equation of the current policy,
+\begin{equation}
+    \mathcal{L}_{\text{TD}}(\phi) = \E_{\bm{s}}\left[\left(V_\phi(\bm{s}) - y(\bm{s})\right)^2\right], \qquad
+    y(\bm{s}) = u(\bm{s}, \pi_\theta(\bm{s})) + \beta V_{\bar\phi}\left(f(\bm{s}, \pi_\theta(\bm{s}))\right),
+\end{equation}
+where \(V_{\bar\phi}\) is a target critic whose weights follow \(\phi\) by Polyak averaging, \(\bar\phi \leftarrow 0.99\bar\phi + 0.01\phi\). The actor maximizes the one-step lookahead
+\begin{equation}
+    J(\theta) = \E_{\bm{s}}\left[u(\bm{s}, \pi_\theta(\bm{s})) + \beta V_\phi\left(f(\bm{s}, \pi_\theta(\bm{s}))\right)\right],
+\end{equation}
+by gradient ascent, differentiating through \(u\) and \(f\). Since the dynamics are deterministic and known, this gradient is exact given the critic. The objective contains only the reward and the laws of motion: there are no first-order conditions, envelope conditions or costate outputs.
+
+\subsection{Value-Gradient Learning}
+
+The actor's choice of abatement depends on the critic only through \(\partial V_\phi / \partial M_1\), the marginal value of atmospheric carbon. At the solution, this derivative is about \(-1.2 \cdot 10^{-4}\) per GtC, so that a change of 100 GtC moves the value by about 0.012, while the value itself is of order 50. A critic fitted only to values has no reason to get this derivative right, and in practice it does not (Section \ref{sec:ablation}).
+
+I therefore also train the critic on its gradient. Differentiating the Bellman equation with respect to the state gives a target for the gradient of the value function,
+\begin{equation}
+    \bm{g}(\bm{s}) = \nabla_{\bm{s}}\left[u(\bm{s}, \pi_\theta(\bm{s})) + \beta V_{\bar\phi}\left(f(\bm{s}, \pi_\theta(\bm{s}))\right)\right],
+\end{equation}
+computed by automatic differentiation, including the dependence of the policy on the state. The critic loss becomes
+\begin{equation}
+    \mathcal{L}(\phi) = \mathcal{L}_{\text{TD}}(\phi) + \E_{\bm{s}}\left[\sum_{i=1}^{6}\left(\frac{\partial_i V_\phi(\bm{s}) - g_i(\bm{s})}{\hat{s}_i}\right)^2\right],
+\end{equation}
+where \(\hat{s}_i\) is the root of an exponential moving average of \(g_i^2\) over mini-batches. This normalization is generic: it gives each component of the gradient the same weight regardless of its units, without economic knowledge of the magnitude of the costates. For a residual-based method, the analogous scaling must be chosen by hand.
+
+The gradient target is the reward-based counterpart of the envelope conditions in a DEQN. The difference is who derives it: here, automatic differentiation of the Bellman equation produces the conditions, including every term that a hand derivation might omit.
+
+\subsection{State Distribution}
+
+The critic is trained on the states visited by the current policy and on perturbed copies of them, in which log capital is shifted by \(\mathcal{N}(0, 0.2^2)\), the carbon stocks are scaled by \(1 + \mathcal{N}(0, 0.15^2)\) and the transformed temperatures by \(1 + \mathcal{N}(0, 0.05^2)\). Without perturbations, the states along a single deterministic trajectory move together over time, and the gradient of the critic in directions away from the trajectory is not identified.
+
+\subsection{Training Schedule}
+
+Each iteration simulates one episode of 128 periods with the current policy, adds three perturbed copies of each state, and runs two epochs of mini-batch updates with batches of 128 states. The actor is updated on every second critic update \parencite{Fujimoto2018TD3}. During the first 500 iterations, only the critic is trained, so that the actor does not follow an uninformed critic to extreme controls, where the sigmoid saturates and gradients vanish. Both networks use Adam \parencite{kingma2017adam} with cosine learning-rate decay to 1\% of the initial rate (\(10^{-3}\) for the critic, \(10^{-4}\) for the actor) and gradient-norm clipping at 1. Training runs for 4000 iterations. Algorithm \ref{alg:ac} summarizes the method.
+
+\begin{algorithm}[ht]
+\caption{Model-based actor-critic with value-gradient learning}
+\label{alg:ac}
+\begin{algorithmic}[1]
+\For{iteration \(= 1, \dots, 4000\)}
+    \State Simulate \(\bm{s}_0, \dots, \bm{s}_{127}\) with \(\pi_\theta\); add three perturbed copies of each state
+    \For{each mini-batch \(B\), two epochs}
+        \State \(y \gets u(\bm{s}, \pi_\theta(\bm{s})) + \beta V_{\bar\phi}(f(\bm{s}, \pi_\theta(\bm{s})))\) and \(\bm{g} \gets \nabla_{\bm{s}} y\) for \(\bm{s} \in B\)
+        \State Update \(\phi\) on \(\mathcal{L}_{\text{TD}} + \sum_i ((\partial_i V_\phi - g_i)/\hat{s}_i)^2\); update \(\hat{s}\); \(\bar\phi \gets 0.99\bar\phi + 0.01\phi\)
+        \If{past warm-up and on every second step}
+            \State Update \(\theta\) by gradient ascent on \(u(\bm{s}, \pi_\theta(\bm{s})) + \beta V_\phi(f(\bm{s}, \pi_\theta(\bm{s})))\)
+        \EndIf
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Recovering Costates and the SCC}
+
+After training, the costates follow from the critic by automatic differentiation, \(\hat{\bm{\lambda}}_t = \beta\nabla V_\phi(\bm{s}_{t+1})\), and the SCC from equation (\ref{eq:scc}). No costate is an output of any network, so these are genuine out-of-objective tests: the critic is trained on values and on its own consistency, never on the analytic costates.

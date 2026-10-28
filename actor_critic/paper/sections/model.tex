@@ -1,0 +1,40 @@
+\section{The Analytic Climate Economy}
+\label{sec:model}
+
+I use ACE \parencite{TraegerChristian2023ACE} with the DICE production function, carbon cycle and two-layer temperature model, in the calibrations of DICE 2016 \parencite{NordhausWilliam2018PaUa} and DICE 2023 \parencite{NordhausWilliam2023}, following \textcite{traeger2021analytic_discussion}. Time is discrete with periods of \(\Delta = 5\) years.
+
+\paragraph{States, controls and reward.} The state is \(\bm{s}_t = (k_t, \bm{M}_t, \bm{\tau}_t, t)\), where \(k_t = \log K_t\) is log capital, \(\bm{M}_t \in \mathbb{R}^3\) are the carbon stocks in the atmosphere, upper ocean and deep ocean (GtC), and \(\bm{\tau}_t \in \mathbb{R}^2\) are transformed temperatures, \(\tau_{i,t} = \exp(\xi_1 T_{i,t})\). The planner chooses the consumption rate \(x_t \in (0,1)\) and the abatement rate \(\mu_t \in [0,1]\). Output after abatement costs is
+\begin{equation}
+    \log F_t = \log A_t + \kappa k_t + (1-\kappa)\log N_t + \log\left(1 - \theta_{1,t}\mu_t^{\theta_2}\right),
+\end{equation}
+damages are \(1 - D(T_{1,t}) = \exp(-\xi_0 \tau_{1,t} + \xi_0)\), and the reward is log consumption,
+\begin{equation}
+    u(\bm{s}_t, \bm{a}_t) = \log x_t + \log F_t - \xi_0\tau_{1,t} + \xi_0 .
+\end{equation}
+
+\paragraph{Laws of motion.} Capital, carbon and temperatures evolve as
+\begin{align}
+    k_{t+1} &= \log F_t - \xi_0 \tau_{1,t} + \xi_0 + \log(1 - x_t) + \log\frac{1 + g_k\Delta}{\delta_k + g_k}, \\
+    \bm{M}_{t+1} &= \bm{\Phi}\bm{M}_t + \bm{e}_1 \zeta \left[(1-\mu_t)E^{\text{BAU}}_t + E^{\text{land}}_t\right], \\
+    \bm{\tau}_{t+1} &= \bm{\sigma}\bm{\tau}_t + \bm{e}_1 \sigma^{\text{forc}} \frac{M_{1,t}}{M_{\text{pre}}},
+\end{align}
+where emissions are measured in GtCO\(_2\) per year and \(\zeta = \Delta/3.664\) converts them into GtC per period. The planner maximizes \(\sum_t \beta^t u(\bm{s}_t, \bm{a}_t)\) with \(\beta = (1+\rho)^{-\Delta}\).
+
+\paragraph{Business-as-usual emissions.} In DICE, business-as-usual emissions are proportional to gross output, \(E^{\text{BAU}}_t = \sigma_t Y^{\text{gross}}_t\), and therefore depend on capital. The closed-form solution of ACE requires that the planner takes \(E^{\text{BAU}}_t\) as given. For an exact benchmark, I fix \(E^{\text{BAU}}_t\) to an exogenous reference path: \(\sigma_t Y^{\text{gross}}_t\) evaluated along the analytic optimal path. On that path the reference coincides with the DICE definition; off the path it remains exogenous, so the problem solved by the learning method and the problem with the closed-form solution are the same.
+
+\paragraph{Analytic solution.} Because the value function is affine in \((k_t, \bm{M}_t, \bm{\tau}_t)\), the costates \(\bm{\lambda}_t = \beta \nabla V(\bm{s}_{t+1})\) are constant over time:
+\begin{align}
+    \lambda_k &= \frac{\beta\kappa}{1-\beta\kappa}, \\
+    \bm{\lambda}_\tau &= -\beta\xi_0(1+\lambda_k)\left(\bm{I} - \beta\bm{\sigma}^\top\right)^{-1}\bm{e}_1, \\
+    \bm{\lambda}_M &= \beta\frac{\sigma^{\text{forc}}}{M_{\text{pre}}}\lambda_{\tau_1}\left(\bm{I} - \beta\bm{\Phi}^\top\right)^{-1}\bm{e}_1 .
+\end{align}
+The optimal consumption rate is \(x^* = 1 - \beta\kappa \approx 0.7395\). The optimal abatement rate equates the marginal product of emissions to the carbon price,
+\begin{equation}
+    \frac{\theta_{1,t}\theta_2 \mu_t^{\theta_2 - 1}}{E^{\text{BAU}}_t\left(1 - \theta_{1,t}\mu_t^{\theta_2}\right)} = -\frac{\zeta\lambda_{M_1}}{1+\lambda_k},
+\end{equation}
+with \(\mu^*_t = 1\) where the solution exceeds one, and the SCC in USD per tCO\(_2\) is
+\begin{equation}
+    SCC_t = -1000\, Y^{\text{net}}_t\, \frac{\zeta \lambda_{M_1}}{1 + \lambda_k}.
+    \label{eq:scc}
+\end{equation}
+I verify numerically that these costates equal \(\beta\) times the finite-difference gradient of the value of the analytic policy, and that perturbing the analytic policy lowers welfare.
