@@ -1,0 +1,50 @@
+\subsection{Policy Objective}
+
+Recall from equation (\ref{eq:optimal_policy_s.t._dynamics}), that the action value function \(Q(\bm{s}_t, \bm{a}_t)\) represents the right-hand side of the Bellman equation. Define the action vector \(\bm{a}_t \in \mathbb{R}^{1+I_E}\) as \(\begin{bmatrix} x_t & \bm{E}_t^\top \end{bmatrix}\). Then, the action-value function for the general ACE model, as given in equation (\ref{eq:bellman_equation_tranformed_states}), is expressed as:
+
+\begin{equation*}
+    Q(\bm{s}_t, \bm{a}_t) = \log x_t + \log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t) - \xi_0\tau_{1,t} + \xi_0 + \beta V(\bm{s}_{t+1}).
+\end{equation*}
+
+We want to determine the optimal policy \(\pi^*\) that maximizes this action-value function, constrained by the dynamics governing the system's states:
+
+\begin{equation}
+    \pi^*(\bm{s}_t) = \argmax_{x_t, \bm{E_t}} 
+        \Bigg\{ \log x_t 
+        + \log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t)
+        - \xi_0\tau_{1,t} + \xi_0
+        + \beta V(\bm{s}_{t+1}) \Bigg \}
+\end{equation}
+
+\begin{equation*}
+\begin{aligned}
+    \text{s.t.} \quad 
+    & K_{t+1} = Y_t \left[ 1-D(T_{1,t}) - c_t \right]\left[\frac{1+g_{k,t}}{\delta_k + g_{k,t}} \right] \\
+    & \bm{M}_{t+1} = \bm{\Phi} \bm{M}_t + \bm{e}_1\left (\sum_{i=1}^{I^d}E_{i,t} + E_t^{\text{exo}} \right) \\
+    & \bm{\tau}_{t+1} = \bm{\sigma} \bm{\tau}_t +
+        \bm{e}_1\sigma^{\text{forc}}\frac{M_{1,t}+G_t} {M_{\text{pre}}} \\
+    & \bm{E_t} \geq \bm{0}
+\end{aligned}
+\end{equation*}
+
+To derive the necessary conditions, we need to associate costate variables with each equation of motion. Define \(\lambda_{k,t}\) as the costate variable for the capital equation of motion. Similarly, let \(\bm{\lambda}_{M,t}\) be a vector of costate variables corresponding to the dynamics of the carbon reservoirs, where each carbon reservoir \(M_{i,t+1}\) has the corresponding \(\lambda_{M_i, t}\). Costate variables \(\lambda_{\tau_i, t}\) correspond to each temperature layers \(\tau_{i,t+1}\). For the constraints on non-negative emissions, \(\bm{\lambda}_{E,t}\) encompasses the costate variables \(\lambda_{E_i, t}\) tied to \(E_{i,t}\). These costate variables are collected into a single vector \(\bm{\lambda_t}\) and are expressed as \(\bm{\lambda}_t = \begin{bmatrix} \lambda_{k,t} & \bm{\lambda}_{M,t}^\top & \bm{\lambda}_{\tau, t}^\top & \bm{\lambda}_{E,t}^\top \end{bmatrix}^\top\). The next-period states \(\bm{s}_{t+1}\) are treated as choice variables tied to today's states and controls through the equations of motion, so that the effect of today's controls on the continuation value runs through the costate variables. The Lagrangian formulation of the recursive problem stands as:
+
+\begin{equation}
+\begin{aligned}
+    \mathcal{L}(\bm{s}_t, \bm{a}_t, \bm{\lambda}_t) = \max_{x_t, \bm{E}_t, \bm{s}_{t+1}}
+    & \log x_t + \log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t) - \xi_0\tau_{1,t} + \xi_0
+    + \beta V(\bm{s}_{t+1}) \\
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % START CONSTRAINTS
+        &+ \lambda_{k,t} \bigg\{\log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t) - \xi_0\tau_{1,t} + \xi_0 + \log(1-x_t) \\
+            &+ \log[1+g_{k,t}] - \log[\delta_k + g_{k,t}] - k_{t+1}
+            \bigg\} \\
+        &+ \bm{\lambda}_{M,t}^\top \left\{ \bm{\Phi}\bm{M}_t + \bm{e}_1\left (\sum_{i=1}^{I^d}E_{i,t} + E_t^{\text{exo}} \right) - \bm{M}_{t+1}
+            \right\} \\
+        &+ \bm{\lambda}_{\tau,t}^\top \left\{ \bm{\sigma} \bm{\tau}_t + \bm{e}_1\sigma^{\text{forc}}\frac{M_{1,t}+G_t} {M_{\text{pre}}} - \bm{\tau}_{t+1} \right \} \\
+        &+ \bm{\lambda}_{E,t}^\top\{\bm{E}_t\}
+    % END CONSTRAINTS    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{aligned}
+\label{eq:lagrangian_recursive_problem}
+\end{equation}
+

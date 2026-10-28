@@ -1,0 +1,26 @@
+%Define custom section formatting
+\titleformat{\section}
+  {\clearpage\normalfont\Huge\bfseries\color{black}} % Using \huge for larger font size
+  {\thesection}{1em}{} % No dot after the section number
+
+% Adjust spacing: {left}{before}{after}
+\titlespacing*{\section}
+  {0pt} % Left spacing
+  {0pt} % Customizable space before the section title
+  {30pt} % Space after the section title
+
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+
+\titleformat{\subsection}
+  {\normalfont\Large\bfseries\color{black}}
+  {\thesubsection}{1em}{}
+
+\titlespacing*{\subsection}
+  {0pt} % Left spacing
+  {30pt} % Customizable space before the section title
+  {20pt} % Space after the section title
+
+% ---------------------------------------------------------------
+% Page numbering format for the main part of the thesis
+\pagenumbering{arabic}
+% ---------------------------------------------------------------

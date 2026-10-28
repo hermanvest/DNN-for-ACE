@@ -1,0 +1,49 @@
+\begin{titlepage}
+    \newgeometry{top=1in, bottom=1in} % Adjust the top and bottom margins as needed
+
+    \begin{tikzpicture}[remember picture,overlay]
+        % Draw the blue background rectangle
+        \node[rectangle, fill=uioRed, minimum width=\paperwidth, minimum height=0.33\paperheight, anchor=north] (redbox) at (current page.north) {};
+        
+        % Place the university logo in the upper left corner of the blue box
+        \node[anchor=north west, inner sep=0pt] at ($(current page.north west)+(1cm,-1cm)$) { % Adjust the coordinates as needed
+            \includegraphics[width=5cm]{images/uio_logo/uio name, white, eng.png}
+        };
+
+        % Draw the black box with the text "Master's thesis" at the bottom of the red rectangle
+        \node[anchor=south west, fill=black, text=white, inner sep=15pt] at ($(current page.north west)+(1cm,-0.33\paperheight+1cm)$) {
+            \textbf{Master's thesis}
+        };
+    
+        % Text alignment with precise positioning
+        % Main Title
+        \node[anchor=west] at ($(current page.west)+(1cm,4cm)$) {\Huge\bfseries Beyond the Curse of Dimensionality?};
+        % Subtitle
+        \node[anchor=west] at ($(current page.west)+(1cm, 2.5cm)$) {\Huge\bfseries Deep Equilibrium Nets for the Analytic};
+        \node[anchor=west] at ($(current page.west)+(1cm,1cm)$) {\Huge\bfseries Climate Economy};
+
+        \node[anchor=west] at ($(current page.west)+(1cm,-1cm)$) {\Large A mapping and application of Deep Equilibrium Nets to the Analytic};
+        \node[anchor=west] at ($(current page.west)+(1cm,-2cm)$) {\Large Climate Economy};
+        
+        % Author's Name
+        \node[anchor=west] at ($(current page.west)+(1cm,-5cm)$) {\Large\bfseries Herman Vestvik Thieme};
+        
+        % Study Programme
+        \node[anchor=west] at ($(current page.west)+(1cm,-7cm)$) {\large Economics};
+        \node[anchor=west] at ($(current page.west)+(1cm,-8cm)$) {\large 30 ECTS study points};
+        
+        % Department and Faculty
+        \node[anchor=west] at ($(current page.west)+(1cm,-10cm)$) {\large Department of Economics};
+        \node[anchor=west] at ($(current page.west)+(1cm,-11cm)$) {\large Faculty of Social Sciences};
+        
+        % Date
+        \node[anchor=south west] at ($(current page.south west)+(1cm,1cm)$) {\large May 2024};
+
+        % Include an image at the bottom right of the page
+        \node[anchor=south east, inner sep=0pt] at ($(current page.south east)+(2cm,-2cm)$) {
+            \includegraphics[width=8cm]{images/uio_logo/uio,seal,black.png} % Replace with the correct path to your image
+        };
+    \end{tikzpicture}
+   
+    \restoregeometry
+\end{titlepage}

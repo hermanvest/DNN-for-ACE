@@ -1,0 +1,254 @@
+\subsection{Lagrange Conditions}
+
+This section outlines the derivation of the Lagrange conditions. Initially, I establish the first-order conditions and use the envelope conditions to eliminate the value function derivatives from these equations. Finally, these conditions are combined into the conditions that form the policy objective.
+
+\subsubsection{First-order Conditions}
+Let's first consider the condition on costate variables, given in equation (\ref{eq:lagrange_condition_costate}) and proceed with the conditions on the action variables in equation (\ref{eq:lagrange_condition_action_vars}). The costate variable associated with capital equals the discounted marginal increase in value, resulting from another unit of capital (invested today) in the next period: 
+\begin{equation}
+    \lambda_{k,t} = \beta \frac{\partial V(s_{t+1})}{\partial k_{t+1}}
+\label{eq:costate_condition_capital}
+\end{equation}
+
+The condition on the costate variables of the carbon stocks helps in adjusting policy to manage the impacts of carbon reservoir changes, which is needed for estimating the effects of how policies propagate through the climate system:
+\begin{equation}
+    \bm{\lambda_{M,t}} = \beta \nabla_{\bm{M_{t+1}}}V(s_{t+1}),
+\label{eq:costate_condition_carbon_reservoir}
+\end{equation}
+where \(\nabla_{\bm{M_{t+1}}}\) is the gradient with respect to each of the next-period carbon reservoirs. The costate variable associated with carbon reservoirs is the discounted marginal value of having one more carbon unit in the atmosphere in the next period.
+
+
+Similarly, the costate variables for the transformed temperatures reflect how changes in the temperature variables at the next time step influence the valuation of the system's state:
+\begin{equation}
+    \bm{\lambda_{\tau, t}} = \beta \nabla_{\bm{\tau_{t+1}}}V(s_{t+1}),
+\label{eq:costate_condition_transformed_temp}
+\end{equation}
+
+where \(\nabla_{\bm{\tau_{t+1}}}\) is the gradient with respect to each of the next-period transformed temperatures. Each of these conditions relies on a derivative of the value function in the next period. This has to be eliminated so that we can evaluate these expressions. These will be replaced in subsequent subsections.
+
+We now turn our attention to the first-order conditions with respect to the control variables, which will guide the neural network in finding the optimal paths of consumption and emissions within the model. Because the Lagrangian (equation \ref{eq:lagrangian_recursive_problem}) attaches a costate variable to each equation of motion, the next-period states are linked to today's controls only through these constraints. A control therefore affects the continuation value \(\beta V(\bm{s}_{t+1})\) exclusively through the costate terms, since \(\lambda_{k,t} = \beta \frac{\partial V(s_{t+1})}{\partial k_{t+1}}\) by equation (\ref{eq:costate_condition_capital}). Adding a separate term \(\beta \frac{\partial V(s_{t+1})}{\partial x_t}\) on top of the costate term would count the same effect twice. The consumption rate \(x_t\) is optimized through the following first-order condition:
+\begin{equation}
+    \frac{1}{x_t} 
+        - \lambda_{k,t}\frac{1}{1-x_t} = 0
+\label{eq:first_order_condition_consumption_rate}
+\end{equation}
+
+In this equation, \(\frac{1}{x_t}\) represents the marginal utility of consumption, indicating that as consumption increases, the additional utility per unit of consumption decreases. The negative term \(-\lambda_{k,t}\frac{1}{1-x_t}\) reflects the opportunity cost of consuming more today rather than saving or investing for future consumption. Here, \(1-x_t\) represents the saving rate, and \(\lambda_{k,t}\) is the shadow price of capital, which carries the effect of today's consumption on the future value of the system.
+
+The optimization of emissions levels \(E_{i,t}\) is governed by this first-order condition:
+\begin{equation}
+    (1 + \lambda_{k,t}) \frac{\partial \log F_t(\cdot)}{\partial E_{i,t}}
+        + \lambda_{M_1,t}
+        + \lambda_{E_i,t}
+        = 0
+\label{eq:first_order_condition_emissions}
+\end{equation}
+
+The neural network will have to balance the marginal effect of emissions on current production, which enters utility directly through \(\frac{\partial \log F_t(\cdot)}{\partial E_{i,t}}\) and capital accumulation through \(\lambda_{k,t} \frac{\partial \log F_t(\cdot)}{\partial E_{i,t}}\). Less emissions means less capital. At the same time, emissions also propagate through the climate system. It increases atmospheric CO$_2$, which has a value of \(\lambda_{M_1,t}\). As for the consumption rate, the discounted effect of emissions on the next-period value function is fully captured by the costate variables \(\lambda_{k,t}\) and \(\lambda_{M_1,t}\) and must not be added separately. Finally, \(\lambda_{E_i,t}\) represents the total penalty for any emissions that could drop below zero.
+
+Finally, the last condition is the Karush–Kuhn–Tucker (KKT) condition:
+\begin{equation}
+    E_{i,t} \geq 0 \quad \bot \quad \lambda_{E_i,t} \geq 0 ,
+\end{equation}
+
+where \(\bot\) indicates complementary slackness. We must ensure that the loss function is continuously differentiable for backpropagation purposes. Hence, I will use the Fischer-Burmeister function as \textcite{Maliar2021} does for complementary slackness:
+
+\begin{equation}
+        \Psi^{FB}(\lambda_{E_i,t},E_{i,t}) = \lambda_{E_i,t}+E_{i,t}-\sqrt{\lambda_{E_i,t}^2+E_{i,t}^2} = 0
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Envelope Conditions hold in Equilibrium}
+
+The derivatives of the value function with respect to the state variables are the marginal effects of the change in choice variables that propagate through the climate system. We need to know these to ensure the neural network makes optimal decisions. We can find out what they are by using the envelope theorem. The envelope theorem allows us to take the derivative of the value function with respect to the state variables, holding the choice variables constant at their optimal values. We can then replace the value function derivatives in the Lagrange conditions, assuming that the envelope conditions hold when the system is in equilibrium.
+
+More specifically, as we are using a Lagrangian setup, we can use the fact that \(\bm{\lambda}_t\) quantifies the increase in the objective function resulting from a marginal increase in the constraint’s right-hand side. As we optimize the controls (put the choices in from the neural network and use them as if they are at their optimal values), we need to know how they affect the value in the next state.
+
+By the envelope conditions, the marginal change in value from one more unit of capital has to equal the direct marginal change in utility plus (the costate) marginal change in the objective function times a marginal change in capital. Capital enters both the utility function (equation \ref{eq:utility_function_transformed}) and the equation of motion for capital (equation \ref{eq:capital_transformed}) through \(\log F_t(\cdot)\), so both channels must be included:
+
+\begin{equation*}
+    \frac{\partial V(\bm{s}_t)}{\partial k_t} = \frac{\partial u(x_t)}{\partial k_t} + \lambda_{k,t}\frac{\partial k_{t+1}}{\partial k_t}
+    = (1 + \lambda_{k,t}) \frac{\partial \log F_t(\cdot)}{\partial k_t},
+\end{equation*}
+
+where I use \(F_t(\cdot)\) as shorthand for \(F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t)\). This mirrors the envelope condition for the transformed temperatures below, where \(\tau_{1,t}\) likewise enters both utility and the capital equation of motion. Iterating this forward (\(t+1\)), we can use it in the capital costate condition (equation \ref{eq:costate_condition_capital}) to eliminate the value function derivative:
+
+\begin{equation}
+    \lambda_{k,t} = \beta (1 + \lambda_{k,t+1}) \frac{\partial \log F_{t+1}(\cdot)}{\partial k_{t+1}}
+\label{eq:lagrange_condition_capital_final}
+\end{equation}
+
+We can proceed similarly with the conditions for carbon reservoirs. To be more transparent with calculations, I will first list the equations of the common three-layer carbon model and then summarize it in vector notation, which would hold true for any amount of layer carbon cycle as outlined in the previous section. The conditions we would get with a three-layer carbon cycle are the following:
+
+\begin{equation*}
+\begin{aligned}
+    \frac{\partial V(\bm{s}_t)}{\partial M_{1,t}} &= 
+        \lambda_{M_1,t}\frac{\partial M_{1,t+1}}{\partial M_{1,t}}
+        + \lambda_{M_2,t}\frac{\partial M_{2,t+1}}{\partial M_{1,t}}
+        + \lambda_{M_3,t}\frac{\partial M_{3,t+1}}{\partial M_{1,t}}
+        + \lambda_{\tau_1,t}\frac{\partial \tau_{1,t+1}}{\partial M_{1,t}} \\
+    &= \lambda_{M_1,t} \Phi_{1,1}
+        + \lambda_{M_2,t} \Phi_{2,1}
+        + \lambda_{M_3,t} \Phi_{3,1}
+        + \lambda_{\tau_1,t} \sigma^{\text{forc}}\frac{1}{M_{\text{pre}}}
+\end{aligned}
+\end{equation*}
+
+\begin{equation*}
+\begin{aligned}
+    \frac{\partial V(\bm{s}_t)}{\partial M_{2,t}} &= 
+        \lambda_{M_1,t}\frac{\partial M_{1,t+1}}{\partial M_{2,t}}
+        + \lambda_{M_2,t}\frac{\partial M_{2,t+1}}{\partial M_{2,t}}
+        + \lambda_{M_3,t}\frac{\partial M_{3,t+1}}{\partial M_{2,t}} \\
+    &= \lambda_{M_1,t} \Phi_{1,2}
+        + \lambda_{M_2,t} \Phi_{2,2}
+        + \lambda_{M_3,t} \Phi_{3,2}
+\end{aligned}
+\end{equation*}
+
+\begin{equation*}
+\begin{aligned}
+    \frac{\partial V(\bm{s}_t)}{\partial M_{3,t}} &= 
+        \lambda_{M_1,t}\frac{\partial M_{1,t+1}}{\partial M_{3,t}}
+        + \lambda_{M_2,t}\frac{\partial M_{2,t+1}}{\partial M_{3,t}}
+        + \lambda_{M_3,t}\frac{\partial M_{3,t+1}}{\partial M_{3,t}} \\
+    &= \lambda_{M_1,t} \Phi_{1,3}
+        + \lambda_{M_2,t} \Phi_{2,3}
+        + \lambda_{M_3,t} \Phi_{3,3}
+\end{aligned}
+\end{equation*}
+
+This could be summarized in vector notation as such:
+
+\begin{equation*}
+    \nabla_{M_t}V(\bm{s}_t) = \bm{\Phi}^\top \bm{\lambda_{M,t}}
+    + \bm{e_1} \lambda_{\tau_1,t} \sigma^{\text{forc}}\frac{1}{M_{\text{pre}}},
+\end{equation*}
+
+being valid for any \(m\in\mathbb{N}\)-layer carbon cycle model according to the specifications of ACE-DICE. We can eliminate the value function derivatives in the Lagrange condition for the carbon reservoirs (equation \ref{eq:costate_condition_carbon_reservoir}) by iterating this one timestep forward and substituting this into it:
+
+\begin{equation}
+    \bm{\lambda_{M,t}} = \beta \left( 
+        \bm{\Phi}^\top \bm{\lambda_{M,t+1}}
+        + \bm{e_1} \lambda_{\tau_1,t+1} \sigma^{\text{forc}}\frac{1}{M_{\text{pre}}} 
+    \right)
+\label{eq:lagrange_condition_carbon_reservoir_final}
+\end{equation}
+
+Continuing in the same manner for the envelope conditions on transformed temperatures, I will list the equations in the case of a two-layer temperature model and provide vector notation for the general ACE-DICE envelope conditions. A two-layer temperature model would have the following envelope conditions:
+
+\begin{equation*}
+        \frac{\partial V(\bm{s}_t)}{\partial \tau_{1,t}} = 
+            \lambda_{\tau_1,t}\frac{\partial \tau_{1,t+1}}{\partial \tau_{1,t}}
+            + \lambda_{\tau_2,t}\frac{\partial \tau_{2,t+1}}{\partial \tau_{1,t}}
+            -\xi_0 - \lambda_{k,t}\xi_0
+        = \lambda_{\tau_1,t} \sigma_{1,1} + \lambda_{\tau_2,t} \sigma_{2,1}
+        -\xi_0 - \lambda_{k,t}\xi_0
+\end{equation*}
+
+\begin{equation*}
+        \frac{\partial V(\bm{s}_t)}{\partial \tau_{2,t}} = 
+            \lambda_{\tau_1,t}\frac{\partial \tau_{1,t+1}}{\partial \tau_{2,t}}
+            + \lambda_{\tau_2,t}\frac{\partial \tau_{2,t+1}}{\partial \tau_{2,t}}
+        = \lambda_{\tau_1,t} \sigma_{1,2} + \lambda_{\tau_2,t} \sigma_{2,2}
+\end{equation*}
+
+Summarized in vector notation:
+
+\begin{equation*}
+    \nabla_{\tau_t}V(\bm{s}_t) = \bm{\sigma}^\top\bm{\lambda_{\tau, t}} - \bm{e_1}\xi_0(1 + \lambda_{k,t})
+\end{equation*}
+
+This will also be valid for any \(l\in\mathbb{N}\)-layer temperature model that follows the specifications of the general ACE-DICE. Iterating one step forward and substituting into equation (\ref{eq:costate_condition_transformed_temp}) yields:
+
+\begin{equation}
+        \bm{\lambda_{\tau, t}} = \beta \left( 
+            \bm{\sigma}^\top\bm{\lambda_{\tau, t+1}} - \bm{e_1}\xi_0(1 + \lambda_{k,t+1})
+        \right),
+\label{eq:lagrange_condition_temperature_final}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Final Objective Functions}
+This section shows how we end up with the final policy objective. I remind you that the end goal, as discussed in section (\ref{subsec:model_based_optimal_control}), is fitting the equilibrium conditions by regression. For convenience, the general formulation of the policy objective is provided here:
+
+\begin{equation}
+    \ell_{\theta} \doteq \frac{1}{b} \sum_{i=1}^b \sum_{m=0}^M \left[ \ell_{m} \left(\bm{s}_i, \pi_\theta(\bm{s}_i)  \right) \right]^2 .
+\tag{\ref{eq:total_objective_function}}
+\end{equation}
+
+The first individual objective functions \(\ell_m\) are the Lagrange conditions, where the costate has to equal the partial derivative of the Lagrange function with respect to the state (equation \ref{eq:lagrange_condition_costate}), as we have derived them in the previous subsection. The first objective function \(\ell_0\), will be equation (\ref{eq:lagrange_condition_capital_final}) rearranged so that it should equal zero at optimum:
+
+\begin{equation}
+    \ell_0 \doteq \lambda_{k,t} - \beta (1 + \lambda_{k,t+1}) \frac{\partial \log F_{t+1}(\cdot)}{\partial k_{t+1}}
+\label{eq:general_objective_0}
+\end{equation}
+
+The other objective functions on states will be the conditions for carbon reservoirs (eq. \ref{eq:lagrange_condition_carbon_reservoir_final}) \(\ell_1\) and transformed temperatures (eq. \ref{eq:lagrange_condition_temperature_final}) \(\ell_2\). The two objective functions are:
+
+\begin{equation}
+    \ell_1 \doteq
+        \bm{\lambda_{M,t}} - \beta \left( 
+        \bm{\Phi}^\top \bm{\lambda_{M,t+1}}
+        + \bm{e_1} \lambda_{\tau_1,t+1} \sigma^{\text{forc}}\frac{1}{M_{\text{pre}}} 
+    \right)
+\label{eq:general_objective_1}
+\end{equation}
+
+\begin{equation}
+    \ell_2 \doteq
+        \bm{\lambda_{\tau, t}} - \beta \left( 
+            \bm{\sigma}^\top\bm{\lambda_{\tau, t+1}} - \bm{e_1}\xi_0(1 + \lambda_{k,t+1})
+        \right)
+\label{eq:general_objective_2}
+\end{equation}
+
+Furthermore, we need the Lagrange conditions for the action variables (eq. \ref{eq:lagrange_condition_action_vars}). The condition on the consumption rate (eq. \ref{eq:first_order_condition_consumption_rate}) will serve as \(\ell_3\):
+
+\begin{equation}
+    \ell_3 \doteq \frac{1}{x_t} 
+        - \lambda_{k,t}\frac{1}{1-x_t}
+\label{eq:general_objective_3}
+\end{equation}
+
+No further elimination of value function derivatives is needed here, as the effect of \(x_t\) on the next-period value is already contained in \(\lambda_{k,t}\). One could equivalently write the first-order condition as \(\frac{1}{x_t} + \beta \frac{\partial V(s_{t+1})}{\partial k_{t+1}}\frac{\partial k_{t+1}}{\partial x_t} = 0\) and substitute equation (\ref{eq:costate_condition_capital}), which yields the same expression. As a check, the analytical solution \(x^* = 1 - \beta\kappa\) (equation \ref{eq:analytical_x_t}) together with the constant costate \(\lambda_k^* = \frac{\beta\kappa}{1-\beta\kappa}\) sets both \(\ell_0\) and \(\ell_3\) exactly to zero when \(\frac{\partial \log F_t(\cdot)}{\partial k_t} = \kappa\).
+
+The first-order conditions on emissions (eq. \ref{eq:first_order_condition_emissions}) enter the objective function as \(\ell_4\). For the same reason as for the consumption rate, the effect of emissions on the next-period value is captured by \(\lambda_{k,t}\) and \(\lambda_{M_1,t}\), which themselves are pinned down by \(\ell_0\) and \(\ell_1\):
+\begin{equation}
+    \ell_4 \doteq (1 + \lambda_{k,t}) \frac{\partial \log F_t(\cdot)}{\partial E_{i,t}}
+        + \lambda_{M_1,t}
+        + \lambda_{E_i,t}
+\label{eq:general_objective_4}
+\end{equation}
+
+The KKT-condition for non-negative emissions expressed through the Fischer-Burmeister function is objective \(\ell_5\) and will be given as:
+
+\begin{equation}
+    \ell_5 \doteq \Psi^{FB}(\lambda_{E_i,t},E_{i,t}) = \lambda_{E_i,t}+E_{i,t}-
+        \sqrt{\lambda_{E_i,t}^2+E_{i,t}^2}
+\label{eq:general_objective_5}
+\end{equation}
+
+Finally, the Bellman Equation has to hold (where \(^*\) indicates optimized variables): 
+\begin{equation}
+    \ell_6 \doteq
+        \log x_t^* + \log F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t^*) - \xi_0\tau_{1,t} + \xi_0
+        + \beta V(\bm{s}_{t+1})
+        - V(\bm{s}_t)
+\label{eq:general_objective_6}
+\end{equation}
+
+A summary of all the objective functions is provided in Appendix (\ref{appendix:deqn_model_specific_mapping}).

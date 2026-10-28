@@ -1,0 +1,12 @@
+\section*{About this Revised Version}
+
+This is a revised version of the thesis. After submission, I found errors in the equilibrium conditions that make up the policy objective, both in the derivations and in the code used for the experiments:
+
+\begin{itemize}
+    \item The envelope condition for capital omitted the direct effect of capital on utility, so the capital condition \(\ell_0\) did not hold at the optimum. In the code, the marginal product of capital was also missing from \(\ell_0\).
+    \item The first-order conditions on the consumption rate (\(\ell_3\)) and on emissions (\(\ell_4\)) counted the effect of today's controls on the next-period value twice, once directly and once through the costate variables.
+    \item The emissions condition omitted the multiplier on the upper bound \(E_t \leq E_t^{\text{BAU}}\) and the conversion from emissions in GtCO\(_2\) per year to the carbon stock in GtC per period.
+    \item The time indices of the temperature condition (\(\ell_2\)) were off by one period, and the code evaluated the Bellman equation (\(\ell_6\)) with a wrongly transformed emission level.
+\end{itemize}
+
+At the analytical solution of ACE, the original conditions \(\ell_0\) and \(\ell_3\) are not zero, so the policy network was trained towards a wrong fixed point. Section (\ref{sec:mapping_ace_onto_deqns}), Appendix (\ref{appendix:deqn_model_specific_mapping}) and Algorithm (\ref{algo:DEQN_policy_iteration}) are corrected. The code was rewritten with the corrected conditions and a scaling of the objective functions (section \ref{subsubsec:objective_scaling}), and all results in section (\ref{sec:results}) come from new training runs. The abstract, the discussion of the results and the conclusion are updated accordingly. The updated thesis, the corrected code and the new results are available on GitHub at \url{https://github.com/hermanvest/DNN-for-ACE} in the directory \texttt{revised/}. The repository is divided into this revised version and the original code, trained networks and results used for the submitted thesis, which remain unchanged in the repository root for reference.

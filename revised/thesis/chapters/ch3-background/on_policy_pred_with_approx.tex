@@ -1,0 +1,107 @@
+\subsection{Model-based Optimal Control}
+\label{subsec:model_based_optimal_control}
+
+This section aims to formalize the application of DEQNs \parencite{Azinovic2022DEQN} in \textcite{Folini2024ClimateInCE, friedl2023_deepUQ}. To achieve this, we need to cover two things: the policy objective and function approximation with DNNs. I will use the notation we have developed in the previous section to derive the policy objective. Additionally, if you are familiar with deep learning, feel free to skip the section on function approximation with DNNs.
+
+\subsubsection{The Policy Objective}
+\label{sec:the policy objective,general}
+
+The policy objective in \textcite{Folini2024ClimateInCE, friedl2023_deepUQ} relies on known system dynamics, where the next state variables are given by functions \(f\) of the current state and action vectors:
+
+\begin{equation}
+    \bm{s}_{t+1} = f(\bm{s}_t, \bm{a}_t), \quad \bm{s}_0 \; \text{given}
+\label{eq:general_environment_dynamics}
+\end{equation}
+
+We want to use the knowledge of the underlying dynamics of the environment to find the optimal policy \(\pi^*\) that maximizes the action-value function under the constraints of the dynamics of the environment, given an initial state \(\bm{s}_0\):
+
+\begin{equation}
+\begin{aligned}
+    \pi^*(s) &= \argmax_{\bm{a}_t} Q_\pi(\bm{s}_t, \bm{a}_t) \\
+    &s.t. \quad \text{Eq.}\; (\ref{eq:general_environment_dynamics}),
+\end{aligned}
+\label{eq:optimal_policy_s.t._dynamics}
+\end{equation}
+
+This problem statement is similar to the papers by \textcite{friedl2023_deepUQ} and \textcite{Folini2024ClimateInCE}. However, \textcite{Folini2024ClimateInCE} did not employ the value function in their approach as they had a deterministic model. Although I also have a deterministic model, I have chosen to use the value function as it yields the same result, and the general approach can be applied to a stochastic setting.
+
+Both papers use a Lagrangian formulation of the optimization problem, where the objective is to maximize the action-value function subject to the model's equations of motion. This formulation offers a set of necessary conditions that the optimal trajectory \(\tau^* = \{ \bm{s}_{0:T}^*, \bm{a}_{0:T}^* \}\) must satisfy the optimal control problem (eq. \ref{eq:optimal_policy_s.t._dynamics}). To introduce these necessary conditions, I will write the Lagrangian as:
+
+\begin{equation}
+    \mathcal{L}(\bm{s}_t, \bm{a}_t, \bm{\lambda}_{t+1}) = Q_\pi(\bm{s}_t, \bm{a}_t) + \bm{\lambda}_{t+1}^\top \left( f(\bm{s}_t, \bm{a}_t) - \bm{s}_{t+1} \right).
+\end{equation}
+
+In the above equation, \(\top\) denotes transposition, and \(\bm{\lambda}_t\) represents the costate variables, which are also known as the shadow price in economics. However, in this thesis, I will mainly refer to them as costate variables since they are used for computation purposes. The optimal control must satisfy the Lagrange conditions:
+
+\begin{flalign}
+    &\bm{\lambda}_t^* = \frac{\partial \mathcal{L}(\bm{s}_t^*, \bm{a}_t^*, \bm{\lambda}_{t+1}^*)}{\partial \bm{s}_t} \label{eq:lagrange_condition_costate}\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    &\frac{\partial \mathcal{L}(\bm{s}_t^*, \bm{a}_t^*, \bm{\lambda}_{t+1}^*)}{\partial \bm{a}_t} = 0 \label{eq:lagrange_condition_action_vars}
+\end{flalign}
+
+The Lagrange conditions define the model's first-order necessary conditions for optimality. We assume full information of the control Lagrangian along with its first-order information with respect to state and control variables. This allows us to simulate the system forward and use the Lagrange conditions as the policy objective for a function approximator. 
+
+It is worth noting that in the paper by \textcite{Azinovic2022DEQN}, what I refer to as the policy objective here is referred to as the loss function in their paper. These terms can be used interchangeably, but since this method belongs to the learning paradigm of RL, it is more accurately called a policy objective.
+
+The policy objective is fitted using regression through mean squared error (MSE). Each simulated trajectory will be divided into \(B\) batches of size \(b\). The policy objective is then evaluated at each point along the sampled batches from the trajectory:
+
+\begin{equation}
+    \ell_{\theta} \doteq \frac{1}{b} \sum_{i=1}^b \sum_{m=0}^M \left[ \ell_{m} \left(\bm{s}_i, \pi_\theta(\bm{s}_i)  \right) \right]^2,
+\label{eq:total_objective_function}
+\end{equation}
+
+where \(m\) indexes the Lagrange condition and \(i\) indexes the state sample from the trajectory and \(\pi_\theta\) is a parameterized policy function.
+
+\subsubsection{Function Approximation}
+
+Given that we are dealing with continuous state and action spaces, exact storage of the policy is not feasible, as we don't have an infinite amount of memory. As highlighted in \textcite[p.~197]{Sutton2018intro_to_rl}, function approximation introduces a significant advantage in this context. It allows the policy function to be represented as a parameterized functional form by a parameter vector \(\bm{\theta} \in \mathbb{R}^d\) instead of a table or grid. This ensures that the dimensionality of the parameter vector is considerably smaller than that of the state space \(\mathbb{R} << d\), thus allowing adjustments to the policy across numerous states simultaneously.
+
+The DEQN algorithm uses a vanilla feed-forward neural network (FNN), also known as a multi-layer perception (MLP). The parameter vector \(\bm{\theta}\) consists of weight vectors \(\bm{W}_i\) and bias vectors \(\bm{b}_i\) for each \(i\)-th layer of the MLP, where \(i\in \{1, ..., N\},\; N \in \mathbb{N}\). This structure enables the MLP to approximate a wide range of functions by adjusting the parameters. The mathematical representation of the parameterized policy function is defined as follows:
+
+\begin{equation}
+    \pi_{\bm{\theta}}(\bm{s_t}) = \mathcal{N}(\bm{s_t}) =
+    \bm{\sigma}_N(\bm{W}_N \bm{\sigma}_{N-1}(\bm{W}_{N-1} ... \bm{\sigma}_1(\bm{W}_1 \bm{s_t} + \bm{b}_1) \dots ) + \bm{b}_{N-1}) + \bm{b}_N),
+\end{equation}
+
+where \(\bm{\sigma}_i\) are activation functions used at each layer \(i\). From here, I will refer to the MLP parameterizing the policy function as the policy network. Generally, activation functions introduce non-linearity into neural networks, enabling them to model complex relationships in the data. They essentially filter and transform the incoming data, enabling networks to learn features at different levels of abstraction. Table (\ref{table:activation_functions}) lists some commonly used activation functions.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{Name} & \textbf{Form} & \textbf{Domain} & \textbf{Range} \\
+\midrule
+ReLU & \( f(x) = \max(0, x) \) & \( x \in \mathbb{R} \) & \( f(x) \in [0, \infty) \) \\
+Leaky ReLU & \( f(x) = \max(\alpha x, x) \) & \( x \in \mathbb{R}, \;\alpha \text{ small} \) & \( f(x) \in (-\infty, \infty) \) \\
+Sigmoid & \( f(x) = \frac{1}{1 + e^{-x}} \) & \( x \in \mathbb{R} \) & \( f(x) \in (0, 1) \) \\
+Tanh & \( f(x) = \frac{\exp(x)-\exp(-x)}{\exp(x)+\exp(-x)} \) & \( x \in \mathbb{R} \) & \( f(x) \in (-1, 1) \) \\
+Softplus & \( f(x) = \ln(1 + e^x) \) & \( x \in \mathbb{R} \) & \( f(x) \in (0, \infty) \) \\
+ELU & \( f(x) = \begin{cases} x & \text{if } x > 0 \\ \alpha(e^x - 1) & \text{otherwise} \end{cases} \) & \( x \in \mathbb{R}, \alpha > 0 \) & \( f(x) \in (-\alpha, \infty) \) \\
+\bottomrule
+\end{tabular}
+\caption{Common Activation Functions with Domain and Range \parencite{chollet2015keras}}
+\label{table:activation_functions}
+\end{table}
+
+
+The policy network's parameters are updated using Stochastic Gradient Descent (SGD)\footnote{For a thorough intro to SGD in an RL context, see \textcite[Chapter 9-11]{Sutton2018intro_to_rl}}. This involves evaluating the outputs of the policy network on the policy objective (eq. \ref{eq:total_objective_function}) and taking the gradients of it. Let \(\nabla \ell_\theta\) denote the column vector of partial derivatives with respect to the parameters of the policy network:
+
+\begin{equation}
+    \nabla \ell_\theta \doteq \begin{bmatrix}
+        \frac{\partial \ell_\theta}{\partial \theta_1} & \frac{\partial \ell_\theta}{\partial \theta_2} & \dots & \frac{\partial \ell_\theta}{\partial \theta_d}
+    \end{bmatrix}^\top
+\end{equation}
+
+When we update the network parameters, we aim to take the step that moves us most toward the optimal path, effectively minimizing the policy objective (eq. \ref{eq:total_objective_function}). We, therefore, update the parameter vector with the negative of the gradient, hence \enquote{gradient descent} in SGD. Additionally, the updating rule includes a small coefficient \(\alpha\) that ensures updates are not too large. The updating step is defined as follows:
+
+\begin{equation}
+    \bm{\theta} \doteq \bm{\theta} - \alpha \nabla\ell_{\bm{\theta}}
+\end{equation}
+
+In practice, an optimizer performs the updating step. The ADAM optimizer in \textcite{kingma2017adam} is widely used in deep learning and was also used in \textcite{Folini2024ClimateInCE, friedl2023_deepUQ}.
+
+\subsubsection{Algorithm}
+Putting it all together, we arrive at algorithm (\ref{algo:DEQN_policy_iteration}). The algorithm's requirements are listed under \enquote{Require} and the output is given under \enquote{Ensure}. Following that, the pseudocode outlines the sequence of operations, starting with parameter initializations. The algorithm's main loop generates episodes and processes them through epochs, where each batch is evaluated to update the policy network using SGD.
+
+\input{chapters/ch3-background/algorithm}
+

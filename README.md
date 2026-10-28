@@ -1,8 +1,37 @@
 # Deep Equilibrium Nets for The Analytic Climate Economy
 
+> [!IMPORTANT]
+> **Corrections and an updated thesis are available.** After submission, errors were found in the
+> equilibrium conditions (loss functions) of the thesis and of the original code: the capital
+> envelope condition, double-counted terms in the consumption and emissions first-order
+> conditions, a missing unit conversion, off-by-one time indices, and a double transformation of
+> emissions in the Bellman residual. They are corrected in a rewritten implementation, and the
+> updated thesis, with new results, is in [`revised/`](revised/) ([PDF](revised/thesis/thesis_revised.pdf)). The original code used for the
+> submitted thesis is kept unchanged in the repository root.
+
 This GitHub repository contains the codes for my master's thesis, called "Beyond the Curse of Dimensionality? Deep Equilibrium Nets for the Analytic Climate Economy". Please refer to Azinovic et al. (2022) for Deep Equilibrium Nets and their [![GitHub Repository](https://img.shields.io/badge/GitHub-DeepEquilibriumNets-blue?logo=github)](https://github.com/sischei/DeepEquilibriumNets) and to Traeger (2023) for the paper on the Analytic Climate Economy.
 
-## Usage
+## Repository layout
+
+The repository is divided into two parts:
+
+| Part | Location | Contents |
+|---|---|---|
+| **Revised version** | [`revised/`](revised/) | Corrected and rewritten code ([`revised/code/`](revised/code/)), new results with figures and tables ([`revised/results/`](revised/results/)), and the updated thesis ([PDF](revised/thesis/thesis_revised.pdf), LaTeX source in [`revised/thesis/`](revised/thesis/)). See [`revised/README.md`](revised/README.md) for what was corrected and how to reproduce the results. |
+| **Original thesis code** | repository root (`agents/`, `configs/`, `environments/`, `networks/`, `training_algorithms/`, `plotting/`, `logs/`, ...) | The code, trained checkpoints and results used for the submitted thesis, kept unchanged for reference. Note that its loss functions contain the errors described above. |
+
+## Revised version
+
+```shell
+cd revised/code
+python -m pytest                    # the analytic solution satisfies the corrected conditions
+python train.py --version 2016      # or 2023
+python make_results.py              # figures, tables and CSVs in revised/results/
+```
+
+## Original thesis code
+
+### Usage
 
 The main results for the thesis, including the analytical calculations, are in the following notebook: [![Python Notebook](https://img.shields.io/badge/Python%20Notebook-thesis__results.ipynb-lightgrey?logo=jupyter)](plotting/thesis_results.ipynb)
 
@@ -32,7 +61,7 @@ tensorboard --logdir=logs/version/training_stats
 
 where version is replaced by 2016 or 2023.
 
-## Dependencies
+### Dependencies
 
 - ![debugpy](https://img.shields.io/badge/debugpy-v1.6.6-blue)
 - ![Jinja2](https://img.shields.io/badge/Jinja2-v3.1.3-blue)

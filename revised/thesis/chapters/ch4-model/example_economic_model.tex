@@ -1,0 +1,50 @@
+\subsubsection{The Production Function}
+
+This section reviews how the production function of the general ACE can be specified to cover the DICE production function. \textcite{traeger2021analytic_discussion} specifies an energy-enriched production system with Cobb-Douglas production. The production function is amended by introducing energy sectors represented by a function \(G\) of vectors of exogenous technologies \(\bm{A}_t^E\), allocated labor \(\bm{N}_t^E\) and energy inputs \(\bm{E}_t\). Then,
+
+\begin{equation}
+    Y_t = F(\bm{A_t}, \bm{N_t}, \bm{K_t}, \bm{E_t}) 
+    = \underbrace{A_t K_t^\kappa N_t^\eta}_{\text{DICE's}\; Y_t^{\text{gross}}} G(\bm{A_t^E}, \bm{N_t^E}, \bm{E_t}) ,
+\label{eq:generalized_CD_with_energy_enriched_prod}
+\end{equation}
+
+captures final output with the traditional Cobb-Douglas levels of technology \(A_t\), optimally allocated labor \(N_t\) and capital \(K_t\). The parameter \(\eta\) represents the labor elasticity of substitution and is \(\eta=1-\kappa\) in the case of DICE. Any version of DICE uses the Cobb-Douglas production function for gross output. Thus, the functional form for gross output in DICE, \(Y_t^{\text{gross}}\), is already covered by equation (\ref{eq:generalized_CD_with_energy_enriched_prod}). 
+
+DICE models the energy system implicitly using the abatement cost function \(\Lambda_t(\cdot)\). In any version of DICE, economic production produces CO$_{2}$ emissions, constituting an externality. In DICE, the social planner can mitigate the externality by choosing an abatement rate \(\mu_t \in [0,1]\), which reduces total industrial emissions. That way, business as usual (BAU) industrial emissions are reduced by the fraction \(1-\mu_t\), such that total industrial emissions at abatement are:
+
+\begin{equation}
+    E_t = (1-\mu_t) \sigma_t Y_t^{\text{gross}}
+\label{eq:DICE_emissions_when_abating}
+\end{equation}
+
+where BAU emissions are assumed to be proportional to gross output, scaled by \(\sigma_t\), the carbon intensity of production that is exogenously given. BAU emissions are therefore \(E_t^{BAU} = \sigma_t Y_t^{\text{gross}}\). You will notice that equation (\ref{eq:generalized_CD_with_energy_enriched_prod}) does not use an abatement rate as input. To unite the two production models, \textcite{traeger2021analytic_discussion} rewrites the emissions equation (\ref{eq:DICE_emissions_when_abating}) to allow us to arrive at an explicit model of the energy system:
+
+\begin{equation}
+    \mu_t = 1 - \frac{E_t}{E_t^{\text{BAU}}}
+\label{eq:abatement_to_explicit_energy}
+\end{equation}
+
+Finally, abatement costs depend on the abatement rate through the following function (inserting equation (\ref{eq:abatement_to_explicit_energy}) for \(\mu_t\)):
+
+\begin{equation}
+    \Lambda(\mu_t) = \theta_{1,t} \mu_t^{\theta_2} = 
+    \theta_{1,t} \Bigg(1 - \frac{E_t}{E_t^{\text{BAU}}}\Bigg)^{\theta_2},
+\end{equation}
+
+where \(\theta_{1,t}\) is an exogenous reduction in abatement costs over time and the parameter \(\theta_2 = 2.6\) in both DICE 2016 and DICE 2023. The abatement costs are proportional to output, meaning that it costs the economy \(Y_t^{\text{gross}}\Lambda_t(\cdot)\) to abate. Without climate damages accounted for, the net output is \(Y_t^{\text{gross}}(1-\Lambda_t(\cdot))\). If we let \(A_t^E = \theta_{1,t}\) the production system is given as\footnote{Deviating from \textcite{traeger2021analytic_discussion}, as this notation is simpler and his notation is used for further derivations where his functional form is required, where it is not in my case.}:
+
+\begin{equation}
+    G(A_t^E, E_t^{\text{BAU}}, E_t) = 
+    1 - \theta_{1,t} \Bigg(1 - \frac{E_t}{E_t^{\text{BAU}}}\Bigg)^{\theta_2} .
+\end{equation}
+
+Putting it all together, the final production function is:
+
+\begin{equation}
+    Y_t = A_tK_t^\kappa N_t^{1-\kappa} 
+    \left[ 
+        1 - \theta_{1,t} \left(
+            1 - \frac{E_t}{E_t^{\text{BAU}}} 
+        \right)^{\theta_2}
+    \right] .
+\end{equation}

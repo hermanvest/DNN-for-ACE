@@ -1,0 +1,72 @@
+\documentclass[12pt]{article}
+
+\input{misc/packages}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Formatting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\onehalfspacing % Sets line spacing to 1.5
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\renewcommand{\headrulewidth}{0.4pt} % adds the line at the top of the page
+\fancyhfoffset[L]{0cm} % Adjust left offset of the header content
+\fancyhfoffset[R]{0cm} % Adjust right offset of the header content
+\fancyhead[L]{\thepage} % puts the page number on the top right
+
+% Redefine the 'plain' page style to match 'fancy'
+\fancypagestyle{plain}{%
+  \fancyhf{} % clear all header and footer fields
+  \renewcommand{\headrulewidth}{0.4pt} % Line at the top of the page
+  \fancyhead[L]{\thepage} % Page number on the top right
+}
+
+% numbering equations with section number
+\numberwithin{equation}{section}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Misc
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definecolor{uioRed}{RGB}{182,0,0} % Adjust the color values as needed
+\addbibresource{references/references.bib}
+\numberwithin{equation}{section} % numbering equations with section number
+% Set ToC depth to include up to subsections
+\setcounter{tocdepth}{2}
+
+% Define \argmax and \argmin
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The Main Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\input{chapters/preliminary pages/main}
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{misc/main_text_formatting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{chapters/ch1-introduction/main}
+\newpage
+\input{chapters/ch2-literature_review/main}
+\newpage
+\input{chapters/ch3-background/main}
+\newpage
+\input{chapters/ch4-model/main}
+\newpage
+\input{chapters/ch5-solution_algorithms/main}
+\newpage
+\input{chapters/ch6-results/main}
+\newpage
+\input{chapters/ch7-conclusion/main}
+
+\newpage
+\printbibliography
+\newpage
+
+\appendix
+\input{chapters/Appendix/main}
+
+\end{document}

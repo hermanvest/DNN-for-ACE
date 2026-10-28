@@ -1,0 +1,76 @@
+version: "2016"
+
+simulation:
+  t_max: 128                        # Episode length in 5-year periods
+  t_extra: 200                      # Extra periods of exogenous paths for the analytic benchmark
+
+economy:
+  prtp: 0.0286                      # Pure rate of social time preference (per year)
+  kappa: 0.3                        # Capital share of output
+  delta_k: 0.0439                   # Capital depreciation rate (per year)
+  g_k: 0.02949                      # Approximate growth rate of capital (per year)
+  timestep: 5                       # Years per period
+  theta_2: 2.6                      # Exponent of the abatement cost function
+
+  # Carbon intensity sigma_t
+  g_0_sigma: -0.0152                # Initial growth of sigma (per year)
+  delta_sigma: -0.001               # Decline rate of decarbonization (per period)
+  E_0: 35.85                        # Industrial emissions 2015 (GtCO2 per year)
+  Y_0: 105.5                        # Initial world gross output 2015 (trillion 2010 USD)
+  mu_0: 0.03                        # Initial emissions control rate 2015
+
+  # Backstop price
+  p_back: 550                       # Cost of backstop 2010$ per tCO2 2015
+  g_back: 0.025                     # Initial cost decline of backstop per period
+
+  # Labor N_t
+  pop0: 7403                        # Initial world population 2015 (millions)
+  popadj: 0.134                     # Growth rate to calibrate to 2050 pop projection
+  popasym: 11500                    # Asymptotic population (millions)
+
+  # Total factor productivity A_t
+  dela: 0.005                       # Decline rate of TFP growth per 5 years
+  ga0: 0.076                        # Initial growth rate of TFP per 5 years
+  a0: 5.115                         # Initial level of TFP
+
+  # Land-use emissions
+  e_land0: 2.6                      # Land-use emissions 2015 (GtCO2 per year)
+  de_land: 0.115                    # Decline rate of land-use emissions (per period)
+
+climate:
+  xi_0: 0.02219                     # Damage coefficient
+  xi_1: 0.2310                      # Temperature transformation coefficient
+  M_pre: 596.4                      # Preindustrial atmospheric carbon (GtC)
+  Xi: [0.088, 0.0025, 0.03832888889, 0.00033750]  # DICE 2013 carbon cycle, 5-year step
+  sigma_down_1: 0.1479              # Heat transfer upper -> lower layer
+  sigma_up_1: 0.24755               # Forcing weight / heat transfer to space
+  sigma_up_2: 0.011354              # Heat transfer lower -> upper layer
+
+initial_state:
+  K_0: 223                          # Capital 2015 (trillion 2010 USD)
+  M_0: [862.86, 1541.11, 10010.44]  # Carbon stocks 2015 (GtC)
+  tau_0: [1.256727218547292, 1.185465055669960]  # Transformed temperatures
+
+network:
+  hidden_nodes: 1024
+  hidden_layers: 2
+  activation: relu
+  seed: 1
+
+# The policy network outputs O(1) numbers. These scales map them onto the
+# magnitude of each economic quantity, and the same scales normalize the
+# corresponding residuals so that every condition carries comparable weight.
+scales:
+  V: 30.0
+  lambda_k: 1.0
+  lambda_M: 1.0e-4
+  lambda_tau: 0.1
+  lambda_kkt: 1.0e-4
+
+training:
+  iterations: 3000
+  epochs: 4
+  batch_size: 32
+  learning_rate: 1.0e-3
+  final_learning_rate: 1.0e-5
+  clipnorm: 1.0

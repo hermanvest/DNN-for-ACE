@@ -1,0 +1,38 @@
+\subsubsection{The Economic Model}
+
+The final net output is given by final gross output \(Y_t\), minus the fraction of output destroyed at each time step from climate-related damages, given by the function \(D\) of atmospheric temperature above preindustrial level \(T_{1,t}\). Let final gross output be a function \(F\) of vectors of technology \(\bm{A_t}\), labor \(\bm{N_t}\), capital \(\bm{K_t}\) and resource inputs \(\bm{E_t}\), where the input vectors are of dimensions \(I_j \in \mathbb{N}\) with \(j \in \{A,N,K,E\}\) such that \(F: \mathbb{R}^{I_A} \times \mathbb{R}^{I_N} \times \mathbb{R}^{I_K} \times \mathbb{R}^{I_E} \to \mathbb{R}\). Then,
+
+\begin{equation}
+    Y_t^{\text{net}} = F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t)
+    [1-D(T_{1,t})], \quad \text{where}
+\end{equation}
+\begin{equation*}
+    F(\bm{A}_t,\bm{N}_t, \gamma^\kappa\bm{K}_t,\bm{E}_t) = 
+    \gamma^\kappa F(\bm{A}_t,\bm{N}_t,\bm{K}_t,\bm{E}_t),
+    \quad \forall \gamma \in \mathbb{R}_+
+\end{equation*}
+
+is net output where gross total output is a function homogenous of degree \(\kappa\) in capital. Aggregate labor and capital are assumed to be optimally distributed across sectors such that \(\sum_{i=1}^{I_N}N_{i,t} = 1\) and \(\sum_{i=1}^{I_K}K_{i,t} = K_t\). The resource vector's first \(I^d \leq I_E\) elements are (dirty) fossil fuels that emit CO$_2$ such as oil, coal, and gas. The rest of the resource input vector is renewable energy inputs such as water, wind, and sunlight and are indexed from \(I^{d+1}\) to \(I_E\). These are assumed to be abundant\footnote{The original model includes a resource stock. I have chosen not to include the resource stock as a state variable for simplicity, but the extension would be straightforward.}. Finally, emissions from land conversion, forestry, and agriculture are denoted as \(\bm{E_t}^{\text{exo}}\) and are assumed to be exogenous.
+
+This thesis will use the damage function that permits an analytical solution. It is not required for this solution method to work, but it will allow for qualitatively evaluating the quality of the solution method used in this thesis. The function is defined as
+
+\begin{equation}
+    D(T_{1,t}) = 1 - \exp(-\xi_0 \exp[\xi_1 T_{1,t}] + \xi_0), \quad \xi_0 \in \mathbb{R},
+\end{equation}
+
+where \(\xi_1\approx \frac{1}{4}\) and \(\xi_0\) is a free damage parameter. When atmospheric temperatures are at the preindustrial levels, \(T_{1,\text{pre}}=0\), damage to output is zero: \(D(T_{1,\text{pre}}) = 0\). 
+
+Investments are modeled as the residual output after accounting for climate damages and consumption:
+
+\begin{equation}
+    I_t=Y_t \left[ 1-D(T_{1,t}) \right] - C_t
+\label{eq:investments}
+\end{equation}
+
+Finally, for the capital equation of motion, I will be using the approximate model of standard capital persistence, where aggregate capital accumulates as:
+
+\begin{equation}
+    K_{t+1} = I_t\left[\frac{1+g_{k,t}}{\delta_k + g_{k,t}} \right]
+\end{equation}
+
+Here, \(g_{k,t}\) is the capital growth and \(\delta_k\) is the capital depreciation.
