@@ -1,0 +1,6 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+A model-based actor-critic, trained on the reward and the laws of motion alone, recovers the closed-form solution of the Analytic Climate Economy with DICE 2016 and DICE 2023 functional forms. The learned abatement rate deviates from the optimal path by about 0.013 on average, the consumption rate by at most 0.013, and the social cost of carbon read off the gradient of the critic is within 1--3\% of its analytic value, with a welfare loss below 0.04\% of consumption. A DEQN with correctly derived equilibrium conditions remains about an order of magnitude more precise, but the actor-critic needs no derived conditions and so cannot be misled by an error in deriving them.
+
+The key ingredient is value-gradient learning. A critic trained on values alone fits the value function closely but implies a social cost of carbon with the wrong sign, and the actor stops abating. Training the critic on the gradient of the Bellman equation, computed by automatic differentiation and normalized by its own scale, recovers the shadow price of carbon. For economic applications, in which policy is driven by shadow prices that are small relative to the value function, this suggests that the gradient of the critic deserves as much attention as its level.

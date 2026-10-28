@@ -1,6 +1,6 @@
 """Train the model-based actor-critic for ACE-DICE.
 
-Usage: python train.py --version 2016 [--iterations N] [--gradient-weight W] [--copies C] [--tag NAME]
+Usage: python train.py --version 2016 [--iterations N] [--gradient-weight W] [--copies C] [--seed S] [--tag NAME]
 
 --gradient-weight 0 trains the critic by plain TD learning, and --copies 0 trains
 only on the simulated trajectory; both are used for the ablations in the paper.
@@ -24,6 +24,7 @@ def main() -> None:
     parser.add_argument("--iterations", type=int, default=None)
     parser.add_argument("--gradient-weight", type=float, default=None)
     parser.add_argument("--copies", type=int, default=None)
+    parser.add_argument("--seed", type=int, default=None, help="Seed for initialization and exploration")
     parser.add_argument("--tag", default="", help="Suffix for the run directory")
     parser.add_argument("--out", default=os.path.join(HERE, "..", "results", "runs"))
     args = parser.parse_args()
@@ -34,6 +35,8 @@ def main() -> None:
         config["training"]["iterations"] = args.iterations
     if args.gradient_weight is not None:
         config["training"]["gradient_weight"] = args.gradient_weight
+    if args.seed is not None:
+        config["network"]["seed"] = args.seed
     if args.copies is not None:
         config["exploration"]["copies"] = args.copies
 

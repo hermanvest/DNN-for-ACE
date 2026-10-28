@@ -100,9 +100,13 @@ def evaluate(version: str, tag: str = ""):
     s_star = tf.concat(s_star, axis=0)
 
     # Values: critic, true value of the learned policy, and the optimum, at the policy's states
+    # Rollouts of 250 periods are only computed for states up to HORIZON, where the
+    # exogenous paths are long enough; later states are not evaluated
     V_critic = agent.value(s).numpy()
-    V_policy = env.rollout_value(s, agent.policy).numpy()
-    V_star = env.rollout_value(s, env.analytic_action).numpy()
+    V_policy = np.full(n + 1, np.nan)
+    V_star = np.full(n + 1, np.nan)
+    V_policy[: HORIZON + 1] = env.rollout_value(s[: HORIZON + 1], agent.policy).numpy()
+    V_star[: HORIZON + 1] = env.rollout_value(s[: HORIZON + 1], env.analytic_action).numpy()
     welfare_loss = float(np.exp((V_star[0] - V_policy[0]) * (1 - env.beta)) - 1)
 
     mu = a["mu"].numpy()
@@ -120,7 +124,7 @@ def evaluate(version: str, tag: str = ""):
             "lambda_tau_1": lam[:, 4],
             "scc": env.scc(s, a["mu"], lam[:, 0], lam[:, 1]).numpy(),
             "scc_star": env.scc(
-                s, tf.constant(env.mu_star[t], tf.float32), tf.fill([n + 1], c.lambda_k), tf.fill([n + 1], c.lambda_M[0])
+                s, tf.constant(env.mu_star[t], tf.float32), tf.fill([n + 1], float(c.lambda_k)), tf.fill([n + 1], float(c.lambda_M[0]))
             ).numpy(),
             "V_critic": V_critic,
             "V_policy": V_policy,
@@ -241,11 +245,17 @@ def fig_ablation(ablations):
     first = next(iter(ablations.values()))
     d0 = first["data"].iloc[:HORIZON]
     axes[0].plot(d0["year"], d0["mu_star"], label="Analytic solution", **ANALYTIC_STYLE)
-    for tag, r in ablations.items():
+    # Both failed ablations end at mu = 0 and overlap; TD-only is dashed on top
+    order = ["", "_no_exploration", "_td_only"]
+    for tag in [t for t in order if t in ablations]:
+        r = ablations[tag]
         d = r["data"].iloc[:HORIZON]
-        axes[0].plot(d["year"], d["mu"], color=COLOR_ABLATION[tag], label=ABLATIONS[tag])
+        style = (0, (4, 2)) if tag == "_td_only" else "-"
+        axes[0].plot(d["year"], d["mu"], color=COLOR_ABLATION[tag], linestyle=style, label=ABLATIONS[tag])
         ev = pd.DataFrame(r["history"]["eval"])
-        axes[1].plot(ev["iteration"], ev["mu_err"], color=COLOR_ABLATION[tag])
+        axes[1].plot(ev["iteration"], ev["mu_err"], color=COLOR_ABLATION[tag], linestyle=style)
+    axes[0].annotate("Both ablations: no abatement", xy=(2160, 0.0), xytext=(2120, 0.18),
+                     fontsize=8.5, color=INK_SECONDARY, arrowprops=dict(arrowstyle="-", color=INK_SECONDARY, lw=0.6))
     axes[0].set_title(r"Abatement rate $\mu_t$ (ACE-DICE 2016)")
     axes[0].set_xlabel("Year")
     axes[0].set_ylim(-0.02, 1.05)
@@ -353,6 +363,39 @@ def write_tables(res, ablations):
     print(ab.to_string())
 
 
+SEEDS = {"": 1, "_seed2": 2, "_seed3": 3}
+
+
+def write_seed_table(res):
+    """Main metrics for every trained seed of the full method."""
+    rows = []
+    for v in VERSIONS:
+        for tag, seed in SEEDS.items():
+            if not os.path.exists(os.path.join(RESULTS, "runs", f"dice{v}{tag}", "actor.weights.h5")):
+                continue
+            m = metrics(res[v] if tag == "" else evaluate(v, tag), v)
+            rows.append({"version": v, "seed": seed, **m})
+    df = pd.DataFrame(rows)
+    df.to_csv(os.path.join(RESULTS, "tables", "seeds.csv"), index=False)
+    lines = [
+        r"\begin{tabular}{llcccccc}",
+        r"\toprule",
+        r"Version & Seed & $\max_t |x_t - x^*|$ & mean $|\mu_t - \mu_t^*|$ & $\lambda_k$ & $\lambda_{M_1}$ & SCC & Welfare loss \\",
+        r" & & & & \multicolumn{3}{c}{mean relative error} & (CE) \\",
+        r"\midrule",
+    ]
+    for _, r in df.iterrows():
+        lines.append(
+            f"{r['version']} & {r['seed']} & {r['max |x - x*|']:.4f} & {r['mean |mu - mu*|']:.4f} & "
+            f"{100 * r['lambda_k rel. error']:.2f}\\% & {100 * r['lambda_M1 rel. error']:.2f}\\% & "
+            f"{100 * r['SCC rel. error']:.2f}\\% & {r['welfare loss (CE, %)']:.4f}\\% \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    with open(os.path.join(RESULTS, "tables", "seeds.tex"), "w") as f:
+        f.write("\n".join(lines) + "\n")
+    print(df.to_string())
+
+
 def main():
     res = {v: evaluate(v) for v in VERSIONS}
     ablations = {}
@@ -366,6 +409,7 @@ def main():
     fig_learning(res)
     fig_ablation(ablations)
     write_tables(res, ablations)
+    write_seed_table(res)
 
 
 if __name__ == "__main__":
