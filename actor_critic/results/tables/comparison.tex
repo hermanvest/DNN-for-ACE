@@ -1,0 +1,16 @@
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{ACE-DICE 2016} & \multicolumn{2}{c}{ACE-DICE 2023} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+ & Actor-critic & DEQN & Actor-critic & DEQN \\
+\midrule
+$\max_t |x_t - x^*|$ & 0.0126 & 0.0006 & 0.0069 & 0.0028 \\
+mean $|\mu_t - \mu_t^*|$ & 0.0141 & 0.0009 & 0.0123 & 0.0020 \\
+$\max_t |\mu_t - \mu_t^*|$ & 0.0582 & 0.0166 & 0.0602 & 0.0227 \\
+SCC, mean relative error & 1.19\% & 0.18\% & 2.99\% & 0.56\% \\
+$\lambda_k$, mean relative error & 4.88\% & -- & 2.66\% & -- \\
+$\lambda_{M_1}$, mean relative error & 0.72\% & -- & 2.54\% & -- \\
+$\lambda_{\tau_1}$, mean relative error & 1.42\% & -- & 1.91\% & -- \\
+Welfare loss (consumption equivalent) & 0.0388\% & -- & 0.0039\% & -- \\
+\bottomrule
+\end{tabular}

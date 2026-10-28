@@ -13,11 +13,12 @@ This GitHub repository contains the codes for my master's thesis, called "Beyond
 
 ## Repository layout
 
-The repository is divided into two parts:
+The repository is divided into three parts:
 
 | Part | Location | Contents |
 |---|---|---|
 | **Revised version** | [`revised/`](revised/) | Corrected and rewritten code ([`revised/code/`](revised/code/)), new results with figures and tables ([`revised/results/`](revised/results/)), and the updated thesis ([PDF](revised/thesis/thesis_revised.pdf), LaTeX source in [`revised/thesis/`](revised/thesis/)). See [`revised/README.md`](revised/README.md) for what was corrected and how to reproduce the results. |
+| **Actor-critic follow-up** | [`actor_critic/`](actor_critic/) | A separate research project: a model-based actor-critic that learns ACE from the reward alone, without hand-derived equilibrium conditions, with its own code, results and paper ([PDF](actor_critic/paper/paper.pdf)). See [`actor_critic/README.md`](actor_critic/README.md). |
 | **Original thesis code** | repository root (`agents/`, `configs/`, `environments/`, `networks/`, `training_algorithms/`, `plotting/`, `logs/`, ...) | The code, trained checkpoints and results used for the submitted thesis, kept unchanged for reference. Note that its loss functions contain the errors described above. |
 
 ## Revised version

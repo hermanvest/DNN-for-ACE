@@ -1,0 +1,14 @@
+\begin{tabular}{lccc}
+\toprule
+ & Full method & TD learning only & No state perturbation \\
+\midrule
+$\max_t |x_t - x^*|$ & 0.0126 & 0.0716 & 0.0157 \\
+mean $|\mu_t - \mu_t^*|$ & 0.0141 & 0.6946 & 0.6940 \\
+$\max_t |\mu_t - \mu_t^*|$ & 0.0582 & 1.0000 & 0.9997 \\
+SCC, mean relative error & 1.19\% & 187.40\% & 1.82\% \\
+$\lambda_k$, mean relative error & 4.88\% & 17.65\% & 5.06\% \\
+$\lambda_{M_1}$, mean relative error & 0.72\% & 191.99\% & 2.45\% \\
+$\lambda_{\tau_1}$, mean relative error & 1.42\% & 197.45\% & 1.18\% \\
+Welfare loss (consumption equivalent) & 0.0388\% & 0.4007\% & 0.1623\% \\
+\bottomrule
+\end{tabular}
