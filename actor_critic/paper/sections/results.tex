@@ -52,7 +52,7 @@ No network in the actor-critic outputs a costate. Nevertheless, \(\beta\nabla V_
 
 \subsection{Comparison with a Correctly Specified DEQN}
 
-The DEQN with correctly derived conditions is more precise than the actor-critic, by about an order of magnitude on the controls (Table \ref{tab:comparison}). Its mean abatement error is 0.0009 and 0.0020, against 0.014 and 0.012 for the actor-critic, and its SCC errors are 0.2\% and 0.6\%, against 1.2\% and 3.0\%. This is the expected price of learning the shadow prices indirectly. The DEQN is told exactly which conditions the costates satisfy and outputs them directly, whereas the actor-critic must infer them from the curvature of a learned value function. On the other hand, the actor-critic obtains its accuracy without any hand-derived condition, so it cannot converge to the wrong solution because of a derivation error, and its gradient normalization replaces the hand-chosen scales of the DEQN. For a policy-relevant quantity such as the SCC, an error of 1--3\% is well within the uncertainty of the underlying damage and climate parameters.
+The DEQN with correctly derived conditions is more precise than the actor-critic, by about an order of magnitude on the controls (Table \ref{tab:comparison}). Its mean abatement error is 0.0009 and 0.0020, against 0.014 and 0.012 for the actor-critic, and its SCC errors are 0.2\% and 0.6\%, against 1.2\% and 3.0\%. This is the expected price of learning the shadow prices indirectly. The DEQN is told exactly which conditions the costates satisfy and outputs them directly, whereas the actor-critic must infer them from the curvature of a learned value function. On the other hand, the actor-critic obtains its accuracy without any hand-derived condition, so it cannot converge to the wrong solution because of a derivation error, and its gradient normalization replaces the hand-chosen scales of the DEQN. For a policy-relevant quantity such as the SCC, an error of 1--4\% is well within the uncertainty of the underlying damage and climate parameters.
 
 \subsection{Learning Dynamics}
 \label{sec:dynamics}
@@ -94,4 +94,15 @@ Table \ref{tab:ablation} and Figure \ref{fig:ablation} report the two ablations 
 \subsection{Robustness Across Seeds}
 \label{sec:seeds}
 
-SEEDS-PLACEHOLDER
+The results above are for one random seed. Table \ref{tab:seeds} reports the same metrics for three seeds per model, which differ in the initialization of both networks and in the state perturbations. All six runs recover the analytic solution. The mean abatement error lies between 0.010 and 0.016, the largest deviation of the consumption rate between 0.007 and 0.014, the mean relative error of the SCC between 1.0\% and 3.7\%, and the welfare loss between 0.004\% and 0.039\% of consumption.
+
+The learning dynamics differ more between seeds than the outcomes. In three of the six runs, the critic's carbon costate still had the wrong sign when the actor started, and the actor briefly reduced abatement to 2--3\%. In each case, the critic corrected the sign within 100 to 300 iterations, before the actor's output saturated completely, and abatement recovered by iteration 800. The race described in Section \ref{sec:dynamics} is therefore real, but with state perturbations, the critic wins it in all six runs. Without perturbations, it took the critic more than 1500 iterations to correct the sign, and the actor did not recover.
+
+\begin{table}[ht]
+    \centering
+    \begin{adjustbox}{width=\textwidth,center}
+    \input{../results/tables/seeds}
+    \end{adjustbox}
+    \caption{Accuracy of the actor-critic across random seeds. Seed 1 is the run reported in the rest of the paper.}
+    \label{tab:seeds}
+\end{table}
