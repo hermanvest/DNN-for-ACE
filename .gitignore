@@ -1,6 +1,8 @@
 __pycache__/
 .pytest_cache/
-.vscoderevised/thesis/*.aux
+.vscode
+revised/thesis/*.aux
+revised/thesis/main.pdf
 revised/thesis/*.log
 revised/thesis/*.bbl
 revised/thesis/*.bcf

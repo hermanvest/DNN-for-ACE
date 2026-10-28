@@ -76,5 +76,6 @@ python train.py --version 2023
 python make_results.py           # writes ../results/{figures,tables,csv}
 ```
 
-To build the thesis, run `latexmk -pdf main.tex` in `revised/thesis/`. The SVG figure in
-chapter 3 needs Inkscape (`--shell-escape`).
+To build the thesis, run `latexmk -pdf -shell-escape main.tex` in `revised/thesis/` and copy
+`main.pdf` to `thesis_revised.pdf`. The SVG figure in chapter 3 is converted by Inkscape, which
+must be installed.
