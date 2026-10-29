@@ -73,13 +73,13 @@ def save(fig, name):
 class Solved:
     """A trained pseudo-state DEQN with helpers to evaluate it at any parameter vector."""
 
-    def __init__(self, version: str):
+    def __init__(self, version: str, tag: str = ""):
         with open(os.path.join(HERE, "configs", f"ace_dice_{version}.yaml")) as f:
             self.config = yaml.safe_load(f)
         self.version = version
         self.model = AceDiceUQ(self.config)
         self.network = build_policy_network(self.config)
-        run = os.path.join(RESULTS, "runs", f"dice{version}")
+        run = os.path.join(RESULTS, "runs", f"dice{version}{tag}")
         self.network.load_weights(os.path.join(run, "policy.weights.h5"))
         with open(os.path.join(run, "history.json")) as f:
             self.history = json.load(f)
@@ -294,7 +294,7 @@ def quantify(s: Solved):
 
 
 ################ TABLES ################
-def write_tables(solved, accuracies, baseline, uq):
+def write_tables(solved, accuracies, baseline, uq, ablation):
     os.makedirs(os.path.join(RESULTS, "tables"), exist_ok=True)
     os.makedirs(os.path.join(RESULTS, "csv"), exist_ok=True)
     rows = []
@@ -314,6 +314,22 @@ def write_tables(solved, accuracies, baseline, uq):
             )
         d.to_csv(os.path.join(RESULTS, "csv", f"test_draws_dice{version}.csv"), index=False)
     pd.DataFrame(rows).to_csv(os.path.join(RESULTS, "tables", "accuracy.csv"), index=False)
+
+    rows = []
+    for label, d in [("discount weighting", accuracies["2016"]), ("equal weights", ablation)]:
+        low = d["prtp"] <= 0.01
+        rows.append(
+            {
+                "weights": label,
+                "scc_mean_rel_err_median": d["scc_mean_rel_err"].median(),
+                "scc_mean_rel_err_p90": d["scc_mean_rel_err"].quantile(0.9),
+                "scc_mean_rel_err_max": d["scc_mean_rel_err"].max(),
+                "scc_mean_rel_err_median_low_prtp": d.loc[low, "scc_mean_rel_err"].median(),
+                "mu_mean_abs_err_median": d["mu_mean_abs_err"].median(),
+                "x_max_abs_err_median": d["x_max_abs_err"].median(),
+            }
+        )
+    pd.DataFrame(rows).to_csv(os.path.join(RESULTS, "tables", "ablation.csv"), index=False)
 
     rows = []
     for version in VERSIONS:
@@ -354,7 +370,14 @@ def main() -> None:
         uq[version] = quantify(s)
         print(f"DICE {version} done", flush=True)
 
-    write_tables(solved, accuracies, baseline, uq)
+    # Ablation: DICE 2016 trained with equal weights on all conditions
+    unweighted = Solved("2016", "_unweighted")
+    test = unweighted.model.low + (unweighted.model.high - unweighted.model.low) * qmc.Sobol(3, seed=7).random(TEST_DRAWS)
+    ablation, _, _ = accuracy(unweighted, test)
+    os.makedirs(os.path.join(RESULTS, "csv"), exist_ok=True)
+    ablation.to_csv(os.path.join(RESULTS, "csv", "test_draws_dice2016_unweighted.csv"), index=False)
+
+    write_tables(solved, accuracies, baseline, uq, ablation)
     figure_slices(solved)
     figure_accuracy(accuracies)
     figure_paths(solved)
@@ -362,6 +385,7 @@ def main() -> None:
     figure_learning(solved, uq)
     print(pd.read_csv(os.path.join(RESULTS, "tables", "accuracy.csv")).to_string())
     print(pd.read_csv(os.path.join(RESULTS, "tables", "uq.csv")).to_string())
+    print(pd.read_csv(os.path.join(RESULTS, "tables", "ablation.csv")).to_string())
 
 
 if __name__ == "__main__":

@@ -84,7 +84,7 @@ scales:
   lambda_kkt: 1.0e-4
 
 training:
-  iterations: 3000
+  iterations: 6000
   trajectories: 16                  # Parallel trajectories per iteration, one parameter draw each
   epochs: 2
   batch_size: 256
@@ -93,3 +93,4 @@ training:
   clipnorm: 1.0
   validation_draws: 16              # Fixed parameter draws for selecting the best weights
   validate_every: 25
+  discount_weighting: true          # Weight recursive conditions by 1 / (1 - beta)

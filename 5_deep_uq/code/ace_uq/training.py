@@ -6,6 +6,9 @@ difference is that every iteration simulates several trajectories in parallel,
 each with its own parameter draw from the training box, so the visited states
 cover the parameter space as well as the economic states.
 
+Optionally, the recursive conditions are weighted by 1 / (1 - beta) of each
+sample (see `discount_weights`).
+
 The weights kept are those with the lowest objective on a fixed set of
 validation draws, the counterpart of part 2's lowest episode loss.
 """
@@ -62,7 +65,25 @@ class Trainer:
         s_next = self.model.step(s, a)
         a_next = self.policy(s_next)
         r = residuals(self.model, s, a, s_next, a_next)
+        if self.config["discount_weighting"]:
+            r *= self.discount_weights(s)
         return tf.reduce_mean(tf.reduce_sum(tf.square(r), axis=1))
+
+    def discount_weights(self, s: tf.Tensor) -> tf.Tensor:
+        """Weights 1 / (1 - beta) on the recursive conditions, relative to the baseline.
+
+        A residual eps in a recursion such as lambda = beta (... + lambda') becomes an
+        error of order eps / (1 - beta) in lambda, so a low discount rate needs smaller
+        residuals for the same accuracy. Weighting the recursive conditions (capital,
+        carbon and temperature costates, Bellman) by 1 / (1 - beta) evens this out.
+        The static first-order and KKT conditions keep weight one. Every weight is
+        positive, so the optimum does not move.
+        """
+        beta_baseline = (1.0 + self.model.baseline[0]) ** -self.model.timestep
+        w = (1.0 - beta_baseline) / (1.0 - self.model.beta(s))
+        ones = tf.ones_like(w)
+        # Residual order: l0, l1 (3), l2 (2), l3, l4, l5A, l5B, l6
+        return tf.stack([w, w, w, w, w, w, ones, ones, ones, ones, w], axis=1)
 
     @tf.function
     def _train_step(self, s: tf.Tensor) -> tf.Tensor:
