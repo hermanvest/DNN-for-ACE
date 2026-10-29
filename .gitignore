@@ -25,4 +25,3 @@ __pycache__/
 3_actor_critic/paper/*.out
 3_actor_critic/paper/*.run.xml
 3_actor_critic/paper/main.pdf
-4_grpo/results/
