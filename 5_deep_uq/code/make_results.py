@@ -160,7 +160,7 @@ def figure_slices(solved):
     axes[0].set_ylabel("USD per tCO₂")
     axes[0].plot([], [], label="Closed form", **ANALYTIC_STYLE)
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=4, bbox_to_anchor=(0.5, -0.08))
+    fig.legend(handles, labels, loc="lower center", ncol=4, bbox_to_anchor=(0.5, -0.15))
     save(fig, "scc_slices")
 
 
@@ -240,7 +240,7 @@ def figure_uq(uq):
         ax.set_xticks(x, [LABELS[p] for p in PARAMETERS])
         ax.set_ylim(0, 1)
         ax.set_title("Total Sobol index of the SCC")
-    axes[0, 0].legend(loc="upper left", fontsize=8.5)
+    axes[0, 0].legend(loc="upper right", fontsize=8.5)
     axes[1, 0].legend(loc="upper right", fontsize=8.5)
     fig.tight_layout()
     save(fig, "uq")
