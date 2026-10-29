@@ -23,6 +23,7 @@ own code, results and README, and later extensions get the next number.
 | 2 | [`2_revised/`](2_revised/) | The revision: corrected and rewritten code, new results, and the updated thesis ([PDF](2_revised/thesis/thesis_revised.pdf)). |
 | 3 | [`3_actor_critic/`](3_actor_critic/) | An extension: a model-based actor-critic that learns ACE from the reward alone, without hand-derived equilibrium conditions, with its own paper ([PDF](3_actor_critic/paper/paper.pdf)). |
 | 4 | [`4_grpo/`](4_grpo/) | An extension: Group Relative Policy Optimization (GRPO), a model-free method without a critic, on the same benchmark, compared with the actor-critic and the DEQN. |
+| 5 | [`5_deep_uq/`](5_deep_uq/) | An extension: Deep Uncertainty Quantification. Uncertain parameters (time preference, damages, carbon cycle) become extra inputs of the DEQN, so one network solves the model for all of them at once; a Gaussian-process surrogate then gives the distribution of the SCC and its Sobol indices, checked against the closed form. |
 
 See the README in each directory for how to run it.
 
@@ -33,5 +34,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## References
 
 Azinovic, M., Gaegauf, L., & Scheidegger, S. (2022). Deep Equilibrium Nets. International Economic Review, 63(4), 1471–1525.
+
+Friedl, A., Kübler, F., Scheidegger, S., & Usui, T. (2023). Deep Uncertainty Quantification: With an Application to Integrated Assessment Models. Working paper.
 
 Traeger, C. P. (2023). ACE—Analytic Climate Economy. American Economic Journal. Economic Policy, 15(3), 372–406.
