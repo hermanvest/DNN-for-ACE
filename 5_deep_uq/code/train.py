@@ -22,15 +22,15 @@ def main() -> None:
     parser.add_argument("--iterations", type=int, default=None)
     parser.add_argument("--out", default=os.path.join(HERE, "..", "results", "runs"))
     parser.add_argument("--tag", default="")
-    parser.add_argument("--no-discount-weighting", action="store_true", help="Ablation: equal weights")
+    parser.add_argument("--discount-weighting", action="store_true", help="Ablation: weight recursive conditions by 1/(1-beta)")
     args = parser.parse_args()
 
     with open(os.path.join(HERE, "configs", f"ace_dice_{args.version}.yaml")) as f:
         config = yaml.safe_load(f)
     if args.iterations:
         config["training"]["iterations"] = args.iterations
-    if args.no_discount_weighting:
-        config["training"]["discount_weighting"] = False
+    if args.discount_weighting:
+        config["training"]["discount_weighting"] = True
 
     tf.random.set_seed(config["network"]["seed"])
     model = AceDiceUQ(config)

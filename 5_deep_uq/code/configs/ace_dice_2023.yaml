@@ -93,4 +93,4 @@ training:
   clipnorm: 1.0
   validation_draws: 16              # Fixed parameter draws for selecting the best weights
   validate_every: 25
-  discount_weighting: true          # Weight recursive conditions by 1 / (1 - beta)
+  discount_weighting: false         # Ablation: weight recursive conditions by 1 / (1 - beta)

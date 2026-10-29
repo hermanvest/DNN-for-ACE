@@ -316,7 +316,7 @@ def write_tables(solved, accuracies, baseline, uq, ablation):
     pd.DataFrame(rows).to_csv(os.path.join(RESULTS, "tables", "accuracy.csv"), index=False)
 
     rows = []
-    for label, d in [("discount weighting", accuracies["2016"]), ("equal weights", ablation)]:
+    for label, d in [("equal weights", accuracies["2016"]), ("discount weighting", ablation)]:
         low = d["prtp"] <= 0.01
         rows.append(
             {
@@ -370,12 +370,12 @@ def main() -> None:
         uq[version] = quantify(s)
         print(f"DICE {version} done", flush=True)
 
-    # Ablation: DICE 2016 trained with equal weights on all conditions
-    unweighted = Solved("2016", "_unweighted")
-    test = unweighted.model.low + (unweighted.model.high - unweighted.model.low) * qmc.Sobol(3, seed=7).random(TEST_DRAWS)
-    ablation, _, _ = accuracy(unweighted, test)
+    # Ablation: DICE 2016 trained with the recursive conditions weighted by 1 / (1 - beta)
+    weighted = Solved("2016", "_weighted")
+    test = weighted.model.low + (weighted.model.high - weighted.model.low) * qmc.Sobol(3, seed=7).random(TEST_DRAWS)
+    ablation, _, _ = accuracy(weighted, test)
     os.makedirs(os.path.join(RESULTS, "csv"), exist_ok=True)
-    ablation.to_csv(os.path.join(RESULTS, "csv", "test_draws_dice2016_unweighted.csv"), index=False)
+    ablation.to_csv(os.path.join(RESULTS, "csv", "test_draws_dice2016_weighted.csv"), index=False)
 
     write_tables(solved, accuracies, baseline, uq, ablation)
     figure_slices(solved)
