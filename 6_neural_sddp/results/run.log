@@ -1,0 +1,66 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793808871.645158    3002 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1793808871.711381    3002 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI AVX512_BF16 AVX512_FP16 AVX_VNNI AMX_TILE AMX_INT8 AMX_BF16 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793808873.125441    3002 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+DICE 2016: training SDDP done in 90 s
+DICE 2016: network trained in 672 s, loss 1.89e-03
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+DICE 2016: test draws done
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+DICE 2016: done {"train_sddp_seconds": 90.03858971595764, "train_network_seconds": 671.8452823162079, "test_sddp_seconds": 166.69544458389282, "predict_seconds_per_draw": 0.007271907292306423}
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+DICE 2023: training SDDP done in 88 s
+DICE 2023: network trained in 674 s, loss 1.74e-03
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+DICE 2023: test draws done
+/home/user/DNN-for-ACE/6_neural_sddp/code/ace_sddp/stage.py:93: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  self.problem.solve(solver=cp.CLARABEL)
+DICE 2023: done {"train_sddp_seconds": 87.73383903503418, "train_network_seconds": 674.2387006282806, "test_sddp_seconds": 179.92993688583374, "predict_seconds_per_draw": 0.007702508941292763}

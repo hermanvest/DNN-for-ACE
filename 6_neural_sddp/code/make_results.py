@@ -113,7 +113,7 @@ def figure_accuracy(all_data: dict) -> None:
         if d["deqn"] is not None:
             ax.scatter(rho, 100 * d["deqn"]["scc_mean_rel_err"], s=8, color=COLOR_DEQN, alpha=0.7, label="pseudo-state DEQN (part 5)")
         ax.set_yscale("log")
-        ax.set_title(f"ACE-DICE {version}: SCC error along the path to 2300")
+        ax.set_title(f"ACE-DICE {version}: SCC error to 2300")
         ax.set_xlabel("Pure rate of time preference ρ (% per year)")
     axes[0].set_ylabel("Mean relative SCC error (%)")
     handles, labels = axes[0].get_legend_handles_labels()
