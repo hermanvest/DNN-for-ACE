@@ -35,3 +35,6 @@ __pycache__/
 6_neural_sddp/paper/*.out
 6_neural_sddp/paper/*.run.xml
 6_neural_sddp/paper/main.pdf
+
+# Lean build output and dependencies
+6_neural_sddp/lean/.lake/
