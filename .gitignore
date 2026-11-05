@@ -25,3 +25,13 @@ __pycache__/
 3_actor_critic/paper/*.out
 3_actor_critic/paper/*.run.xml
 3_actor_critic/paper/main.pdf
+6_neural_sddp/paper/*.aux
+6_neural_sddp/paper/*.log
+6_neural_sddp/paper/*.bbl
+6_neural_sddp/paper/*.bcf
+6_neural_sddp/paper/*.blg
+6_neural_sddp/paper/*.fdb_latexmk
+6_neural_sddp/paper/*.fls
+6_neural_sddp/paper/*.out
+6_neural_sddp/paper/*.run.xml
+6_neural_sddp/paper/main.pdf

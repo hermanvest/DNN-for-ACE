@@ -1,0 +1,97 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Stage problems}
+
+Let $\mathcal{C}_{t+1}$ be a set of cuts $(\alpha_j, \bm{b}_j)$ with $V_{t+1}(\bm{s}) \le \alpha_j + \bm{b}_j^\top\bm{s}$. Writing $\bm{f}_t(\bm{s}, x, \mu)$ for the laws of motion \eqref{eq:k}--\eqref{eq:tau}, the stage problem at state $\bm{s}$ is
+\begin{equation}
+\begin{aligned}
+    \hat V_t(\bm{s}) = \max_{x, \mu, \theta}\quad & \log x + g_t(\bm{s}, \mu) + \beta\theta \\
+    \text{s.t.}\quad & \theta \le \alpha_j + \bm{b}_j^\top \bm{f}_t(\bm{s}, x, \mu), \qquad j \in \mathcal{C}_{t+1}, \\
+    & \underline{x} \le x \le \overline{x}, \quad 0 \le \mu \le 1 .
+\end{aligned}
+\tag{P$_t$}
+\label{eq:stage}
+\end{equation}
+
+\begin{proposition}[Convexity]
+\label{prop:convex}
+If every cut has $b_{j,k} \ge 0$, problem \eqref{eq:stage} is a convex program.
+\end{proposition}
+
+\begin{proof}
+Since $\theta_2 > 1$, $\mu^{\theta_2}$ is convex on $[0,1]$, so $\log(1 - \theta_{1,t}\mu^{\theta_2})$ is concave, and with $\log x$ and $\log(1-x)$ the objective and next capital \eqref{eq:k} are concave in $(x, \mu)$. Next carbon \eqref{eq:M} is affine in $\mu$, and next temperatures \eqref{eq:tau} do not depend on the decisions. The right-hand side of each cut constraint is therefore concave when $b_{j,k} \ge 0$, and the feasible set $\{\theta \le \text{concave}\}$ is convex.
+\end{proof}
+
+The condition $b_{j,k} \ge 0$ says that capital is valuable; it holds for every cut SDDP computes, and I enforce it for predicted cuts. I implement \eqref{eq:stage} once in CVXPY \parencite{DiamondBoyd2016} in disciplined parametrised form \parencite{Agrawal2019DPP}, introducing auxiliary variables $w \le \log(1-\theta_{1,t}\mu^{\theta_2})$ and $z \le w + \log(1-x)$ so that the cut slopes on capital multiply a variable rather than an expression with parameters. The problem is then re-solved with new parameters for every stage, state and cut set, with the interior-point solver Clarabel \parencite{GoulartChen2024Clarabel}.
+
+\subsection{Cuts from duals}
+
+\begin{proposition}[Cut gradient]
+\label{prop:gradient}
+Let $\pi_j \ge 0$ be the multipliers of the cut constraints at a solution of \eqref{eq:stage}; they satisfy $\sum_j \pi_j = \beta$. Define $w_k = \sum_j \pi_j b_{j,k}$, $\bm{w}_M = \sum_j \pi_j \bm{b}_{j,M}$ and $\bm{w}_\tau = \sum_j \pi_j \bm{b}_{j,\tau}$. Then
+\begin{align}
+    \frac{\partial \hat V_t}{\partial k} &= \kappa\,(1 + w_k), \\
+    \frac{\partial \hat V_t}{\partial \bm{M}} &= \bm{\Phi}^\top \bm{w}_M + \frac{\sigma^{\text{forc}}}{M_{\text{pre}}}\, w_{\tau_1}\, \bm{e}_1, \\
+    \frac{\partial \hat V_t}{\partial \bm{\tau}} &= \bm{\sigma}^\top \bm{w}_\tau - \xi_0\,(1 + w_k)\,\bm{e}_1 .
+\end{align}
+\end{proposition}
+
+\begin{proof}
+Stationarity of the Lagrangian in $\theta$ gives $\sum_j \pi_j = \beta$. The state enters \eqref{eq:stage} only through $g_t$ and $\bm{f}_t$, so by the envelope theorem $\nabla_{\bm{s}} \hat V_t = \nabla_{\bm{s}} g_t + \sum_j \pi_j\, \bm{J}_t^\top \bm{b}_j$, where $\bm{J}_t$ is the Jacobian of $\bm{f}_t$ with respect to the state: $\partial k_{t+1}/\partial k_t = \kappa$, $\partial k_{t+1}/\partial \tau_{1,t} = -\xi_0$, $\partial \bm{M}_{t+1}/\partial \bm{M}_t = \bm{\Phi}$, $\partial \tau_{1,t+1}/\partial M_{1,t} = \sigma^{\text{forc}}/M_{\text{pre}}$ and $\partial \bm{\tau}_{t+1}/\partial\bm{\tau}_t = \bm{\sigma}$. Collecting terms gives the result.
+\end{proof}
+
+With $\bm{\lambda}_t = \sum_j \pi_j \bm{b}_j = (w_k, \bm{w}_M, \bm{w}_\tau)$, these are the costate equations of ACE: $\lambda_{k,t-1} = \beta\kappa(1 + \lambda_{k,t})$ and its counterparts for carbon and temperature, which deep equilibrium nets enforce as residuals. A backward pass of SDDP evaluates them from the duals of convex programs. The new cut for $V_t$ at the visited state $\bm{s}$ is $(\hat V_t(\bm{s}) - \nabla\hat V_t^\top \bm{s},\ \nabla \hat V_t)$, and the SCC in period $t$ follows from \eqref{eq:scc} with the multiplier-weighted slopes $\bm{\lambda}_t / \beta$ of the next period's cuts.
+
+\begin{proposition}[The closed form is a fixed point]
+\label{prop:fixed}
+If $\mathcal{C}_{t+1}$ consists of the single cut $(\alpha, \bm{b})$ with $\bm{b}$ from \eqref{eq:bk}--\eqref{eq:bM} and any $\alpha$, then \eqref{eq:stage} is solved by $x = 1 - \beta\kappa$ and the abatement rate $\mu^*_t$ of \eqref{eq:mu}, at every state, and its gradient is $\bm{b}$.
+\end{proposition}
+
+\begin{proof}
+With one cut, $\pi = \beta$ and $\bm{\lambda}_t = \beta\bm{b}$. The first-order condition for $x$ is $1/x = \beta b_k/(1-x)$, so $x = 1/(1+\beta b_k) = 1 - \beta\kappa$; the condition for $\mu$ is \eqref{eq:mu}. Neither depends on the state. By Proposition~\ref{prop:gradient}, $\partial \hat V_t/\partial k = \kappa(1 + \beta b_k) = b_k$ by \eqref{eq:bk}; $\partial \hat V_t/\partial \bm{\tau} = \beta\bm{\sigma}^\top\bm{b}_\tau - \xi_0(1+\beta b_k)\bm{e}_1 = \bm{b}_\tau$ by \eqref{eq:btau}; and $\partial \hat V_t/\partial \bm{M} = \beta\bm{\Phi}^\top\bm{b}_M + \beta(\sigma^{\text{forc}}/M_{\text{pre}}) b_{\tau_1}\bm{e}_1 = \bm{b}_M$ by \eqref{eq:bM}.
+\end{proof}
+
+\begin{corollary}[Two iterations]
+\label{cor:two}
+In the deterministic problem truncated after $T$ stages with $V_T = 0$, and with exact stage solutions, SDDP started from any valid upper bound converges after two forward passes and one backward pass.
+\end{corollary}
+
+\begin{proof}
+By the argument of Proposition~\ref{prop:fixed}, if $V_{t+1}$ is affine, the optimal decisions at stage $t$ do not depend on the state, and since the reward and the laws of motion are affine in the state for given decisions, $V_t$ is affine too. Starting from $V_T = 0$, every $V_t$ is affine, so the first backward pass, which proceeds from the last stage to the first, computes at each stage a cut that equals $V_t$ everywhere, whatever state it was computed at. The second forward pass then follows the optimal policy, and the cut at stage 0 equals the value of that policy.
+\end{proof}
+
+\begin{remark}[Truncation]
+\label{rem:truncation}
+The finite-horizon slopes follow the linear recursion of Proposition~\ref{prop:gradient} backwards from zero. The slope on capital converges at the rate $\beta\kappa$ per period and the slopes on temperature at a rate below $\beta$, but the slopes on carbon converge only at the rate $\beta$: $\bm{\Phi}$ is column-stochastic, so $\bm{\Phi}^\top$ has the eigenvalue one, the mode of carbon that is never removed from the system. The error in the SCC in period $t$ therefore decays like $\beta^{T-t}$. At $\rho = 0.5\%$ a year, $\beta = 0.975$ per period and $\beta^{150 - 58} \approx 0.10$, so a horizon of 150 periods is too short for an evaluation window of 58 periods; I use $T = 450$.
+\end{remark}
+
+\subsection{SDDP}
+
+Algorithm~\ref{alg:sddp} summarises the method. Each stage starts with a provisional cut $V_{t} \le \bar V$; this cut, and any warm-start cuts, are replaced by the first cut a backward pass computes, so that only computed cuts determine the upper bound and later decisions. At most 16 cuts are kept per stage. The forward pass gives a lower bound $\underline{V}$, the value of a feasible policy; the stage-0 cuts evaluated at $\bm{s}_0$ give an upper bound $\bar V_0$; the algorithm stops when $(\bar V_0 - \underline{V})/|\underline{V}| < 10^{-7}$.
+
+\begin{algorithm}[t]
+\caption{SDDP for ACE}
+\label{alg:sddp}
+\begin{algorithmic}[1]
+\State $\mathcal{C}_t \gets \{(\bar V, \bm{0})\}$ (provisional) for $t < T$; $\mathcal{C}_T \gets \{(0, \bm{0})\}$; optionally replace $\mathcal{C}_t$ by predicted cuts for $1 \le t < T$
+\For{$i = 1, 2, \dots$}
+    \State \textbf{Forward:} $\bm{s}_0$ given; for $t = 0, \dots, T-1$: solve (P$_t$) at $\bm{s}_t$ with $\mathcal{C}_{t+1}$, $\bm{s}_{t+1} \gets \bm{f}_t(\bm{s}_t, x_t, \mu_t)$
+    \State $\underline{V} \gets \sum_t \beta^t u_t$; \quad $\bar V_0 \gets \min_{j \in \mathcal{C}_0} \alpha_j + \bm{b}_j^\top \bm{s}_0$
+    \If{$(\bar V_0 - \underline{V}) / |\underline{V}| < \epsilon$} \textbf{stop} \EndIf
+    \State \textbf{Backward:} for $t = T-1, \dots, 0$: solve (P$_t$) at $\bm{s}_t$ with $\mathcal{C}_{t+1}$; add the cut $(\hat V_t - \nabla\hat V_t^\top\bm{s}_t, \nabla\hat V_t)$ to $\mathcal{C}_t$, replacing provisional cuts
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Shocks.} To test the stochastic machinery, log productivity receives an i.i.d.\ shock $\varepsilon_t \sim \mathcal{N}(0, 0.03^2)$, observed before the decisions of period $t$. The backward pass then averages the values and gradients of \eqref{eq:stage} over five Gauss--Hermite nodes, the exact expectation for a polynomial of degree up to nine in the shock, and the forward pass samples the shocks. The shock enters $g_t$ additively, so it shifts the value function but not its slopes: the optimal policy is the same as without it.
+
+\subsection{Neural SDDP}
+
+The cut network $h_\omega(\bm{p}, t)$ maps an instance and a stage to a cut $(\hat\alpha_t, \hat{\bm{b}}_t)$. The slopes have fixed signs (capital is valuable, carbon and temperature are harmful) and span several orders of magnitude, from about 0.4 for capital to $10^{-8}$ for deep-ocean carbon, so the network predicts $\log|\bm{b}|$ and the intercept, each standardised over the training set. The error is then relative, the same for a low and a high SCC. The inputs are the parameters, scaled to $[-1, 1]$, and the stage. Unlike \textcite{Dai2022NeuralSDDP}, who predict several cuts in a learned low-dimensional space, I predict one cut per stage in the original state: ACE's value function is affine, and its state has only six dimensions.
+
+The network is trained by supervised learning on the final cuts of SDDP solutions for training draws of $\bm{p}$, with a mean squared error. For a new instance it is used in two ways:
+\begin{itemize}
+    \item \textbf{No iterations:} one forward pass of Algorithm~\ref{alg:sddp} with the predicted cuts gives a policy, the SCC along the path and its value;
+    \item \textbf{Warm start:} the predicted cuts replace the provisional cuts, and SDDP runs to convergence.
+\end{itemize}

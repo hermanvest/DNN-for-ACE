@@ -24,7 +24,7 @@ own code, results and README, and later extensions get the next number.
 | 3 | [`3_actor_critic/`](3_actor_critic/) | An extension: a model-based actor-critic that learns ACE from the reward alone, without hand-derived equilibrium conditions, with its own paper ([PDF](3_actor_critic/paper/paper.pdf)). |
 | 4 | [`4_grpo/`](4_grpo/) | An extension: Group Relative Policy Optimization (GRPO), a model-free method without a critic, on the same benchmark, compared with the actor-critic and the DEQN. |
 | 5 | [`5_deep_uq/`](5_deep_uq/) | An extension: Deep Uncertainty Quantification. Uncertain parameters (time preference, damages, carbon cycle) become extra inputs of the DEQN, so one network solves the model for all of them at once; a Gaussian-process surrogate then gives the distribution of the SCC and its Sobol indices, checked against the closed form. |
-| 6 | [`6_neural_sddp/`](6_neural_sddp/) | An extension: stochastic dual dynamic programming (SDDP), which approximates the value function by cutting planes whose slopes are ACE's costates, and neural SDDP (Dai et al., 2021), where a network trained on SDDP solutions predicts the cuts for new parameter values. Compared with the closed form and with part 5. |
+| 6 | [`6_neural_sddp/`](6_neural_sddp/) | An extension: stochastic dual dynamic programming (SDDP), which approximates the value function by cutting planes whose slopes are ACE's costates, and neural SDDP (Dai et al., 2021), where a network trained on SDDP solutions predicts the cuts for new parameter values. Compared with the closed form and with part 5, with a draft paper ([PDF](6_neural_sddp/paper/paper.pdf)). |
 
 See the README in each directory for how to run it.
 

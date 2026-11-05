@@ -6,6 +6,8 @@ parameter values. Both are checked against the closed form, and neural SDDP is c
 pseudo-state DEQN of part 5 on the same test draws. This directory is self-contained: it has its own
 copy of the model, its own code, results and tests, and does not import from parts 1–5.
 
+A draft paper on these results is in [`paper/`](paper/) ([PDF](paper/paper.pdf)).
+
 ## Idea
 
 **SDDP.** Write ACE as a sequence of stage problems. In period t, choose the consumption rate x and
@@ -99,9 +101,11 @@ policy does not change.
   exogenous path. With emissions tied to capital, or with tipping points and thresholds, the value
   function is no longer concave, and cuts are no longer valid bounds. SDDP then becomes a heuristic,
   and neural SDDP inherits that.
-- **Horizon.** The value after the last stage is set to zero. At a time preference of 0.5% a year,
-  450 periods (2,250 years) are needed for this truncation not to matter before 2300; 150 periods left
-  SCC errors of up to 0.6%.
+- **Horizon.** The value after the last stage is set to zero. Carbon's shadow price converges
+  only at the rate β per period, because the carbon cycle conserves mass, so the horizon has to be long
+  at a low discount rate. At a time preference of 0.5% a year, with damages doubled, 150 periods
+  (750 years) leave a mean SCC error of 4% (up to 8%) before 2300; 450 periods bring it to 0.002%
+  (`code/truncation.py`, `results/tables/truncation.csv`).
 - **Where neural SDDP should pay off.** Its warm start helps when value functions are curved and need
   many cuts, for example with uncertainty about a tipping point. In that case there is no closed form,
   and the methods here, checked against ACE, become the benchmark.
@@ -121,7 +125,9 @@ policy does not change.
 │   ├── configs/            Model, parameter ranges, SDDP and network settings
 │   ├── tests/              The closed-form cut is a fixed point; SDDP matches the closed form
 │   ├── run.py              Every experiment (about 20 minutes per version on four cores)
+│   ├── truncation.py       SCC error for horizons of 100 to 450 periods
 │   └── make_results.py     Figures and tables
+├── paper/                  Draft paper: LaTeX sources and the compiled PDF
 └── results/                Figures, tables, per-draw results, the trained networks and logs
 ```
 
@@ -132,6 +138,7 @@ cd 6_neural_sddp/code
 python -m pytest
 python run.py
 python make_results.py
+python truncation.py
 ```
 
 Requires cvxpy (with the Clarabel solver) in addition to the packages of part 2. `make_results.py`
