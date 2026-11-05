@@ -7,6 +7,8 @@ pseudo-state DEQN of part 5 on the same test draws. This directory is self-conta
 copy of the model, its own code, results and tests, and does not import from parts 1–5.
 
 A draft paper on these results is in [`paper/`](paper/) ([PDF](paper/paper.pdf)).
+The convexity properties SDDP relies on, among them the concavity of every value function, are
+proved formally in Lean in [`lean/`](lean/).
 
 ## Idea
 
@@ -127,6 +129,7 @@ policy does not change.
 │   ├── run.py              Every experiment (about 20 minutes per version on four cores)
 │   ├── truncation.py       SCC error for horizons of 100 to 450 periods
 │   └── make_results.py     Figures and tables
+├── lean/                   Lean proofs: convex stage problems, concave value functions, closed-form facts
 ├── paper/                  Draft paper: LaTeX sources and the compiled PDF
 └── results/                Figures, tables, per-draw results, the trained networks and logs
 ```

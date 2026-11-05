@@ -74,14 +74,14 @@ theorem log_abatement_concave {θ₁ θ₂ : ℝ} (hθ₁ : 0 ≤ θ₁) (hθ₁
 /-- Log consumption share, `log x`, is concave on `[x_lo, x_hi]` with `0 < x_lo`. -/
 theorem log_consumption_concave {x_lo x_hi : ℝ} (hlo : 0 < x_lo) :
     ConcaveOn ℝ (Icc x_lo x_hi) log :=
-  strictConcaveOn_log_Ioi.concaveOn.subset (fun x hx => mem_Ioi.mpr (lt_of_lt_of_le hlo hx.1))
+  strictConcaveOn_log_Ioi.concaveOn.subset (fun _ hx => mem_Ioi.mpr (lt_of_lt_of_le hlo hx.1))
     (convex_Icc x_lo x_hi)
 
 /-- Log investment share, `log(1 - x)`, is concave on `[x_lo, x_hi]` with `x_hi < 1`. -/
 theorem log_investment_concave {x_lo x_hi : ℝ} (hhi : x_hi < 1) :
     ConcaveOn ℝ (Icc x_lo x_hi) (fun x : ℝ => log (1 - x)) := by
   have haff : ConcaveOn ℝ (Icc x_lo x_hi) (fun x : ℝ => 1 - x) := by
-    refine ⟨convex_Icc x_lo x_hi, fun x _ y _ a b _ _ hab => ?_⟩
+    refine ⟨convex_Icc x_lo x_hi, fun _ _ _ _ a b _ _ hab => ?_⟩
     simp only [smul_eq_mul]
     nlinarith [hab]
   exact concaveOn_log_comp haff (fun x hx => by linarith [hx.2])
@@ -132,7 +132,7 @@ theorem cutBound_concave (hθ₁ : 0 ≤ θ₁) (hθ₁' : θ₁ < 1) (hθ₂ : 
   have hk := (nextCapital_concave (x_lo := x_lo) hθ₁ hθ₁' hθ₂ hhi c).smul hb
   have hlin : ConcaveOn ℝ (decisions x_lo x_hi) (fun a : ℝ × ℝ => α + b_μ * a.2) := by
     refine ⟨decisions_convex x_lo x_hi, fun p _ q _ a b _ _ hab => ?_⟩
-    simp only [smul_eq_mul, Prod.fst_add, Prod.snd_add, Prod.smul_snd]
+    simp only [smul_eq_mul, Prod.snd_add, Prod.smul_snd]
     have : α = a * α + b * α := by rw [← add_mul, hab, one_mul]
     nlinarith [this]
   have := hk.add hlin
@@ -151,7 +151,7 @@ theorem stage_feasible_convex (hθ₁ : 0 ≤ θ₁) (hθ₁' : θ₁ < 1) (hθ�
   convex_iInter fun j => (cutBound_concave hθ₁ hθ₁' hθ₂ hhi c (α j) (b_μ j) (hb j)).convex_hypograph
 
 theorem stage_objective_concave (hθ₁ : 0 ≤ θ₁) (hθ₁' : θ₁ < 1) (hθ₂ : 1 ≤ θ₂) (hlo : 0 < x_lo)
-    (c : ℝ) {β : ℝ} (hβ : 0 ≤ β) :
+    (c β : ℝ) :
     ConcaveOn ℝ (decisions x_lo x_hi ×ˢ univ) (fun p : (ℝ × ℝ) × ℝ => reward θ₁ θ₂ c p.1 + β * p.2) := by
   have hr := reward_concave (x_hi := x_hi) hθ₁ hθ₁' hθ₂ hlo c
   refine ⟨(decisions_convex x_lo x_hi).prod convex_univ, fun p hp q hq a b ha hb hab => ?_⟩

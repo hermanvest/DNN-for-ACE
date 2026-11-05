@@ -19,6 +19,8 @@ with `R` and `K` concave on `D` (see `Concavity.lean`), `κ ≥ 0`, `ℓ` and `P
 linear laws of motion in which abatement enters linearly.
 -/
 import Mathlib.Analysis.Convex.Function
+import Mathlib.Basic.Real.Basic
+import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Module
 
 open Set
@@ -158,6 +160,7 @@ theorem bellman_concave {D : Set (ℝ × ℝ)} (hD : Convex ℝ D) {h : (ℝ × 
   rw [← hw₁, ← hw₂]
   exact hconc.trans ((hW _).2 ⟨_, hmem, rfl⟩)
 
+omit [AddCommGroup E] [Module ℝ E] in
 /-- Maximising a function that is nondecreasing in capital gives a function nondecreasing in
 capital. -/
 theorem bellman_monotone {D : Set (ℝ × ℝ)} {h : (ℝ × E) × (ℝ × ℝ) → ℝ}

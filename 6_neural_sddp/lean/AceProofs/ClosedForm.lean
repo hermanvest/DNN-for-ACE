@@ -12,6 +12,7 @@
   carbon's shadow price converges only at the rate of discounting (paper, Remark 1).
 -/
 import Mathlib.Data.Matrix.Mul
+import Mathlib.Basic.Real.Basic
 import Mathlib.Data.Fin.VecNotation
 import Mathlib.LinearAlgebra.Matrix.Notation
 import Mathlib.Tactic.FieldSimp
@@ -28,6 +29,7 @@ namespace Ace
 theorem capital_slope_fixed (β κ : ℝ) (h : β * κ ≠ 1) :
     κ * (1 + β * (κ / (1 - β * κ))) = κ / (1 - β * κ) := by
   have h' : 1 - β * κ ≠ 0 := sub_ne_zero.mpr (Ne.symm h)
+  have h'' : 1 - κ * β ≠ 0 := by rw [mul_comm]; exact h'
   field_simp
   ring
 
@@ -35,6 +37,7 @@ theorem capital_slope_fixed (β κ : ℝ) (h : β * κ ≠ 1) :
 theorem consumption_rate (β κ : ℝ) (h : β * κ ≠ 1) :
     1 / (1 + β * (κ / (1 - β * κ))) = 1 - β * κ := by
   have h' : 1 - β * κ ≠ 0 := sub_ne_zero.mpr (Ne.symm h)
+  have h'' : 1 - κ * β ≠ 0 := by rw [mul_comm]; exact h'
   field_simp
   ring
 
@@ -44,6 +47,7 @@ theorem capital_slope_truncated (β κ : ℝ) (h : β * κ ≠ 1) (b : ℕ → �
     (hrec : ∀ n, b (n + 1) = κ * (1 + β * b n)) :
     ∀ n, b n = (1 - (β * κ) ^ n) * (κ / (1 - β * κ)) := by
   have h' : 1 - β * κ ≠ 0 := sub_ne_zero.mpr (Ne.symm h)
+  have h'' : 1 - κ * β ≠ 0 := by rw [mul_comm]; exact h'
   intro n
   induction n with
   | zero => simp [h₀]
@@ -64,7 +68,7 @@ def carbonMatrix (ξ₀ ξ₁ ξ₂ ξ₃ ω : ℝ) : Matrix (Fin 3) (Fin 3) ℝ
 /-- **The carbon cycle conserves carbon:** every column of the transition matrix sums to one. -/
 theorem carbon_columns_sum (ξ₀ ξ₁ ξ₂ ξ₃ ω : ℝ) (j : Fin 3) :
     ∑ i, carbonMatrix ξ₀ ξ₁ ξ₂ ξ₃ ω i j = 1 := by
-  fin_cases j <;> simp [carbonMatrix, Fin.sum_univ_three] <;> ring
+  fin_cases j <;> simp [carbonMatrix, Fin.sum_univ_three]
 
 /-- Hence the transpose maps the vector of ones to itself: one is an eigenvalue of `Φᵀ`. -/
 theorem carbon_transpose_ones (ξ₀ ξ₁ ξ₂ ξ₃ ω : ℝ) :
