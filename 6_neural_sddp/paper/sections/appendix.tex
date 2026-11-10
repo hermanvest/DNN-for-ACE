@@ -1,0 +1,31 @@
+\section{Formal Verification in Lean}
+\label{app:lean}
+
+The convexity properties on which SDDP's guarantees rest, and the closed-form facts used in Section~\ref{sec:method}, are proved formally in Lean~4 with Mathlib (version 4.35.0), in the directory \texttt{6\_neural\_sddp/lean/} of the repository. The proofs compile without unproved steps and depend only on Lean's standard axioms (propositional extensionality, choice and quotient soundness). Table~\ref{tab:lean} lists the main theorems.
+
+\begin{table}[h]
+\centering
+\caption{Theorems proved in Lean.}
+\label{tab:lean}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{lll}
+\toprule
+Statement & Lean theorem & File \\
+\midrule
+$\log(1-\theta_1\mu^{\theta_2})$ is concave on $[0,1]$ for $0 \le \theta_1 < 1 \le \theta_2$ & \texttt{log\_abatement\_concave} & \texttt{Concavity.lean} \\
+The reward and next capital are concave in $(x, \mu)$ & \texttt{reward\_concave}, \texttt{nextCapital\_concave} & \texttt{Concavity.lean} \\
+Proposition~\ref{prop:convex}: convex feasible set, concave objective & \texttt{stage\_feasible\_convex}, \texttt{stage\_objective\_concave} & \texttt{Concavity.lean} \\
+The stage objective is jointly concave in state and decisions & \texttt{Stage.objective\_concave} & \texttt{Bellman.lean} \\
+Maximisation preserves concavity and monotonicity in capital & \texttt{bellman\_concave}, \texttt{bellman\_monotone} & \texttt{Bellman.lean} \\
+Every value function is concave and nondecreasing in capital & \texttt{value\_concave} & \texttt{Bellman.lean} \\
+Proposition~\ref{prop:fixed}, capital: fixed point and $x^* = 1 - \beta\kappa$ & \texttt{capital\_slope\_fixed}, \texttt{consumption\_rate} & \texttt{ClosedForm.lean} \\
+Truncated capital slope $= (1 - (\beta\kappa)^n)\, b_k$ & \texttt{capital\_slope\_truncated} & \texttt{ClosedForm.lean} \\
+Remark~\ref{rem:truncation}: $\bm{\Phi}$ conserves carbon; $(\beta\bm{\Phi}^\top)^n \bm{1} = \beta^n \bm{1}$ & \texttt{carbon\_columns\_sum}, \texttt{carbon\_recursion\_ones} & \texttt{ClosedForm.lean} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Representation.} The state is $(k, \bm{m})$, with log capital $k$ and the carbon stocks and temperatures $\bm{m}$ in an arbitrary real vector space. A stage has reward $R(x,\mu) + \kappa k + \ell(\bm{m}) + c$, next capital $K(x,\mu) + \kappa k + \ell(\bm{m}) + c'$ and next $\bm{m} = \bm{P}\bm{m} + \mu \bm{q} + \bm{q}_0$, with $\ell$ and $\bm{P}$ linear, $\kappa \ge 0$ and $\beta \ge 0$; this is ACE with business-as-usual emissions on an exogenous path. The value-function theorem holds for any $R$ and $K$ that are concave on a convex decision set; \texttt{Concavity.lean} shows that ACE's are. The value function of each stage is defined as the maximum of the stage objective, which is assumed to be attained; in ACE this holds because the decision set is compact and the objective continuous on it.
+
+\paragraph{What is not formalised.} The cut gradient of Proposition~\ref{prop:gradient}, which rests on Lagrangian duality and the envelope theorem, the two-iteration convergence of Corollary~\ref{cor:two}, and all numerical results.

@@ -1,0 +1,12 @@
+\section{Experimental Setup}
+\label{sec:setup}
+
+\paragraph{Instances.} For each calibration, DICE 2016 and DICE 2023, the training set consists of 128 instances and the test set of 256, drawn as scrambled Sobol sequences over the parameter box of Section~\ref{sec:model} with different seeds. The test draws are the same points as those used to evaluate the pseudo-state deep equilibrium net in this series, so the two methods are compared on identical instances.
+
+\paragraph{SDDP.} The horizon is $T = 450$ periods; the evaluation window is the first 58 periods, up to about 2300. The consumption rate is bounded to $[0.2, 0.98]$, which never binds at the optimum, the provisional bound is $\bar V = 1000$, and the tolerance is $\epsilon = 10^{-7}$. A stage problem takes one to two milliseconds including Python overhead. Instances are solved in parallel in four processes on four CPU cores; the reported times per instance are the times within one process.
+
+\paragraph{Cut network.} The network has three hidden layers of 128 units with swish activations and is trained with Adam \parencite{kingma2017adam} for 2{,}000 epochs, with batches of 1{,}024 and a learning rate decaying from $10^{-3}$ to $10^{-5}$ on a cosine schedule. Its training set has 57{,}600 rows: 450 stages for each of the 128 training instances. One seed is used per calibration.
+
+\paragraph{Pseudo-state deep equilibrium net.} The comparison is the deep equilibrium net of the companion module on deep uncertainty quantification: a network with two hidden layers of 512 units that takes the state and the three parameters as inputs and is trained for 6{,}000 iterations on the corrected equilibrium conditions of ACE over the same parameter box. Its benchmark lets business-as-usual emissions move with capital in the laws of motion, while the planner takes them as given; the two benchmarks therefore differ slightly, but relative errors against each method's own closed form are comparable.
+
+\paragraph{Metrics.} For every test instance I report, over the evaluation window, the mean relative error of the SCC along the path, the relative error of the SCC in the first period, the mean and maximum absolute errors of the abatement rate, the maximum absolute error of the consumption rate, and the consumption-equivalent welfare loss over the whole horizon, $\exp[(V^* - V)(1-\beta)] - 1$. Medians and maxima are taken over the 256 test instances.

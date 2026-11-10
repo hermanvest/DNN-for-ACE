@@ -1,0 +1,41 @@
+\section{The Analytic Climate Economy}
+\label{sec:model}
+
+I use ACE \parencite{TraegerChristian2023ACE} with the DICE production function, carbon cycle and two-layer temperature model, in the calibrations of DICE 2016 \parencite{NordhausWilliam2018PaUa} and DICE 2023 \parencite{NordhausWilliam2023}, following \textcite{traeger2021analytic_discussion}. Time is discrete, with periods of $\Delta = 5$ years.
+
+\paragraph{States, decisions and reward.} The state is $\bm{s}_t = (k_t, \bm{M}_t, \bm{\tau}_t) \in \mathbb{R}^6$, where $k_t = \log K_t$ is log capital, $\bm{M}_t \in \mathbb{R}^3$ are the carbon stocks in the atmosphere, upper ocean and deep ocean (GtC), and $\bm{\tau}_t \in \mathbb{R}^2$ are transformed atmospheric and ocean temperatures, $\tau_{i,t} = \exp(\xi_1 T_{i,t})$. In each period the planner chooses the consumption rate $x_t \in (0, 1)$ and the abatement rate $\mu_t \in [0, 1]$. Log output net of abatement costs and damages is
+\begin{equation}
+    g_t(\bm{s}_t, \mu_t) = \log A_t + (1-\kappa)\log N_t + \kappa k_t + \log\left(1 - \theta_{1,t}\mu_t^{\theta_2}\right) - \xi_0 \tau_{1,t} + \xi_0,
+    \label{eq:g}
+\end{equation}
+with exogenous productivity $A_t$, labour $N_t$ and abatement-cost coefficients $\theta_{1,t}$ from DICE, and $\theta_2 = 2.6$. The reward is log consumption, $u_t = \log x_t + g_t(\bm{s}_t, \mu_t)$, and the planner maximises $\sum_t \beta^t u_t$ with $\beta = (1+\rho)^{-\Delta}$.
+
+\paragraph{Laws of motion.} Capital, carbon and temperatures evolve as
+\begin{align}
+    k_{t+1} &= g_t(\bm{s}_t, \mu_t) + \log(1 - x_t) + c_k, \label{eq:k} \\
+    \bm{M}_{t+1} &= \bm{\Phi}\bm{M}_t + \bm{e}_1 \zeta \left[(1-\mu_t)E^{\text{BAU}}_t + E^{\text{land}}_t\right], \label{eq:M} \\
+    \bm{\tau}_{t+1} &= \bm{\sigma}\bm{\tau}_t + \bm{e}_1 \sigma^{\text{forc}} \frac{M_{1,t}}{M_{\text{pre}}}, \label{eq:tau}
+\end{align}
+where $c_k = \log[(1 + g_k\Delta)/(\delta_k + g_k)]$, emissions are measured in GtCO$_2$ per year and $\zeta = \Delta/3.664$ converts them into GtC per period. The carbon transition matrix $\bm{\Phi}$ is column-stochastic: it moves carbon between reservoirs and conserves it.
+
+\paragraph{Business-as-usual emissions.} In DICE, business-as-usual emissions are proportional to gross output, $E^{\text{BAU}}_t = \sigma_t Y^{\text{gross}}_t$, and so depend on capital. ACE's closed form requires the planner to take them as given. As in the actor-critic paper of this series, I fix $E^{\text{BAU}}_t$ to an exogenous reference path: carbon intensity times gross output along the optimal path at baseline parameters. The problem solved by SDDP and the problem with the closed-form solution are then the same.
+
+\paragraph{Uncertain parameters.} Three parameters vary across instances, over the box used for deep uncertainty quantification in this series: the pure rate of time preference $\rho \in [0.5\%, 3.5\%]$ per year, the damage coefficient $\xi_0 \in [0.011, 0.044]$ (half to twice its baseline), and a multiplier $\omega \in [0.75, 1.25]$ on the exchange of carbon between the atmosphere and the upper ocean, which scales the two corresponding entries of $\bm{\Phi}$ and keeps it column-stochastic. I write $\bm{p} = (\rho, \xi_0, \omega)$ for an instance.
+
+\paragraph{Closed form.} The value function is affine, $V_t(\bm{s}) = \alpha_t + \bm{b}^\top \bm{s}$, with slopes that are constant over time:
+\begin{align}
+    b_k &= \frac{\kappa}{1-\beta\kappa}, \label{eq:bk} \\
+    \bm{b}_\tau &= -\xi_0(1+\beta b_k)\left(\bm{I} - \beta\bm{\sigma}^\top\right)^{-1}\bm{e}_1, \label{eq:btau} \\
+    \bm{b}_M &= \beta\frac{\sigma^{\text{forc}}}{M_{\text{pre}}}\, b_{\tau_1}\left(\bm{I} - \beta\bm{\Phi}^\top\right)^{-1}\bm{e}_1 . \label{eq:bM}
+\end{align}
+In the notation of the deep equilibrium nets in this series, the costates are $\bm{\lambda} = \beta\bm{b}$. The optimal consumption rate is $x^* = 1/(1 + \beta b_k) = 1 - \beta\kappa$, and the optimal abatement rate equates the marginal product of emissions to the carbon price,
+\begin{equation}
+    \frac{\theta_{1,t}\theta_2 \mu_t^{\theta_2 - 1}}{E^{\text{BAU}}_t\left(1 - \theta_{1,t}\mu_t^{\theta_2}\right)} = p^C \equiv -\frac{\zeta \beta b_{M_1}}{1+\beta b_k},
+    \label{eq:mu}
+\end{equation}
+with $\mu^*_t = 1$ where the solution would exceed one. The SCC in USD per tCO$_2$ is
+\begin{equation}
+    SCC_t = 1000\, Y^{\text{net}}_t\, p^C = -1000\, Y^{\text{net}}_t\, \frac{\zeta \beta b_{M_1}}{1 + \beta b_k},
+    \label{eq:scc}
+\end{equation}
+where $Y^{\text{net}}_t = \exp(g_t)$ is net output in trillion USD.

@@ -1,0 +1,14 @@
+name = "ace_proofs"
+version = "0.1.0"
+defaultTargets = ["AceProofs"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "v4.35.0"
+
+[leanOptions]
+autoImplicit = false
+
+[[lean_lib]]
+name = "AceProofs"
